@@ -1,0 +1,7 @@
+*.o
+des
+des_opts
+destest
+libdes.a
+rpw
+speed
