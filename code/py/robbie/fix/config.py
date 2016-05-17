@@ -1,6 +1,7 @@
 '''
-TYPE    : lib
-OWNER   : ilya
+TYPE         : lib
+OWNER        : ilya
+DESCCRIPTION : [quick]FIX related configuration
 '''
 
 import os

@@ -1,6 +1,7 @@
 '''
-TYPE    : lib
-OWNER   : ilya
+TYPE        : lib
+OWNER       : ilya
+DESCRIPTION : order id generator
 '''
 
 import datetime

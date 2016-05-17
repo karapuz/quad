@@ -4,12 +4,12 @@ this module contains relations objects
 import os
 import numpy
 import threading
-import meadow.tweak.value as twkval
-import meadow.lib.config as libconf
-import meadow.tweak.context as twkcx
-import meadow.lib.winston as winston
-from   meadow.lib.logging import logger
-import meadow.lib.mmap_array as mmap_array
+import robbie.tweak.value as twkval
+import robbie.util.config as libconf
+import robbie.tweak.context as twkcx
+import robbie.util.winston as winston
+from   robbie.util.logging import logger
+import robbie.util.mmap_array as mmap_array
 
 MAXNUM = 1000000
 

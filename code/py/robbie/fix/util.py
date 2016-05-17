@@ -121,7 +121,8 @@ def split( row ):
     l = row.split('\x01')
     s = []
     for e in l:
-        if not e: continue
+        if not e:
+            continue
         p = tuple( e.split( '=' ) )
         if len(p) == 2:
             n,v = p
@@ -205,7 +206,7 @@ def create_NewOrderMsg( orderId, symbol, qty, price=None ):
     }
     
     if price:
-        bodyConfig[ Tag_Price ] = str( round( price, 2 ) )
+        bodyConfig[ Tag_Price     ] = str( round( price, 2 ) )
         bodyConfig[ Tag_OrderType ] = fix.OrdType_LIMIT
     else:
         bodyConfig[ Tag_OrderType ] = fix.OrdType_MARKET
