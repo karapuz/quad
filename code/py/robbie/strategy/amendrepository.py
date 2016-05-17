@@ -1,10 +1,13 @@
 '''
-repository of the amends to the strtegy that does not affect the model.
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : strategy.manage module
+DESCRIPTION : repository of the amends to the strtegy that does not affect the model.
 '''
 
 import os
-from   meadow.lib.logging import logger
-import meadow.strategy.util as stratutil
+from   robbie.util.logging import logger
+import robbie.strategy.util as stratutil
 
 _amends = {
     'CAPITAL_10M' : {

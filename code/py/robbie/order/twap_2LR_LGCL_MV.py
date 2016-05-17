@@ -1,5 +1,9 @@
 '''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : order.twap_2LR_LGCL_MV module
 '''
+
 import heapq
 import robbie.order.algo as orderalgo
 import robbie.order.twap_1LR_LGCL as twap

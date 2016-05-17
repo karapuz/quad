@@ -1,5 +1,8 @@
 '''
-this module contains relations objects
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : order.relation module
+DESCRIPTION : this module contains relations objects
 '''
 import os
 import numpy

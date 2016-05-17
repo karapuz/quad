@@ -1,3 +1,9 @@
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : strategy.manage module
+'''
+
 import sys
 
 import robbie.run.util as run_util

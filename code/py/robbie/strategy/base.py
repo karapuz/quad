@@ -1,9 +1,11 @@
 '''
-    strategy base
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : strategy.base module
 '''
 
-import meadow.strategy.base_trade as base_trade 
-from   meadow.lib.logging import logger 
+from   robbie.util.logging import logger
+import robbie.strategy.base_trade as base_trade
 
 class BaseStrategyMultiBlock( object ):
     
@@ -13,7 +15,7 @@ class BaseStrategyMultiBlock( object ):
     def getData( self, modelName, params, includeDivs = False ):
         ''' '''
         
-        import meadow.strategy.base_getdata as base_getdata 
+        import robbie.strategy.base_getdata as base_getdata
         scheduleNames = params['Schedule']
                 
         ret = base_getdata.sa_getMergedMultiBlock(
@@ -29,7 +31,7 @@ class BaseStrategyMultiBlock( object ):
     def specialProcessing( self, modelName, params, origData, stratSymbols ):
         ''' '''
         
-        import meadow.strategy.base_specialprocessing as base_sp 
+        import robbie.strategy.base_specialprocessing as base_sp
         
         spData = {}
         for blockName, blockVals in origData.iteritems():

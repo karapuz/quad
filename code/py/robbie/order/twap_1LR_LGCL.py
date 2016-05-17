@@ -1,4 +1,7 @@
 '''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : order.twap_1LR_LGCL module
 '''
 
 import heapq

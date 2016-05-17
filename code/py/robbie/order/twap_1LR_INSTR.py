@@ -1,5 +1,9 @@
 '''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : order.twap_1LR_INSTR module
 '''
+
 import robbie.order.twap_1LR_LGCL as twap
 
 class TWAP( twap.TWAP ):

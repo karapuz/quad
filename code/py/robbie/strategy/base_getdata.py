@@ -1,6 +1,7 @@
 '''
-    strategies
-
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : strategy.base_getdata module
 '''
 
 import numpy
@@ -8,16 +9,16 @@ import tables
 import datetime
 import functools
 
-import meadow.lib.calendar as cal
-import meadow.lib.marketdata as md
-import meadow.tweak.value as twkval
-import meadow.lib.context as context
-import meadow.timeseries.daily as mtd
-import meadow.lib.pytables as pytables
-from   meadow.lib.logging import logger
-import meadow.strategy.schedule as schedule
-import meadow.lib.environment as environment
-import meadow.lib.errorReporting as errorReporting
+import robbie.util.calendar as cal
+import robbie.util.marketdata as md
+import robbie.tweak.value as twkval
+import robbie.util.context as context
+import robbie.timeseries.daily as mtd
+import robbie.util.pytables as pytables
+from   robbie.util.logging import logger
+import robbie.strategy.schedule as schedule
+import robbie.util.environment as environment
+import robbie.util.errorReporting as errorReporting
 
 def isRealTimeBlock( blockType ):
     return blockType in ( 'Trade', 'Update', 'Mrk2Mkt' )
