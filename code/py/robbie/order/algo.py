@@ -1,8 +1,12 @@
 '''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : order.alog module
 '''
+
 import heapq
 import threading
-from   meadow.lib.logging import logger
+from   robbie.util.logging import logger
 
 def prettyPrint( instrIx, bidPriceSize, askPriceSize ):
     logger.debug( 'bid: ps=%s,%s ask ps=%s,%s' % ( 
