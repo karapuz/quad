@@ -1,5 +1,5 @@
-from   meadow.lib.logging import logger
-import meadow.order.manager as ordman
+from   robbie.lib.logging import logger
+import robbie.order.manager as ordman
 
 class ExecLink( object ):
     def __init__(self, relObj, initialExposure ):

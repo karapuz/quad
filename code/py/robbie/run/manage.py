@@ -1,9 +1,9 @@
 import sys
 
-import meadow.run.util as run_util
+import robbie.run.util as run_util
 from   optparse import OptionParser
-import meadow.tweak.value as twkval
-import meadow.lib.winston as winston
+import robbie.tweak.value as twkval
+import robbie.util.winston as winston
 
 usage = '''usage:
 

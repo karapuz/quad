@@ -246,6 +246,7 @@ canSkipOrdStatus = set((
 def vq3(data, symbols=None):
     h    = {}
     pnls = {}
+    allOrderTypes = collections.defaultdict(int)
     for d in data:
         d = dict( (tag2name[n],v) for n,v in d.iteritems() if n in tag2name )
 
@@ -273,8 +274,11 @@ def vq3(data, symbols=None):
         ordStatus = ordStatusConv(d['OrdStatus'])
         ordQty    = sign * int(d['LastShares'])
 
+        if 'OrderType' in d:
+            allOrderTypes[ orderTypeConv(d['OrderType']) ] += 1
+
         if ordStatus in canSkipOrdStatus:
-            continue
+             continue
 
         elif ordStatus in ('Calculated','Replaced'):
             continue
@@ -309,6 +313,8 @@ def vq3(data, symbols=None):
         print '%20s %12.2f %8.2f' % ( symbol,numpy.sum( pnl ), numpy.std(pnl) )
 
     print '%20s %12.2f %8.2f' % ( 'TOTAL', numpy.sum( pnls_ ), numpy.std(pnls_) )
+
+    print allOrderTypes
     return h, pnls
 
 def main():

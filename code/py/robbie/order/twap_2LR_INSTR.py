@@ -1,6 +1,6 @@
 '''
 '''
-import meadow.order.twap_2LR_LGCL as twap
+import robbie.order.twap_2LR_LGCL as twap
 
 class TWAP( twap.TWAP ):
     ''' TWAP Two Layers algorithm '''

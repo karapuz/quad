@@ -1,9 +1,9 @@
 '''
 '''
 import heapq
-import meadow.order.algo as orderalgo
-import meadow.order.twap_1LR_LGCL as twap
-from   meadow.lib.logging import logger
+import robbie.order.algo as orderalgo
+import robbie.order.twap_1LR_LGCL as twap
+from   robbie.util.logging import logger
 
 class TWAP( twap.TWAP ):
     ''' TWAP Two Layers algorithm 
