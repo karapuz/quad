@@ -1,5 +1,7 @@
 '''
-lib.mmap_array module
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.mmap_array module
 '''
 
 import os

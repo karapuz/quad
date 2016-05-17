@@ -1,5 +1,7 @@
 '''
-lib.tmp module
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.tmp module
 '''
 
 import os

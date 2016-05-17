@@ -29,7 +29,7 @@ def formOldStyleDates( oldOffset, calibDates, tradeDate, tradeDates ):
     return oldDates
 
 def run( strategyInstance, params, fullName, verbose=True ):
-    from   meadow.lib.symbChangeDB import symbDB
+    from   robbie.util.symbChangeDB import symbDB
     isDumping = False
     
     # the daily matrices are returned in a dictionary

@@ -1,5 +1,7 @@
 '''
-util.misc module
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.misc module
 '''
 
 import os

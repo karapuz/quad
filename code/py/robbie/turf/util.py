@@ -1,6 +1,7 @@
 '''
-turf.util module
-ilya presman, 2012
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : turf.util module
 '''
 
 import robbie.turf.repo as repo

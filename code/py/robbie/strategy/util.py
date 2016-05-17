@@ -4,8 +4,8 @@ import copy
 import numpy
 import itertools
 
-from   meadow.lib.logging import logger
-import meadow.feed.lib.repository as flrepository
+from   robbie.util.logging import logger
+import robbie.feed.lib.repository as flrepository
 
 def findBlock( keys, typ ):
     ''' find the block specifications '''

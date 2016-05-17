@@ -1,7 +1,7 @@
 '''
-lib.calendar module
-
-calendar utils
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.calendar module
 '''
 
 import numpy

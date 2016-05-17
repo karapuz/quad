@@ -1,3 +1,9 @@
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : tweak.util module
+'''
+
 import robbie.tweak.value as twkval
 from   robbie.util.logging import logger
 

@@ -1,4 +1,8 @@
-__author__ = 'ilya'
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.rsrcutil module
+'''
 
 '''
    'OrdStatus' == 'ExecType': {

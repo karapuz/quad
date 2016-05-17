@@ -1,5 +1,7 @@
 '''
-author: 'ilya'
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.logfile module
 '''
 
 import os

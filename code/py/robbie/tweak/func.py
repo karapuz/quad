@@ -1,4 +1,8 @@
-'''support funcs for the tweaks'''
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : tweak.func module - support functions for tweak
+'''
 
 def const( val ):
     def _const( name ):

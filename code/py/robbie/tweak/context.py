@@ -1,3 +1,9 @@
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : tweak.contenxt module
+'''
+
 import robbie.tweak.value as twval
 
 class Tweaks:

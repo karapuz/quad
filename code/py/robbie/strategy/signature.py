@@ -1,7 +1,7 @@
 '''
 '''
-import meadow.lib.cmp as libcmp
-from   meadow.lib.logging import logger
+import robbie.util.cmp as libcmp
+from   robbie.util.logging import logger
 
 _exceptions = [
     ( 'KeysDiffer',  '::key(CalibParams)' ),

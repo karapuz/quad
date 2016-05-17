@@ -1,5 +1,7 @@
 '''
-util.margot module
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.margot module
 '''
 
 import os

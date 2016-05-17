@@ -1,9 +1,9 @@
-import meadow.lib.calendar as cal
-import meadow.lib.space as libspace
+import robbie.util.calendar as cal
+import robbie.util.space as libspace
 
 def getMIDs( stratName, endDate=None ):
     ''' query strategy for MIDs '''
-    import meadow.strategy.repository as strategyrep
+    import robbie.strategy.repository as strategyrep
     strategyrep.init()
     
     endDate = endDate if endDate else cal.today()

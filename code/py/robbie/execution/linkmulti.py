@@ -1,6 +1,7 @@
 '''
-TYPE    : lib
-OWNER   : ilya
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : execution.linkmulti module
 '''
 
 import os

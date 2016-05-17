@@ -1,4 +1,8 @@
-__author__ = 'ilya'
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : util.pnlutil module
+'''
 
 def calcPnl(q,e, qtyField = 'qty', priceField = 'price'):
     '''  q = {'Buy': [], 'Sell':[] } '''

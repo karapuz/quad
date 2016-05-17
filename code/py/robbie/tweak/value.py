@@ -1,12 +1,13 @@
 '''
-tweak.value module
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : tweak.value module
 '''
 
 import robbie.util.tmp as tmplib
 import robbie.tweak.func as twfunc
 import robbie.util.compat as compat
 import robbie.util.calendar as calendar
-
 
 def getRobbieTempRoot( typ ):
     if typ == 'env_tmpRoot':

@@ -4,7 +4,7 @@ global repository
 
 import numpy
 
-import meadow.lib.environment as environment
+import robbie.util.environment as environment
 
 _strategies = {}
 _params     = {}

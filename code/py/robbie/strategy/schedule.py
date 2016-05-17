@@ -2,7 +2,7 @@
 define named schedules
 '''
 
-import meadow.lib.datetime_util as dut
+import robbie.util.datetime_util as dut
 
 _dataSourceSchedule = {
     'nxc_lasttrade_930-935' : ( ( 'nxc', 'lasttrade', '09:35' ), [  (-1, 'nxc_lasttrade_930-935'    ) ], ),

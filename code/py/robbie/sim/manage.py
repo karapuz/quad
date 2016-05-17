@@ -1,12 +1,12 @@
 import sys
 import numpy
 
-import meadow.lib.calendar as cal
+import robbie.util.calendar as cal
 from   optparse import OptionParser
-import meadow.tweak.context as twkcx
-import meadow.lib.winston as winston
-from   meadow.lib.logging import logger
-import meadow.strategy.repository_util as repo_util
+import robbie.tweak.context as twkcx
+import robbie.util.winston as winston
+from   robbie.util.logging import logger
+import robbie.strategy.repository_util as repo_util
 
 def createInitialKeysFromProd( tradeDate=20130318, opMode='sim-prod', stratName='EQ_US_CSH' ):
     calibDate   = cal.bizday(tradeDate, '-1b')
