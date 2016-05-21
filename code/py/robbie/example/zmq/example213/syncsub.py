@@ -1,6 +1,12 @@
-__author__ = 'ilya'
+'''
+AUTHOR      : ilya presman, 2016
+TYPE:       : example
+DESCRIPTION : zmq.example module
+'''
 
-# # Synchronized subscriber #
+#
+# Synchronized subscriber
+#
 
 import time
 import zmq

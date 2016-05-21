@@ -6,8 +6,8 @@ import datetime
 import threading
 import robbie.fix.util as fut
 import robbie.tweak.value as twkval
-import robbie.allocation.util as alut
-import robbie.allocation.shortlocates as shortlocates
+# import robbie.allocation.util as alut
+# import robbie.allocation.shortlocates as shortlocates
 from   robbie.util.logging import logger, ThreadedLoggerExecution, LoggerExecution
 
 '''
@@ -25,44 +25,6 @@ TagID    Value    Description
 54       5        Sell short
 
 '''
-
-def instrSpecificTags( orderType, expName, tagVal=() ):
-    # symbol, secType, execVenue = expName
-    # short locates
-    tagVal0 = ()
-    val     = shortlocates.shortLocate( expName=expName )
-    if val:
-        tagVal0 += ( ( 'SHORTLOCATETAG', val ))    
-    tagVal1 = alut.allocVenueTags( expName )
-    
-    return tagVal + tagVal0 + tagVal1
-
-def computeBSDirOCType( iExp, qty ):
-    bsdir, octype = '', ''
-    if iExp > 0:
-        if qty > 0:
-            # long position gets longer
-            tagVal = ( ( 77,  'O'), ( 54,  '1' ) )
-        else: # qty < 0:
-            # long position gets shorter
-            qty = -1*min( iExp, -qty )
-            tagVal = ( ( 77, 'C' ), ( 54, '2' ) )
-    elif iExp < 0:
-        if qty > 0:
-            # short position gets longer
-            qty = min( -iExp, qty )
-            tagVal = ( ( 77,  'C') , ( 54, '1' ) )
-        else: # qty < 0:
-            # short position gets shorter
-            tagVal = ( ( 77, 'O'), ( 54, '5' ) )
-    else: # iExp == 0:
-        if qty > 0:
-            # new buy position
-            tagVal = ( ( 77, 'O'), ( 54, '1' ) )
-        else: # qty < 0:
-            # new short position
-            tagVal = ( ( 77, 'O'), ( 54, '5' ) )
-    return bsdir, octype, qty, tagVal
 
 class OrderManager( object ):
     '''
@@ -84,6 +46,8 @@ class OrderManager( object ):
         
         self._relObj        = relObj
         self._linkObj       = linkObj
+
+        # if we start with a portfolio
         self._iExp          = initialExposure
         
         self._execTime      = execTimeFunc if execTimeFunc else datetime.datetime.now
@@ -222,14 +186,16 @@ class OrderManager( object ):
         _instrIx, expIx, orderIx, _logicalId = ixs
         
         exp0, exp1  = self._iExp[ expIx ], self._relObj.getRealizedByIx( expIx )                
-        _bsdir, _octype, nqty, tagVal = computeBSDirOCType( exp0 + exp1, qty )
+        # _bsdir, _octype, nqty, tagVal = computeBSDirOCType( exp0 + exp1, qty )
         
-        orderType='N'
-        tagVal  = instrSpecificTags( orderType=orderType, expName=expName, tagVal=tagVal )
+        # orderType='N'
+        # tagVal  = instrSpecificTags( orderType=orderType, expName=expName, tagVal=tagVal )
 
         self.reportExpNicely( exp0=exp0, exp1=exp1, qty=qty, nqty=nqty )
 
-        qtys    = ( nqty, ) * len( ixs )        
+        tagVal = None
+        nqty = qty
+        qtys = ( nqty, ) * len( ixs )
         self._relObj.addPendingByIx( ixs, qtys, verbose=False )
         logger.debug( 'mgr.new  oid=%s eix=%-5d qty=%4d nqty=%d price=%f' % ( orderIx, expIx, qty, nqty, price ), neverPrint=True )
         
@@ -237,65 +203,6 @@ class OrderManager( object ):
         
         self._ldn.trade(execType='SN', execTime=execTime, orderId=orderId, symbol=instr, qty=nqty, price=price, logicalIx=None )                
         self._linkObj.sendOrder( orderId=orderId, symbol=instr, qty=nqty, price=price, timeInForce=timeInForce, tagVal=tagVal )
-
-    def algo_sendOrderLogicalMultiVenue( self, instrIx, expIx, logicalIx, orderShare, price ):        
-        ''' algo send new for an "instrument" and "logical order" level update '''
-        
-        instr   = self._relObj.getTagByIx( instrIx )        
-        orderId = self.getOrderId( style='N', instr=instr )
-        orderIx = self._relObj.addTag( orderId )        
-        
-        ixs     = ( instrIx, expIx, logicalIx, orderIx )
-        self.setOrderId2ix( orderId, ixs )
-        
-        exp0, exp1  = self._iExp[ expIx ], self._relObj.getRealizedByIx( expIx )                
-        _bsdir, _octype, nqty, tagVal = computeBSDirOCType( exp0 + exp1, orderShare )
-
-        expName = self._relObj.getTagByIx( expIx )
-        orderType='N'
-        tagVal  = instrSpecificTags( orderType=orderType, expName=expName, tagVal=tagVal )
-        
-        logger.debug( 'mgr.alnw oid=%s loid=%s iix=%-5d eix=%-5d qty=%4d price=%f nqty=%4d expName=%s instr=%s' % 
-                    ( orderIx, logicalIx, instrIx, expIx, orderShare, price, nqty, expName, instr ), neverPrint=True )
-        
-        self.reportExpNicely( exp0=exp0, exp1=exp1, qty=orderShare, nqty=nqty )
-                
-        self._relObj.addPendingByIx( ixs, ( nqty, ) * len( ixs ), verbose=False )
-        self._linkObj.sendOrder( orderId=orderId, symbol=instr, qty=nqty, price=price, tagVal=tagVal )
-        
-        execTime = self.execTime()
-        self._ldn.trade(execType='ANL', execTime=execTime, orderId=orderId, symbol=instr, qty=nqty, price=price, logicalIx=logicalIx )
-        
-        return orderIx
-
-    def algo_cancelOrderLogicalMultiVenue( self, instrIx, expIx, logicalIx, orderShare, origOrderIx ):
-        ''' algo send cancel for an "instrument" and "logical order" level update '''
-
-        instr, origOrderId, expName = self._relObj.getTagByIx( ( instrIx, origOrderIx, expIx ) )
-
-        orderType='C'
-        tagVal  = instrSpecificTags( orderType=orderType, expName=expName )
-        
-        if self.isCancelled( origOrderId=origOrderId ):
-            logger.error( 'mgr.alxx ooid=%s loid=%s iix=%-5d eix=%-5d qty=%4d' % 
-                        ( origOrderId, logicalIx, instrIx, expIx, orderShare ), neverPrint=True )
-            return instrIx
-             
-        orderId = self.getOrderId( style='C', instr=instr )
-        self.markCancelled( origOrderId=origOrderId, orderId=orderId )
-                
-        logger.debug( 'mgr.alcx oid=%s loid=%s iix=%-5d eix=%-5d qty=%4d ooid=%s ' % 
-                    ( orderId, logicalIx, instrIx, expIx, orderShare, origOrderIx  ), neverPrint=True )
-        
-        ixs     = ( instrIx, expIx, logicalIx, origOrderIx )
-        self.setOrderId2ix( orderId, ixs )
-        
-        execTime = self.execTime()
-        
-        self._ldn.trade(execType='ASCL', execTime=execTime, orderId=orderId, symbol=instr, qty=orderShare, price=origOrderId, logicalIx=logicalIx )
-        self._linkObj.cancelOrder( orderId=orderId, origOrderId=origOrderId, symbol=instr, qty=orderShare, tagVal=tagVal )
-
-        return instrIx
 
     def onFill(self, execTime, orderId, symbol, qty, price ):
         '''

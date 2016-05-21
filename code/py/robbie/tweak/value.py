@@ -31,6 +31,8 @@ _funcvalues = {
     'env_inStarbucks'   : twfunc.const( False ),
     'env_loggerDir'     : twfunc.const( False ),    
     'debug_level'       : twfunc.const( None ),
+
+    'agt_strat'         : twfunc.const( None ),
 }
 
 def getval( name ):

@@ -7,7 +7,7 @@ DESCRIPTION : execution.fixlink module
 import traceback
 import threading
 
-import quickfix as quickfix #@UnresolvedImport
+import quickfix as quickfix
 import robbie.fix.util as fut
 import robbie.tweak.value as twval
 import robbie.fix.config as fixccfg
