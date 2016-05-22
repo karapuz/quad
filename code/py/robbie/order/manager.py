@@ -1,4 +1,7 @@
 '''
+AUTHOR      : ilya presman, 2016
+TYPE:       : lib
+DESCRIPTION : order.alog module
 '''
 
 import os
