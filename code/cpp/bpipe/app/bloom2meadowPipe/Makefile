@@ -1,6 +1,7 @@
 # Makefile for examples
 UNAME := $(shell uname)
-BLOOMAPI_DIR := /opt/vendorLibs/bloombergAPI/APIv3/C++API
+# BLOOMAPI_DIR := /opt/vendorLibs/bloombergAPI/APIv3/C++API
+BLOOMAPI_DIR := /opt/vendorLibs/bloombergAPI/APIv3/C++API/blpapi_cpp_3.10.7.1
 
 #ifdef IS_64BIT
 BITS=64
@@ -30,4 +31,4 @@ $(BUILD_DIR)/bloom2MeadowPipe: $(wildcard *.cpp) $(wildcard *.h)
 	$(LINK.cc) -I$(BLOOMAPI_DIR)/include $(wildcard *.cpp) \
 	-o $(BUILD_DIR)/bloom2MeadowPipe \
 	-L$(BLOOMAPI_DIR)/Linux -lblpapi3_$(BITS) \
-	-lboost_filesystem
+	-lboost_filesystem -lboost_system
