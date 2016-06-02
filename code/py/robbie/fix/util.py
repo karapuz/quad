@@ -6,9 +6,12 @@ DESCRIPTION : fix util
 
 import copy
 import datetime
+import traceback
 
 import quickfix as fix #@UnresolvedImport
 import robbie.fix.tag as mftag
+import robbie.fix.seqnum as seqnumutil
+from   robbie.util.logging import logger
 
 _tag2name       = mftag._tag2name
 _name2tag       = mftag._name2tag
@@ -294,4 +297,4 @@ def convertQty( side, qty ):
         return -qty
     else: 
         return qty
-    
+

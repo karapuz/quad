@@ -12,19 +12,15 @@ from   robbie.util.logging import logger
 
 fixVersion_4_2='FIX.4.2'
 
-def getFIXConfig( tag ):
-    global fixVersion_4_2
+def getFIXConfig( root, name ):
+    #global fixVersion_4_2
     
-    dn = twkval.getenv( 'fix_root' )
-    
-    if tag in [ 'store', 'log', 'config' ]:        
-        path = os.path.join( dn, tag )
-        
+    if name in [ 'store', 'log', 'config' ]:
+        path = os.path.join( root, name )
         if not os.path.exists( path ):
             logger.debug( 'getFIXConfig: creating: %s' % path )
             libmisc.makeMissingDirs( dirName=path )
-        
-        if tag  == 'config':
+        if name  == 'config':
             return os.path.join( path, 'fixconnect.cfg')
         else:
             return path
@@ -51,14 +47,14 @@ SocketConnectPort=%s
 SocketConnectHost=%s
 SenderCompID=%s
 TargetCompID=%s
-StartTime=08:35:00
-EndTime=08:30:00
+StartTime=00:00:00
+EndTime=00:00:00
 RefreshOnLogon=Y
 '''
     return content % ( fixVersion, logPath, storePath, fixDictPath, port, host, sender, target )
 
-def createConfigFile( content, override=False ):
-    fnfixconfig = getFIXConfig( tag='config'  )
+def createConfigFile( root, content, override=False ):
+    fnfixconfig = getFIXConfig( root=root, name='config'  )
 
     with open( fnfixconfig, 'w' ) as fd:
         fd.write( content )

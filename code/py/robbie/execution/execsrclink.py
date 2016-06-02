@@ -1,48 +1,20 @@
 '''
 AUTHOR      : ilya presman, 2016
 TYPE:       : lib
-DESCRIPTION : execution.fixlink module
+DESCRIPTION : execution.execsrclink - fixlink for the exec source
 '''
 
 import traceback
-import threading
 
 import quickfix as quickfix
 import robbie.fix.util as fut
-import robbie.tweak.value as twval
-import robbie.fix.config as fixccfg
-import robbie.lib.report as libreport
-import robbie.fix.seqnum as seqnumutil
+import robbie.execution.util as execut
 from   robbie.util.logging import logger
-
-import robbie.lib.environment as environment
-
-def resetSeqNum( sessionID, message ):
-    try:
-        return _resetSeqNum( sessionID, message )
-    except quickfix.FieldNotFound as _e:
-        # logger.debug( 'Caught FieldNotFound=%s' % str(e) )
-        logger.debug( 'Caught FieldNotFound')
-         
-def _resetSeqNum( sessionID, message ):
-    text = message.getField( fut.Tag_Text )
-        
-    p = text.split(' ') # 'Logon seqnum 60 is lower than expected seqnum 255'
-    if p[:2] == [ 'Logon', 'seqnum' ] and p[3:8] == 'is lower than expected seqnum'.split(' '):
-        clientNum, gateNum = int( p[-1] ), 0
-        seqnumutil.setSeqNums( clientNum, gateNum )
-        seqnumutil.resetSeqNums( sessionID )
-
-    #MsgSeqNum too low, expecting 543 but received 235
-    elif p[:3] == [ 'MsgSeqNum', 'too', 'low,' ] and p[3] == 'expecting':
-        clientNum, gateNum = int( p[4] ), 0
-        seqnumutil.setSeqNums( clientNum, gateNum )
-        seqnumutil.resetSeqNums( sessionID )                
 
 class Application( quickfix.Application ):
 
     def onCreate(self, sessionID):
-        logger.debug('onCreate')
+        logger.debug('onCreate sessionID=%s', sessionID)
         self._sessionID = sessionID
         self._session   = quickfix.Session.lookupSession( sessionID )
     
@@ -53,11 +25,11 @@ class Application( quickfix.Application ):
         return self._session
     
     def onLogon(self, sessionID ):
-        libreport.reportInfo(subject='FIX LOGIN', txt='Argus has logged in' )
+        #libreport.reportInfo(subject='FIX LOGIN', txt='Argus has logged in' )
         logger.debug('onLogon')
 
     def onLogout(self, sessionID ):
-        libreport.reportError(subject='FIX LOGOUT', txt='Argus has logged out' )
+        #libreport.reportError(subject='FIX LOGOUT', txt='Argus has logged out' )
         logger.debug('onLogout')
     
     def toAdmin(self, message, sessionID ): 
@@ -96,7 +68,7 @@ class Application( quickfix.Application ):
             return
         
         if msgType == fut.Msg_Logout or msgType == fut.Msg_Logon:
-            resetSeqNum( sessionID, message )
+            execut.resetSeqNum( sessionID, message )
 
     def onFromApp( self, sessionID, message ):
         hdr     = message.getHeader()
@@ -189,105 +161,24 @@ class Application( quickfix.Application ):
 
     ''' order issuing block '''
     def sendOrder( self, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
-        # logger.debug( 'fix.new  enter' )
-        msg = fut.form_NewOrder( 
-            timeInForce = timeInForce, 
-            orderId     = orderId, 
-            symbol      = symbol, 
-            qty         = qty, 
-            price       = price,
-            tagVal      = tagVal )
-        
-        session = self.getSession()        
-        session.sendToTarget( msg )
-        logger.debug( 'fix.new  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price ), neverPrint=True )
+        msg = 'fix.new  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price )
+        logger.error( msg, neverPrint=True )
+        raise ValueError(msg)
 
     def cancelOrder( self, orderId, origOrderId, symbol, qty, tagVal=None ):
-        # logger.debug( 'fix.cx   enter', neverPrint=True )
-            
-        msg = fut.form_Cancel( 
-            orderId     = orderId, 
-            origOrderId = origOrderId,
-            symbol      = symbol, 
-            qty         = qty,
-            tagVal      = tagVal )
+        msg = 'fix.cx  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty)
+        logger.error( msg, neverPrint=True )
+        raise ValueError(msg)
         
-        session = self.getSession()        
-        session.sendToTarget( msg )
-        
-class AppThread( threading.Thread ):
-    
-    def __init__(self, app, cfgpath, loop=False ):
-        super( AppThread, self).__init__()        
-        self._app   = app
-        self._loop  = loop        
-        self._file  = cfgpath
-        
-    def run( self ):
-        
-        try:            
-            settings    = quickfix.SessionSettings( self._file )
-            storeFactory= quickfix.FileStoreFactory( settings )
-            logFactory  = quickfix.FileLogFactory( settings )
-            initiator   = quickfix.SocketInitiator( self._app, storeFactory, settings, logFactory )
-            initiator.start()
-            
-        except (quickfix.ConfigError, quickfix.RuntimeError), _e:
-            logger.error( traceback.format_exc() )
-
-def sendOrder( app, orderId, symbol, qty, price, timeInForce, tagVal=None ):
-    logger.debug( 'fix.lnk.new  enter', neverPrint=True )
-        
-    msg = fut.form_NewOrder( 
-        timeInForce = timeInForce, 
-        orderId     = orderId, 
-        symbol      = symbol, 
-        qty         = qty, 
-        price       = price,
-        tagVal      = tagVal )
-    
-    session = app.getSession()        
-    session.sendToTarget( msg )
-
-def cancelOrder( app, orderId, origOrderId, symbol, qty ):
-    logger.debug( 'fix.lnk.cx  enter', neverPrint=True )
-        
-    msg = fut.form_Cancel( 
-        orderId     = orderId, 
-        origOrderId = origOrderId,
-        symbol      = symbol, 
-        qty         = qty )
-    
-    session = app.getSession()        
-    session.sendToTarget( msg )
-
-
-def _initFixConfig():
-    '''
-    needs tweak: fix_connConfig
-    '''
-    
-    comm    = twval.getenv( 'fix_connConfig' )
-    host, port, sender, target = comm[ 'host' ], comm[ 'port' ], comm[ 'sender' ], comm[ 'target' ]
-        
-    fixDictPath = environment.getDataRoot( 'fixdict')
-    logPath     = fixccfg.getFIXConfig( 'log'    )
-    storePath   = fixccfg.getFIXConfig( 'store'  )
-    
-    content = fixccfg.configContent( 
-        fixDictPath=fixDictPath, logPath=logPath, storePath=storePath, host=host, port=port, sender=sender, target=target 
-    )    
-    return fixccfg.createConfigFile( content )
-    
 def init():
     '''
     with twcx.Tweaks(
         fix_root=os.path.join( logger.dirName(), 'fix' ),
         fix_connConfig={ 'host': 9999, 'port': '10.1.1.230', 'sender': 'CLIENT1', 'target': 'IREACH' } ):
     '''
-    cfgpath = _initFixConfig()
-        
-    app     = Application( )    
-    thread  = AppThread( app=app, cfgpath=cfgpath )    
-    thread.start()
-    return app, thread
+
+    cfgpath     = execut.initFixConfig( 'fix_SrcConnConfig' )
+    app         = Application( )
+    appThread   = execut.AppThread( app=app, cfgpath=cfgpath )
+    appThread.run()
+    return appThread, None

@@ -8,10 +8,11 @@ DESCRIPTION : util.compat module
 various compatibility flags
 '''
 
-import sys
 import os
+import sys
 import platform
 import traceback
+import functools
 from robbie.util.logging import logger
 
 _checks = {}
@@ -63,13 +64,28 @@ def isLinux():
     platform = sys.platform
     return ( 'linux' in platform )
 
+def mustHaveEnv( twkName, envName ):
+    v = os.getenv(envName)
+    if v:
+        return v
+    else:
+        raise ValueError('Must have env=%s for tweak=%s' % ( envName, twkName ) )
+
+def twkgetenv(name):
+    return functools.partial(getenv, name)
+
 def getenv( name ):
+    ''' link from tweak to the os '''
     name = name.lower()
     if name in ( 'env_origusername', 'env_username' ):
         if isWin32():
             return os.getenv('UserName')
         else:
             return os.getenv('USER')
+    elif name == 'run_margotroot':
+        return mustHaveEnv( name, 'QUAD_MARGOT_ROOT' )
+    elif name == 'run_configroot':
+        return mustHaveEnv( name, 'QUAD_CONFIG_ROOT' )
     raise ValueError( 'Unknown name = %s' % name )
 
 def ping(hostName, count):

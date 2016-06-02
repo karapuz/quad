@@ -1,7 +1,7 @@
 '''
 AUTHOR      : ilya presman, 2016
 TYPE:       : lib
-DESCRIPTION : execution.fixlink module
+DESCRIPTION : execution.execsinklink - fixlink for the exec sink
 '''
 
 import traceback
@@ -228,7 +228,7 @@ class AppThread( threading.Thread ):
         try:            
             settings    = quickfix.SessionSettings( self._file )
             storeFactory= quickfix.FileStoreFactory( settings )
-            logFactory  = quickfix.FileLogFactory( settings )
+            logFactory  = quickfix.FileLogFactory( settings )            
             initiator   = quickfix.SocketInitiator( self._app, storeFactory, settings, logFactory )
             initiator.start()
             
@@ -261,13 +261,12 @@ def cancelOrder( app, orderId, origOrderId, symbol, qty ):
     session = app.getSession()        
     session.sendToTarget( msg )
 
-
 def _initFixConfig():
     '''
     needs tweak: fix_connConfig
     '''
     
-    comm    = twval.getenv( 'fix_connConfig' )
+    comm    = twval.getenv( 'fix_SinkConnConfig' )
     host, port, sender, target = comm[ 'host' ], comm[ 'port' ], comm[ 'sender' ], comm[ 'target' ]
         
     fixDictPath = environment.getDataRoot( 'fixdict')
@@ -286,7 +285,6 @@ def init():
         fix_connConfig={ 'host': 9999, 'port': '10.1.1.230', 'sender': 'CLIENT1', 'target': 'IREACH' } ):
     '''
     cfgpath = _initFixConfig()
-        
     app     = Application( )    
     thread  = AppThread( app=app, cfgpath=cfgpath )    
     thread.start()

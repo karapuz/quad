@@ -8,19 +8,14 @@ import os
 import numpy
 import errno
 
-
 def makeDirsIfNotExists( dirName, mode=None ):
     '''
     A replacement for the code:
-    
     if not os.path.exists( dirName ):
         os.makedirs( dirName )
-        
     '''
-    
     if not os.path.exists( dirName ):
         return makeMissingDirs( dirName=dirName, mode=mode )
-    
     return dirName
 
 def makeMissingDirs( dirName, mode=None ):

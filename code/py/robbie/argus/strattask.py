@@ -3,24 +3,24 @@ import pprint
 import traceback
 import datetime
 
-import meadow.tweak.value as twkval
-import meadow.tweak.util as twkutil
-import meadow.tweak.context as twkcx
+import robbie.tweak.value as twkval
+import robbie.tweak.util as twkutil
+import robbie.tweak.context as twkcx
 
-# import meadow.lib.io as io
-import meadow.sim.util as simutil
-import meadow.lib.calendar as cal
-import meadow.argus.task as argTask
-import meadow.lib.winston as winston
-import meadow.argus.util as argusutil
-import meadow.lib.report as libreport
-from   meadow.lib.logging import logger
-import meadow.lib.debugging as debugging
+# import robbie.util.io as io
+import robbie.sim.util as simutil
+import robbie.util.calendar as cal
+import robbie.argus.task as argTask
+import robbie.util.winston as winston
+import robbie.argus.util as argusutil
+import robbie.util.report as libreport
+from   robbie.util.logging import logger
+import robbie.util.debugging as debugging
 
-import meadow.lib.datetime_util as dut
-import meadow.argus.bbgtask as bbgtask 
-import meadow.argus.taskenv as taskenv
-import meadow.argus.exectask as exectask  
+import robbie.util.datetime_util as dut
+import robbie.argus.bbgtask as bbgtask 
+import robbie.argus.taskenv as taskenv
+import robbie.argus.exectask as exectask  
 # global system state per strategy
 _systemState = {}
 
@@ -214,7 +214,7 @@ def _applyUpdateAndTrade( blockType, blockName, stratInst, stratName, tradeDate,
     return exectask.generateOrders( orderManager, orderQueue, tradeSpecs )
 
 def tradeThroughStandalone( stratName, sharesInfo, tradeDate, algoSpecs ):
-    import meadow.strategy.repository as strategyrep
+    import robbie.strategy.repository as strategyrep
     
     endDate = twkval.getenv( 'run_tag' )
     _instance, params = strategyrep.getStrategy( endDate=endDate, strategyName=stratName )
@@ -409,9 +409,9 @@ class TestExecTimes( object ):
 def initStrategy( endDate, tradeDate ):
     ''' load and initialize the strategies '''
 
-    import meadow.strategy.schedule as stratsched
-    import meadow.strategy.repository as strategyrep
-    import meadow.sim.dailyDriverMultiBlock as driver    
+    import robbie.strategy.schedule as stratsched
+    import robbie.strategy.repository as strategyrep
+    import robbie.sim.dailyDriverMultiBlock as driver    
 
     strategyrep.init()
 
@@ -528,7 +528,7 @@ def initStrategy( endDate, tradeDate ):
     return tasks
 
 def schedStrats( orderQueue, server, tasks, tradeDate ):
-    import meadow.argus.taskrepository as taskrep
+    import robbie.argus.taskrepository as taskrep
     
     for task in tasks:
         stratName   = task[ 'StratName'     ]

@@ -21,7 +21,8 @@ _argsvalues = {}
 _funcvalues = {
     'today'             : calendar.getdate,
     'run_turf'          : twfunc.const( None ),    
-    'run_margotRoot'    : twfunc.const( None ),
+    'run_margotRoot'    : compat.getenv,
+    'run_configRoot'    : compat.getenv,
     'run_tradeDate'     : calendar.getdate,
     'run_session'       : calendar.getsession,
     'run_domain'        : twfunc.const( 'echo' ),
@@ -33,6 +34,13 @@ _funcvalues = {
     'debug_level'       : twfunc.const( None ),
 
     'agt_strat'         : twfunc.const( None ),
+    'fix_source'        : twfunc.const( None ),
+    'fix_SrcConnConfig' : twfunc.const( {
+        'host'  : 'localhost',
+        'port'  : 9878,
+        'sender': 'BANZAI',
+        'target': 'FIXIMULATOR',
+    }),
 }
 
 def getval( name ):

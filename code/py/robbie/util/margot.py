@@ -22,9 +22,18 @@ def getMargotRoot( create=True):
     with _getMargotRootLock:
         return _getMargotRoot( create=create)
 
+def getConfigRoot(name, debug=True):
+    '''
+    provide space for config data
+    QUAD_CONFIG_ROOT: c:\users\ilya\GenericDocs\dev\quad\data\config
+    '''
+    return os.path.join( twkval.getenv( 'run_configRoot' ), name )
+
 def _getMargotRoot( create=True):
     '''
     provide space for margot data
+    QUAD_MARGOT_ROOT: c:\users\ilya\GenericDocs\dev\data\margot
+    QUAD_CONFIG_ROOT: c:\users\ilya\GenericDocs\dev\quad\data\config
     '''
     root = twkval.getenv( 'run_margotRoot' ) or os.getenv( 'QUAD_MARGOT_ROOT' )
     try:
@@ -58,16 +67,27 @@ def _getSharedRoot( domain, session, create=True ):
 def _getRoot( compName, debug=False ):
     ''' find margot path '''    
     dn      = getMargotRoot()
-    run_tag = str( twkval.getenv( 'run_tag' ) )
-    comps   = set( [  'bob', 'run', 'command', 'bloomberg', 'calibs' ] )
+    today   = str( twkval.getenv( 'today' ) )
+    source  = twkval.getenv( 'fix_source' )
+    comps   = set( [  'fix', 'run', 'command', 'bloomberg'  ] )
     
     if compName in comps:
-        path    = os.path.join( dn, compName, run_tag )
+        path    = os.path.join( dn, today, compName )
     else:
         raise ValueError( 'Unknown compName=%s' % compName )
     
     if debug:
         logger.debug( '_getRoot: compName=%s path=%s' % ( compName, path ) )
+    return path
+
+def getRoot( compName, create=True, debug=True ):
+    ''' create directory structure
+        compName = [ bob | cached-calibs ]
+        margot/bob/init
+    '''
+    path    = _getRoot( compName=compName, debug=debug )
+    if create:
+        libmisc.makeMissingDirs( dirName=path )
     return path
 
 # def listTags( compName, debug=False ):
