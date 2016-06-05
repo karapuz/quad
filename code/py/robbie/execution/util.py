@@ -69,12 +69,15 @@ class AppThread( object ):
         self._file  = cfgpath
         logger.debug('cfgpath = %s', cfgpath)
 
+    def getApplication(self):
+        return self._app
+
     def run( self ):
         try:
             self._settings    = fix.SessionSettings( self._file )
             self._storeFactory= fix.FileStoreFactory( self._settings )
-            self._logFactory  = fix.FileLogFactory( self._settings )
-            #self._logFactory  = quickfix.ScreenLogFactory( self._settings )
+            #self._logFactory  = fix.FileLogFactory( self._settings )
+            self._logFactory  = fix.ScreenLogFactory( self._settings )
             self._initiator   = fix.SocketInitiator( self._app, self._storeFactory, self._settings, self._logFactory )
             self._initiator.start()
         except (fix.ConfigError, fix.RuntimeError), _e:

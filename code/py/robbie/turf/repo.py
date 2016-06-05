@@ -11,8 +11,12 @@ def nextport():
 
 _conf = {
     'dev': {
-        'agents': [ 'ECHO1'],
+        'execsrccmd': [ 'SRCCMD' ],
+        'agents'    : [ 'ECHO1', 'ECHO2'  ],
         'communication': {
+            'SRCCMD' : {
+                'port_cmd'          : nextport(),
+            },
             'ECHO1' : {
                 'port_execSrc'      : nextport(),
                 'port_sigCon'       : nextport(),

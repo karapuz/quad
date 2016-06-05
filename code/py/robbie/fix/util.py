@@ -75,6 +75,7 @@ Val_Side_BUY        = fix.Side_BUY
 Val_Side_Sell       = fix.Side_SELL
 #Val_Side_SellShort  = fix.Side_SELLSHT
 #Val_Side_Sells      = set( ( Val_Side_SellShort, Val_Side_Sell ) )
+Val_Side_Sells      = set( (Val_Side_Sell, ) )
 
 Val_OrdType_Limit   = fix.OrdType_LIMIT
 Val_OrdType_Market  = fix.OrdType_MARKET
@@ -145,7 +146,7 @@ def transactionTime():
     tfmt    = '%Y%m%d-%H:%M:%S.%f'
     return now.strftime( tfmt )[:-3]
     
-def create_NewOrderHeader():
+def create_NewOrderHeader( senderCompID, targetCompID):
     '''populate static header info of the message'''
     
     global Tag_SenderCompID, Tag_TargetCompID
@@ -153,8 +154,10 @@ def create_NewOrderHeader():
     headerConfig = {
          8: 'FIX.4.2',
         35: 'D',
-        Tag_SenderCompID    : 'CLIENT1',
-        Tag_TargetCompID    : 'IREACH',
+        # Tag_SenderCompID    : 'CLIENT1',
+        # Tag_TargetCompID    : 'IREACH',
+        Tag_SenderCompID    : senderCompID,
+        Tag_TargetCompID    : targetCompID,
     }
     return headerConfig
 
@@ -231,13 +234,14 @@ def create_CancelMsg( orderId, origOrderId, symbol, qty ):
     
     return bodyConfig
 
-def form_NewOrder( timeInForce, orderId, symbol, qty, price=None, tagVal=None ):
+def form_NewOrder( senderCompID, targetCompID, timeInForce, orderId, symbol, qty, price=None, tagVal=None ):
     '''create a new order message a-new'''
     
     msg = fix.Message()
     hdr = msg.getHeader()
 
-    for tag, val in create_NewOrderHeader().iteritems():
+
+    for tag, val in create_NewOrderHeader(senderCompID, targetCompID).iteritems():
         hdr.setField( tag, val )
 
     for tag, val in create_staticNewOrderMsg( timeInForce ).iteritems():

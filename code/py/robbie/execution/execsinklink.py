@@ -18,13 +18,15 @@ from   robbie.util.logging import logger
 import robbie.lib.environment as environment
 
 def resetSeqNum( sessionID, message ):
-    try:
-        return _resetSeqNum( sessionID, message )
-    except quickfix.FieldNotFound as _e:
-        # logger.debug( 'Caught FieldNotFound=%s' % str(e) )
-        logger.debug( 'Caught FieldNotFound')
+    return _resetSeqNum( sessionID, message )
+    # try:
+    #     return _resetSeqNum( sessionID, message )
+    # except quickfix.FieldNotFound as e:
+    #     logger.debug( 'Caught FieldNotFound=%s' % str(e) )
+    #     #logger.debug( 'Caught FieldNotFound')
          
 def _resetSeqNum( sessionID, message ):
+    logger.debug('sessionID=%s, message=%s', sessionID, message)
     text = message.getField( fut.Tag_Text )
         
     p = text.split(' ') # 'Logon seqnum 60 is lower than expected seqnum 255'

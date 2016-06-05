@@ -4,6 +4,7 @@ TYPE:       : lib
 DESCRIPTION : execution.execsrclink - fixlink for the exec source
 '''
 
+import datetime
 import traceback
 
 import quickfix as quickfix
@@ -17,7 +18,8 @@ class Application( quickfix.Application ):
         logger.debug('onCreate sessionID=%s', sessionID)
         self._sessionID = sessionID
         self._session   = quickfix.Session.lookupSession( sessionID )
-    
+        logger.debug('onCreate self._session=%s', self._session)
+
     def getSessionID(self):
         return self._sessionID
 
@@ -25,11 +27,9 @@ class Application( quickfix.Application ):
         return self._session
     
     def onLogon(self, sessionID ):
-        #libreport.reportInfo(subject='FIX LOGIN', txt='Argus has logged in' )
         logger.debug('onLogon')
 
     def onLogout(self, sessionID ):
-        #libreport.reportError(subject='FIX LOGOUT', txt='Argus has logged out' )
         logger.debug('onLogout')
     
     def toAdmin(self, message, sessionID ): 
@@ -100,8 +100,11 @@ class Application( quickfix.Application ):
         # logger.debug( 'onOrderFill %s %s' % ( execType, orderStatus ) )
         
         orderId     = message.getField( fut.Tag_ClientOrderId   )
-        txTime      = message.getField( fut.Tag_TransactTime    )
-        
+        try:
+            txTime      = message.getField( fut.Tag_TransactTime    )
+        except quickfix.FieldNotFound:
+            txTime      = datetime.datetime.now()
+
         lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
@@ -160,10 +163,23 @@ class Application( quickfix.Application ):
         pass
 
     ''' order issuing block '''
-    def sendOrder( self, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
-        msg = 'fix.new  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price )
-        logger.error( msg, neverPrint=True )
-        raise ValueError(msg)
+    def sendOrder( self, senderCompID, targetCompID, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
+        # senderCompID = 'BANZAI',
+        # targetCompID = 'FIXIMULATOR',
+        # logger.debug( 'fix.new  enter' )
+        msg = fut.form_NewOrder(
+            senderCompID = senderCompID,
+            targetCompID = targetCompID,
+            timeInForce = timeInForce,
+            orderId     = orderId,
+            symbol      = symbol,
+            qty         = qty,
+            price       = price,
+            tagVal      = tagVal )
+
+        session = self.getSession()
+        session.sendToTarget( msg )
+        logger.debug( 'fix.new  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price ))
 
     def cancelOrder( self, orderId, origOrderId, symbol, qty, tagVal=None ):
         msg = 'fix.cx  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty)
@@ -181,4 +197,4 @@ def init():
     app         = Application( )
     appThread   = execut.AppThread( app=app, cfgpath=cfgpath )
     appThread.run()
-    return appThread, None
+    return appThread, app

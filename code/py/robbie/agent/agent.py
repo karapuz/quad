@@ -24,7 +24,6 @@ def run_agent():
     #port_execSnkOut = agt_comm['port_execSnkOut']
 
     context = zmq.Context()
-    # Connect to task ventilator
     dataCon = context.socket(zmq.SUB)
     dataCon.setsockopt(zmq.SUBSCRIBE, b'')
     dataCon.connect('tcp://localhost:%s' % port_execSrc)

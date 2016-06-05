@@ -261,7 +261,6 @@ def cancelOrder( app, orderId, origOrderId, symbol, qty ):
     session = app.getSession()        
     session.sendToTarget( msg )
 
-
 def _initFixConfig():
     '''
     needs tweak: fix_connConfig
@@ -291,3 +290,4 @@ def init():
     thread  = AppThread( app=app, cfgpath=cfgpath )    
     thread.start()
     return app, thread
+
