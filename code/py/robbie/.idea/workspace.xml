@@ -36,11 +36,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="orderstate.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="orderstate.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/echo/orderstate.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="532" max-vertical-offset="4250">
-              <caret line="67" column="0" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.8561354" vertical-offset="396" max-vertical-offset="4250">
+              <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
               <folding>
                 <element signature="e#151#160#0" expanded="true" />
               </folding>
@@ -68,10 +68,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="example_orderstate.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="example_orderstate.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/example/echo/example_orderstate.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.64739066" vertical-offset="0" max-vertical-offset="709">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="612">
               <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
               <folding>
                 <element signature="e#152#188#0" expanded="true" />
@@ -853,22 +853,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/echo/orderstate.py">
+    <entry file="file://$PROJECT_DIR$/example/echo/example_orderstate.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="532" max-vertical-offset="4250">
-          <caret line="67" column="0" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="612">
+          <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
           <folding>
-            <element signature="e#151#160#0" expanded="true" />
+            <element signature="e#152#188#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/echo/example_orderstate.py">
+    <entry file="file://$PROJECT_DIR$/echo/orderstate.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.64739066" vertical-offset="0" max-vertical-offset="709">
-          <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.8561354" vertical-offset="396" max-vertical-offset="4250">
+          <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
           <folding>
-            <element signature="e#152#188#0" expanded="true" />
+            <element signature="e#151#160#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -55,7 +55,7 @@ class OrderState( object ):
         self._pending   = mmapFunc( domain=domain, session=session, activity='orderstate-pending',  shape=shape )
         self._canceled  = mmapFunc( domain=domain, session=session, activity='orderstate-canceled', shape=shape )
         self._rejected  = mmapFunc( domain=domain, session=session, activity='orderstate-rejected', shape=shape )
-        self._symids   = mmapFunc( domain=domain,  session=session, activity='orderstate-symids',  shape=shape )
+        self._symids    = mmapFunc( domain=domain, session=session, activity='orderstate-symids',   shape=shape )
         
         if symIds != None and not readOnly:
             self._symids[ :len( symIds ) ] = symIds
