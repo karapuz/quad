@@ -4,24 +4,16 @@ TYPE:       : lib
 DESCRIPTION : util.mmap_array module
 '''
 
-import os
-import time
 import numpy
 import robbie.util.margot as margot
 
-from   robbie.util.logging import logger
-
-#import meadow.lib.config as libconf
-#import meadow.tweak.value as twkval
-#import meadow.lib.space as libspace
-import robbie.tweak.context as twkcx
-
 '''
 Structure
-    /MargotRoot/Domain/Session/Activity
+    /MargotRoot/Domain/User/Session/Activity
 
     MargotRoot   = /margot/ivp
     Domain       = echo         # pretty much a constant. Other domains: risk management?
+    User         = user
     Session      = 20160504     # tied to a day
     Activity     = mirror       # is related to echo; mirror, trade, market
                     instrument_index
@@ -44,21 +36,21 @@ Structure
                         float 3xN (N = 10,000) (bid, ask, qty)
 
 '''
-def _new( activity, shape, mode='w+', dtype='float32', initVals=None, domain=None, session=None  ):
-    path = margot.getSessionSlice( domain=domain, session=session, activity=activity, create=True )
+def _new( domain, user, session, activity, shape, initVals=None, dtype='float32', mode='w+' ):
+    path = margot.getSessionSlice( domain=domain, user=user, session=session, activity=activity, create=True )
     arr  = numpy.memmap( path, dtype=dtype, mode=mode, shape=shape )
     if initVals != None:
         arr[:] = initVals
     return arr
 
-def newWrite( activity, shape, dtype='float32', session=None, domain=None  ):
-    return _new( domain=domain, session=session, activity=activity, shape=shape, mode='write', dtype=dtype )
+def newWrite( domain, user, session, activity, shape, dtype='float32'):
+    return _new( domain=domain, user=user, session=session, activity=activity, shape=shape, mode='write', dtype=dtype )
 
-def newRead( domain, session, activity, shape, dtype='float32' ):
-    return _new( domain=domain, session=session, activity=activity, shape=shape, mode='r', dtype=dtype )
+def newRead( domain, user, session, activity, shape, dtype='float32'):
+    return _new( domain=domain, user=user, session=session, activity=activity, shape=shape, mode='r', dtype=dtype )
 
-def new( domain, session, activity, shape, dtype='float32' ):
-    return _new( domain=domain, session=session, activity=activity, shape=shape, mode='w+', dtype=dtype )
+def new( domain, user, session, activity, shape, dtype='float32'):
+    return _new( domain=domain, user=user, session=session, activity=activity, shape=shape, mode='w+', dtype=dtype )
 
-def zeros( domain, session, activity, shape, dtype='float32' ):
-    return _new( domain=domain, session=session, activity=activity, shape=shape, mode='w+', dtype=dtype, initVals=0 )
+def zeros( domain, user, session, activity, shape, dtype='float32'):
+    return _new( domain=domain, user=user, session=session, activity=activity, shape=shape, mode='w+', dtype=dtype, initVals=0 )

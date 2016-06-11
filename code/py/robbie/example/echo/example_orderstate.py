@@ -24,8 +24,10 @@ def run():
     }
     logger.debug( 'example_orderstate: turf=%s', turf)
     with twkcx.Tweaks( **tweaks ):
-        symIds = symboldb.symbol2id(symbols='ABCDEFGHIJKLMNOP')
-        ordState = orderstate.OrderState( readOnly=False, maxNum=1000, symIds=symIds, debug=True )
+        symbols  = symboldb.currentSymbols()
+        symIds   = symboldb.symbol2id(symbols=symbols)
+        maxNum   = 1000000
+        ordState = orderstate.OrderState( readOnly=False, maxNum=maxNum, symIds=symIds, debug=True )
 
 if __name__ == '__main__':
     run()

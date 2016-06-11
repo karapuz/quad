@@ -19,3 +19,9 @@ def symbol2id(symbols):
             _m_i2s[_x] = s
         symIds.append( _m_s2i[s] )
     return symIds
+
+def currentSymbols():
+    '''  current universe of symbols '''
+    return (
+        'IBM', 'MSFT', 'C', 'MS', 'AAPL', 'F', 'AMZN'
+    )

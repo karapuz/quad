@@ -44,6 +44,7 @@ class OrderState( object ):
         turf            = twkval.getenv( 'run_turf' )
         domain          = turfutil.get(turf=turf, component='shared_location', sub='domain' )
         session         = twkval.getenv('run_session')
+        user            = twkval.getenv('env_userName' )
         shape           = ( self._maxNum,  )
 
         if readOnly:
@@ -51,11 +52,12 @@ class OrderState( object ):
         else:
             mmapFunc    = mmap_array.zeros
 
-        self._realized  = mmapFunc( domain=domain, session=session, activity='orderstate-realized', shape=shape )
-        self._pending   = mmapFunc( domain=domain, session=session, activity='orderstate-pending',  shape=shape )
-        self._canceled  = mmapFunc( domain=domain, session=session, activity='orderstate-canceled', shape=shape )
-        self._rejected  = mmapFunc( domain=domain, session=session, activity='orderstate-rejected', shape=shape )
-        self._symids    = mmapFunc( domain=domain, session=session, activity='orderstate-symids',   shape=shape )
+        vars = dict( domain=domain, user=user, session=session, shape=shape )
+        self._realized  = mmapFunc( activity='orderstate-realized', **vars )
+        self._pending   = mmapFunc( activity='orderstate-pending',  **vars )
+        self._canceled  = mmapFunc( activity='orderstate-canceled', **vars )
+        self._rejected  = mmapFunc( activity='orderstate-rejected', **vars )
+        self._symids    = mmapFunc( activity='orderstate-symids',   **vars )
         
         if symIds != None and not readOnly:
             self._symids[ :len( symIds ) ] = symIds
@@ -241,4 +243,3 @@ class OrderState( object ):
         with self._pending_Lock:
             self._pending[ ix ] += vals
         return True
-

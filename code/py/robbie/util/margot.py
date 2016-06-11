@@ -45,20 +45,18 @@ def _getMargotRoot( create=True):
             raise
     return root
 
-def getSessionSlice( activity, domain=None, session=None, create=True, debug=True ):
+def getSessionSlice( domain, user, session, activity, create=True, debug=True ):
     ''' '''
-    domain = domain if domain else twkval.getenv('run_domain')
-    session = session if session else twkval.getenv('run_session')
 
-    root  = _getSharedRoot( domain=domain, session=session, create=create )
+    root  = _getSharedRoot( domain=domain, user=user, session=session, create=create )
     path = os.path.join( root, '%s.mmap' % activity )
     if debug:
         logger.debug('session_slice: path=%s', path)
     return path
 
-def _getSharedRoot( domain, session, create=True ):
+def _getSharedRoot( domain, user, session, create=True ):
     ''' '''
-    varDir = os.path.join( getMargotRoot(), 'shared', domain, session )
+    varDir = os.path.join( getMargotRoot(), 'shared', domain, user, session )
 
     if create:
         libmisc.makeMissingDirs( dirName=varDir )
