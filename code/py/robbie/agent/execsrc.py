@@ -14,6 +14,7 @@ import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 import robbie.execution.execsrclink as execsrclink
+import robbie.echo.core as echocore
 
 def newOrderId():
     now = datetime.datetime.now()
@@ -21,7 +22,8 @@ def newOrderId():
 
 def run_execsrc():
     # prepare fix
-    appThread, thread = execsrclink.init()
+    signalStrat = echocore.SignalStrat()
+    appThread, thread = execsrclink.init(signalStrat)
     app = appThread.getApplication()
     print app
 

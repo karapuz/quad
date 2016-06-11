@@ -18,7 +18,7 @@ MAXNUM = 1000000
 
 def sharedSpaceExists( varName='relation-realized' ):
     turf    = twkval.getenv( 'run_turf' )
-    domain  = libconf.get( turf=turf, component='relation', sub='domain' )    
+    domain  = libconf.get( turf=turf, component='relation', sub='domain' )
     tweaks  = {}
     if libconf.exists( turf=turf, component='relation', sub='owner' ):
         owner   = libconf.get( turf=turf, component='relation', sub='owner' )

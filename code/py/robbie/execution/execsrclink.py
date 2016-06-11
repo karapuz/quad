@@ -52,9 +52,9 @@ class Application( quickfix.Application ):
         except:
             logger.error( traceback.format_exc() )
 
-    def registerExecSink( self, sink ):
+    def registerStratManager( self, signalStrat ):
         '''callback into the execution sink'''
-        self._execSink = sink
+        self._signalStrat = signalStrat
 
     '''
     onEvent handlers
@@ -115,7 +115,7 @@ class Application( quickfix.Application ):
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
         
-        self._execSink.onFill( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx ) 
+        self._signalStrat.onFill( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx ) 
         logger.debug( 'fix.fill oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ), neverPrint=True )
 
     def onOrderCancel( self, message, execType, orderStatus ):
@@ -134,7 +134,7 @@ class Application( quickfix.Application ):
             cxqty   = fut.convertQty( side, lastShares )
               
         logger.debug( 'fix.cxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, cxqty ), neverPrint=True )
-        self._execSink.onCancel( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )         
+        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
 
     def onOrderReject( self, message, execType, orderStatus ):
         orderId     = message.getField( fut.Tag_ClientOrderId   )
@@ -151,12 +151,29 @@ class Application( quickfix.Application ):
         else:
             rxqty   = fut.convertQty( side, lastShares )
                 
-        self._execSink.onReject(execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty )
+        self._signalStrat.onCxRx(execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty )
         logger.debug( 'fix.rxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, rxqty ), neverPrint=True )
     
     def onSubmit( self, message, execType, orderStatus ):
         # logger.debug( 'onSubmit %s %s' % ( execType, orderStatus ) )
-        pass
+        orderId     = message.getField( fut.Tag_ClientOrderId   )
+        try:
+            txTime      = message.getField( fut.Tag_TransactTime    )
+        except quickfix.FieldNotFound:
+            txTime      = datetime.datetime.now()
+
+        lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
+        side        = message.getField( fut.Tag_Side    )
+        symbol      = message.getField( fut.Tag_Symbol  )
+
+        # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
+        # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
+
+        lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
+        qty         = fut.convertQty( side, lastShares )
+
+        self._signalStrat.onNew( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
+        logger.debug( 'fix.fill oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ), neverPrint=True )
 
     def onOrderPendingCancel( self, message, execType, orderStatus ):
         # logger.debug( 'onOrderPendingCancel %s %s' % ( execType, orderStatus ) )
@@ -186,15 +203,13 @@ class Application( quickfix.Application ):
         logger.error( msg, neverPrint=True )
         raise ValueError(msg)
         
-def init():
-    '''
-    with twcx.Tweaks(
-        fix_root=os.path.join( logger.dirName(), 'fix' ),
-        fix_connConfig={ 'host': 9999, 'port': '10.1.1.230', 'sender': 'CLIENT1', 'target': 'IREACH' } ):
-    '''
-
+def init(signalStrat):
+    ''' '''
     cfgpath     = execut.initFixConfig( 'fix_SrcConnConfig' )
+
     app         = Application( )
+    app.registerStratManager( signalStrat )
+
     appThread   = execut.AppThread( app=app, cfgpath=cfgpath )
     appThread.run()
     return appThread, app
