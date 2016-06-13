@@ -56,6 +56,10 @@ class Application( quickfix.Application ):
         '''callback into the execution sink'''
         self._signalStrat = signalStrat
 
+    def addMessageAdapter( self, msgAdapter ):
+        '''callback into the execution sink'''
+        self._msgAdapter = msgAdapter
+
     '''
     onEvent handlers
     '''
@@ -97,35 +101,41 @@ class Application( quickfix.Application ):
                 logger.error( 'onFromApp unhandled %s %s %s' % ( msgType, execType, orderStatus ) )
             
     def onOrderFill( self, message, execType, orderStatus ):
+        ''' '''
+        if self._msgAdapter:
+            message = self._msgAdapter(message, 'onOrderFill')
         # logger.debug( 'onOrderFill %s %s' % ( execType, orderStatus ) )
         
         orderId     = message.getField( fut.Tag_ClientOrderId   )
-        try:
-            txTime      = message.getField( fut.Tag_TransactTime    )
-        except quickfix.FieldNotFound:
-            txTime      = datetime.datetime.now()
+        txTime      = message.getField( fut.Tag_TransactTime    )
+        # txTime      = datetime.datetime.now()
 
         lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
-        
+        account     = message.getField( fut.Tag_Account )
+
         # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
         # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
 
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
         
-        self._signalStrat.onFill( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx ) 
+        self._signalStrat.onFill( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
         logger.debug( 'fix.fill oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ), neverPrint=True )
 
     def onOrderCancel( self, message, execType, orderStatus ):
+        ''' '''
+        if self._msgAdapter:
+            message = self._msgAdapter(message, 'onOrderCancel')
         orderId     = message.getField( fut.Tag_ClientOrderId   )
         txTime      = message.getField( fut.Tag_TransactTime    )
         
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
-        
+        account     = message.getField( fut.Tag_Account )
+
         if lastShares == 0:
             cumQty  = fut.convertQty( side, int( message.getField( fut.Tag_CumQty ) ) )
             orderQty= fut.convertQty( side, int( message.getField( fut.Tag_OrderQty ) ) )        
@@ -134,16 +144,20 @@ class Application( quickfix.Application ):
             cxqty   = fut.convertQty( side, lastShares )
               
         logger.debug( 'fix.cxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, cxqty ), neverPrint=True )
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
+        self._signalStrat.onCxRx( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
 
     def onOrderReject( self, message, execType, orderStatus ):
+        ''' '''
+        if self._msgAdapter:
+            message = self._msgAdapter(message, 'onOrderReject')
         orderId     = message.getField( fut.Tag_ClientOrderId   )
         txTime      = message.getField( fut.Tag_TransactTime    )
 
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
-        
+        account     = message.getField( fut.Tag_Account )
+
         if lastShares == 0:
             cumQty  = fut.convertQty( side, int( message.getField( fut.Tag_CumQty ) ) )
             orderQty= fut.convertQty( side, int( message.getField( fut.Tag_OrderQty ) ) )        
@@ -151,32 +165,35 @@ class Application( quickfix.Application ):
         else:
             rxqty   = fut.convertQty( side, lastShares )
                 
-        self._signalStrat.onCxRx(execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty )
+        self._signalStrat.onCxRx(signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty )
         logger.debug( 'fix.rxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, rxqty ), neverPrint=True )
     
     def onSubmit( self, message, execType, orderStatus ):
         # logger.debug( 'onSubmit %s %s' % ( execType, orderStatus ) )
-        orderId     = message.getField( fut.Tag_ClientOrderId   )
-        try:
-            txTime      = message.getField( fut.Tag_TransactTime    )
-        except quickfix.FieldNotFound:
-            txTime      = datetime.datetime.now()
+        if self._msgAdapter:
+            message = self._msgAdapter(message, 'onSubmit')
 
-        lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
+        orderId     = message.getField( fut.Tag_ClientOrderId   )
+        txTime      = message.getField( fut.Tag_TransactTime    )
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
+        account     = message.getField( fut.Tag_Account )
 
         # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
         # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
 
+        lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
 
-        self._signalStrat.onNew( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
+        self._signalStrat.onNew( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
         logger.debug( 'fix.fill oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ), neverPrint=True )
 
     def onOrderPendingCancel( self, message, execType, orderStatus ):
         # logger.debug( 'onOrderPendingCancel %s %s' % ( execType, orderStatus ) )
+        account     = message.getField( fut.Tag_Account )
+        if self._msgAdapter:
+            message = self._msgAdapter(message, 'onOrderPendingCancel')
         pass
 
     ''' order issuing block '''
@@ -203,12 +220,13 @@ class Application( quickfix.Application ):
         logger.error( msg, neverPrint=True )
         raise ValueError(msg)
         
-def init(signalStrat):
+def init(signalStrat, msgAdapter=None):
     ''' '''
     cfgpath     = execut.initFixConfig( 'fix_SrcConnConfig' )
 
     app         = Application( )
     app.registerStratManager( signalStrat )
+    app.addMessageAdapter( msgAdapter )
 
     appThread   = execut.AppThread( app=app, cfgpath=cfgpath )
     appThread.run()

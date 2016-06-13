@@ -1,6 +1,8 @@
 import time
 import robbie.fix.util as fut
+import robbie.echo.core as echocore
 import robbie.execution.execsrclink as execsrclink
+import robbie.execution.messageadapt as messageadapt
 
 def sendOrder( app, orderId, symbol, qty, price, timeInForce = fut.Val_TimeInForce_DAY, tagVal=None ):
     print 'fix.lnk.new  enter'
@@ -20,7 +22,9 @@ def sendOrder( app, orderId, symbol, qty, price, timeInForce = fut.Val_TimeInFor
     session.sendToTarget( msg )
 
 if __name__ == '__main__':
-    thread, application = execsrclink.init()
+    signalStrat = echocore.SignalStrat()
+    msgAdapter  = messageadapt.Message(['A','B'], 'TIME')
+    thread, application = execsrclink.init(signalStrat, msgAdapter)
     print application
     time.sleep(5)
     sendOrder(

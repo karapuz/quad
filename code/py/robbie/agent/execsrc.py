@@ -9,12 +9,12 @@ import time
 import argparse
 import datetime
 import robbie.fix.util as fut
+import robbie.echo.core as echocore
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 import robbie.execution.execsrclink as execsrclink
-import robbie.echo.core as echocore
 
 def newOrderId():
     now = datetime.datetime.now()
@@ -23,7 +23,7 @@ def newOrderId():
 def run_execsrc():
     # prepare fix
     signalStrat = echocore.SignalStrat()
-    appThread, thread = execsrclink.init(signalStrat)
+    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=None)
     app = appThread.getApplication()
     print app
 
