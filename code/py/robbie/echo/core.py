@@ -38,32 +38,34 @@ class SignalStrat(object):
         onFill      -> 'fill'
     '''
     def __init__(self, sig2comm):
-        self._symIds = symboldb.currentSymbols()
-        self._maxNum = 1000000
+        self._symbols   = symboldb.currentSymbols()
+        self._symIds    = symboldb.symbol2id(self._symbols)
+        self._maxNum    = 1000000
+
         self._orderstate = orderstate.OrderState(
-            readOnly    = False,
-            maxNum      = self._maxNum,
-            symIds      = self._symIds,
-            debug       = True )
+                readOnly    = False,
+                maxNum      = self._maxNum,
+                symIds      = self._symIds,
+                debug       = True )
         self._sig2comm  = sig2comm
 
     def onNew(self, signalName, execTime, orderId, symbol, qty, price):
         comm = self._sig2comm[ signalName ]
         comm.send( dict(action='new', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price) )
-        ixs = self._orderstate.getIxByTag(symbol, orderId)
-        self._orderstate.addPendingByIx(ix=ixs,val=(qty,qty))
+        ixs = self._orderstate.addTags((symbol, orderId))
+        self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
 
     def onFill(self, signalName, execTime, orderId, symbol, qty, price):
         comm = self._sig2comm[ signalName ]
         comm.send( dict(action='fill', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price) )
-        ixs = self._orderstate.getIxByTag(symbol, orderId)
-        self._orderstate.addRealizedByIx(ix=ixs,val=(qty,qty))
+        ixs = self._orderstate.addTags((symbol, orderId))
+        self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
 
     def onCxRx(self, signalName, execTime, orderId, symbol, qty):
         comm = self._sig2comm[ signalName ]
         comm.send( dict(action='cxrx', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty) )
-        ixs = self._orderstate.getIxByTag(symbol, orderId)
-        self._orderstate.addCanceledByIx(ix=ixs,val=(qty,qty))
+        ixs = self._orderstate.addTags((symbol, orderId))
+        self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))
 
 '''
     def onSubmit( self, message, execType, orderStatus ):

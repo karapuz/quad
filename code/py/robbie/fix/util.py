@@ -6,12 +6,9 @@ DESCRIPTION : fix util
 
 import copy
 import datetime
-import traceback
 
 import quickfix as fix #@UnresolvedImport
 import robbie.fix.tag as mftag
-import robbie.fix.seqnum as seqnumutil
-from   robbie.util.logging import logger
 
 _tag2name       = mftag._tag2name
 _name2tag       = mftag._name2tag
@@ -40,6 +37,7 @@ Msg_Logout          = mapMsgType( 'Logout'          )
 Msg_Logon           = mapMsgType( 'Logon'           )
 Msg_Heartbeat       = mapMsgType( 'Heartbeat'       )
 Msg_ExecReport      = mapMsgType( 'ExecutionReport' )
+Msg_NewOrderSingle  = mapMsgType( 'NewOrderSingle' )
 
 # maps
 Tag_OrderStatus     = name2tag( 'OrdStatus'     )

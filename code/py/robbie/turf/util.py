@@ -7,6 +7,10 @@ DESCRIPTION : turf.util module
 import robbie.turf.repo as repo
 
 def get( turf, component, sub=None ):
+    if not turf in repo._conf:
+        raise ValueError('Unknown turf=%s' % turf)
+    if not component in repo._conf[turf]:
+        raise ValueError('Unknown component=%s in truf=%s' % (component, turf))
     r = repo._conf[turf][component]
     if sub:
         return r[sub]

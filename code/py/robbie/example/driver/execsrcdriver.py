@@ -1,6 +1,8 @@
 import time
 import robbie.fix.util as fut
 import robbie.echo.core as echocore
+import robbie.tweak.value as twkval
+import robbie.tweak.context as twkcx
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
 
@@ -22,10 +24,12 @@ def sendOrder( app, orderId, symbol, qty, price, timeInForce = fut.Val_TimeInFor
     session.sendToTarget( msg )
 
 if __name__ == '__main__':
-    signalStrat = echocore.SignalStrat()
-    msgAdapter  = messageadapt.Message(['A','B'], 'TIME')
-    thread, application = execsrclink.init(signalStrat, msgAdapter)
-    print application
+    with twkcx.Tweaks(run_turf='dev'):
+        sig2comm    = { 'PRESMAN': messageadapt.Communication() }
+        signalStrat = echocore.SignalStrat(sig2comm)
+        msgAdapter  = messageadapt.Message(['A','B'], 'TIME')
+        thread, application = execsrclink.init(signalStrat, msgAdapter)
+    # print application
     time.sleep(5)
     sendOrder(
         app     = application,
@@ -35,7 +39,7 @@ if __name__ == '__main__':
         price   = 200)
 
     while 1:
-        print '.'
+        # print '.'
         time.sleep(1)
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py

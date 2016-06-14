@@ -33,6 +33,9 @@ _conf = {
             'SRCCMD'    : newSrcCmd(),
             'ECHO1'     : newAgent(),
             'ECHO2'     : newAgent(),
+        },
+        'shared_location': {
+            'domain'     : 'echo',
         }
     },
     'example_turf': {
