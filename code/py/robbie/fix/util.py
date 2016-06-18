@@ -172,13 +172,13 @@ def create_CancelHeader():
     }
     return headerConfig
 
-def create_staticNewOrderMsg( timeInForce ):
+def create_staticNewOrderMsg( timeInForce, account ):
     '''populate static info of the message'''
     
     global Tag_Account, Tag_Currency, Tag_TimeInForce, Tag_HandlInst
     
     bodyConfig = {
-        Tag_Account     : 'TEST_Account',
+        Tag_Account     : account,
         Tag_Currency    : 'USD',
         Tag_TimeInForce : timeInForce,
         Tag_HandlInst   : mftag.HndlInstPubVal,
@@ -186,12 +186,12 @@ def create_staticNewOrderMsg( timeInForce ):
     
     return bodyConfig
 
-def create_staticCancelMsg():
+def create_staticCancelMsg(account):
     '''populate static info of the message'''
     global Tag_Account, Tag_Currency
     
     bodyConfig = {
-        Tag_Account     : 'TEST_Account',
+        Tag_Account     : account,
         Tag_Currency    : 'USD',
     }
     
@@ -232,7 +232,7 @@ def create_CancelMsg( orderId, origOrderId, symbol, qty ):
     
     return bodyConfig
 
-def form_NewOrder( senderCompID, targetCompID, timeInForce, orderId, symbol, qty, price=None, tagVal=None ):
+def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, symbol, qty, price=None, tagVal=None ):
     '''create a new order message a-new'''
     
     msg = fix.Message()
@@ -242,7 +242,7 @@ def form_NewOrder( senderCompID, targetCompID, timeInForce, orderId, symbol, qty
     for tag, val in create_NewOrderHeader(senderCompID, targetCompID).iteritems():
         hdr.setField( tag, val )
 
-    for tag, val in create_staticNewOrderMsg( timeInForce ).iteritems():
+    for tag, val in create_staticNewOrderMsg( timeInForce, account ).iteritems():
         msg.setField( tag, val )
     
     for tag, val in create_NewOrderMsg( orderId=orderId, symbol=symbol, qty=qty, price=price ).iteritems():    

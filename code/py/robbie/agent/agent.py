@@ -20,8 +20,9 @@ def run_agent():
 
     port_execSrc    = agt_comm['port_execSrc']
     port_sigCon     = agt_comm['port_sigCon']
-    #port_execSnkIn  = agt_comm['port_execSnkIn']
-    #port_execSnkOut = agt_comm['port_execSnkOut']
+
+    port_execSnkIn  = agt_comm['port_execSnkIn']
+    port_execSnkOut = agt_comm['port_execSnkOut']
 
     context = zmq.Context()
     dataCon = context.socket(zmq.SUB)
@@ -32,10 +33,17 @@ def run_agent():
     sigCon.setsockopt(zmq.SUBSCRIBE, b'')
     sigCon.connect('tcp://localhost:%s' % port_sigCon)
 
+    sinkOutCon = context.socket(zmq.PUB)
+    sinkOutCon.bind('tcp://*:%s' % port_execSnkOut)
+    sinkInCon = context.socket(zmq.SUB)
+    sinkInCon.setsockopt(zmq.SUBSCRIBE, b'')
+    sinkInCon.connect('tcp://localhost:%s' % port_execSnkIn)
+
     # Initialize poll set
     poller = zmq.Poller()
-    poller.register(dataCon, zmq.POLLIN)
-    poller.register(sigCon,  zmq.POLLIN)
+    poller.register(dataCon,    zmq.POLLIN)
+    poller.register(sigCon,     zmq.POLLIN)
+    poller.register(sinkInCon,  zmq.POLLIN)
 
     # Process messages from both sockets
     while True:
@@ -48,8 +56,12 @@ def run_agent():
             msg = dataCon.recv() # process task
             print 'got message = ', msg
         if sigCon in socks:
-            msg = sigCon.recv() # process weather update
+            msg = sigCon.recv() # process signal
             print 'got signal = ', msg
+            break
+        if sinkInCon in socks:
+            msg = sinkInCon.recv() # process signal
+            print 'got exec report = ', msg
             break
 
 if __name__ == '__main__':

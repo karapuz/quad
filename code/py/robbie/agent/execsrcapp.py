@@ -15,6 +15,7 @@ import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 import robbie.execution.execsrclink as execsrclink
+import robbie.execution.messageadapt as messageadapt
 
 def newOrderId():
     now = datetime.datetime.now()
@@ -22,11 +23,6 @@ def newOrderId():
 
 def run_execsrc():
     # prepare fix
-    signalStrat = echocore.SignalStrat()
-    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=None)
-    app = appThread.getApplication()
-    print app
-
     # Prepare our context and sockets
     context     = zmq.Context()
     turf        = twkval.getenv('run_turf')
@@ -37,7 +33,7 @@ def run_execsrc():
     cmdConn     = context.socket(zmq.REP)
     cmdConn.bind("tcp://*:%s" % cmd_port)
 
-    conns   = []
+    conns   = {}
     sigs    = []
     for agent, agt_comm in agt_comms.iteritems():
         if agent not in agt_list:
@@ -49,11 +45,16 @@ def run_execsrc():
 
         c = context.socket(zmq.PUB)
         c.bind('tcp://*:%s' % port_execSrc)
-        conns.append( c )
+        conns[agent] = c
 
         c = context.socket(zmq.PUB)
         c.bind('tcp://*:%s' % port_sigCon)
         sigs.append( c )
+
+    signalStrat = echocore.SignalStrat(conns)
+    msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
+    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=None)
+    app = appThread.getApplication()
 
     # # Process messages from both sockets
     # for ix in xrange(1000):
@@ -79,12 +80,13 @@ def run_execsrc():
             app.sendOrder(
                 senderCompID = 'BANZAI',
                 targetCompID = 'FIXIMULATOR',
-                orderId     = newOrderId(),
-                symbol      = 'IBM',
-                qty         = 1000,
-                price       = 200,
-                timeInForce = fut.Val_TimeInForce_DAY,
-                tagVal      = None )
+                account      = 'ECHO1',
+                orderId      = newOrderId(),
+                symbol       = 'IBM',
+                qty          = 1000,
+                price        = 200,
+                timeInForce  = fut.Val_TimeInForce_DAY,
+                tagVal       = None )
         else:
             logger.error('Unknown cmd=%s', cmdMsg)
 
@@ -104,5 +106,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\execsrc.py --turf=dev
+c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=dev
 '''

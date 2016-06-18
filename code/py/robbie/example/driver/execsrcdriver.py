@@ -6,17 +6,18 @@ import robbie.tweak.context as twkcx
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
 
-def sendOrder( app, orderId, symbol, qty, price, timeInForce = fut.Val_TimeInForce_DAY, tagVal=None ):
+def sendOrder( app, account, orderId, symbol, qty, price, timeInForce = fut.Val_TimeInForce_DAY, tagVal=None ):
     print 'fix.lnk.new  enter'
     msg = fut.form_NewOrder(
         senderCompID = 'BANZAI',
         targetCompID = 'FIXIMULATOR',
-        timeInForce = timeInForce,
-        orderId     = orderId,
-        symbol      = symbol,
-        qty         = qty,
-        price       = price,
-        tagVal      = tagVal )
+        account      = account,
+        timeInForce  = timeInForce,
+        orderId      = orderId,
+        symbol       = symbol,
+        qty          = qty,
+        price        = price,
+        tagVal       = tagVal )
 
     session = app.getSession()
     print 'session =', session
@@ -34,6 +35,7 @@ if __name__ == '__main__':
     sendOrder(
         app     = application,
         orderId = 'ORDER1',
+        account = 'ECHO1',
         symbol  = 'IBM',
         qty     = 1000,
         price   = 200)

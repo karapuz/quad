@@ -4,6 +4,7 @@ TYPE:       : lib
 DESCRIPTION : echo.core module
 '''
 
+import json
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
@@ -51,19 +52,25 @@ class SignalStrat(object):
 
     def onNew(self, signalName, execTime, orderId, symbol, qty, price):
         comm = self._sig2comm[ signalName ]
-        comm.send( dict(action='new', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price) )
+        msgd = dict(action='new', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
+        msg  = json.dumps(msgd)
+        comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
 
     def onFill(self, signalName, execTime, orderId, symbol, qty, price):
         comm = self._sig2comm[ signalName ]
-        comm.send( dict(action='fill', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price) )
+        msgd = dict(action='fill', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
+        msg  = json.dumps(msgd)
+        comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
 
     def onCxRx(self, signalName, execTime, orderId, symbol, qty):
         comm = self._sig2comm[ signalName ]
-        comm.send( dict(action='cxrx', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty) )
+        msgd = dict(action='cxrx', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty)
+        msg  = json.dumps(msgd)
+        comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))
 

@@ -244,19 +244,20 @@ class Application( quickfix.Application ):
         account     = message.getField( fut.Tag_Account )
 
     ''' order issuing block '''
-    def sendOrder( self, senderCompID, targetCompID, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
+    def sendOrder( self, senderCompID, targetCompID, account, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
         # senderCompID = 'BANZAI',
         # targetCompID = 'FIXIMULATOR',
         # logger.debug( 'fix.new  enter' )
         msg = fut.form_NewOrder(
             senderCompID = senderCompID,
             targetCompID = targetCompID,
-            timeInForce = timeInForce,
-            orderId     = orderId,
-            symbol      = symbol,
-            qty         = qty,
-            price       = price,
-            tagVal      = tagVal )
+            account      = account,
+            timeInForce  = timeInForce,
+            orderId      = orderId,
+            symbol       = symbol,
+            qty          = qty,
+            price        = price,
+            tagVal       = tagVal )
 
         session = self.getSession()
         session.sendToTarget( msg )
