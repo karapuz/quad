@@ -55,6 +55,11 @@ class SignalStrat(object):
         msgd = dict(action='new', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
         msg  = json.dumps(msgd)
         comm.send( msg )
+        if self._orderstate.checkExistTag(orderId):
+            self._orderstate.addError(status='DUPLICATE_NEW', data=(signalName, execTime, orderId, symbol, qty, price), msg='DUPLICATE_NEW')
+            msg = 'Duplicate new for orderId=%s symbol=%s qty=%s' % (orderId, symbol, qty)
+            logger.error(msg)
+            return
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
 

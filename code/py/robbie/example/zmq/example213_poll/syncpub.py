@@ -35,7 +35,7 @@ def main():
         print("+1 subscriber (%i/%i)" % (subscribers, SUBSCRIBERS_EXPECTED))
 
     # Now broadcast exactly 1M updates followed by END
-    for i in range(1000000):
+    for i in range(10):
         publisher.send(b'Rhubarb')
 
     publisher.send(b'END')
@@ -45,5 +45,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\example\zmq\example213\syncpub.py
+c:\Python27\python2.7.exe robbie\example\zmq\example213_poll\syncpub.py
 '''

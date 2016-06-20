@@ -5,6 +5,7 @@ DESCRIPTION : agent.execsrc module
 '''
 
 import zmq
+import json
 import time
 import argparse
 import datetime
@@ -20,6 +21,15 @@ import robbie.execution.messageadapt as messageadapt
 def newOrderId():
     now = datetime.datetime.now()
     return now.strftime('%Y%m%d_%H%M%S')
+
+def toVal(k,v):
+    return str(v)
+
+def toStr(c):
+    nc = {}
+    for k,v in c.iteritems():
+        nc[str(k)] = toVal(k,v)
+    return nc
 
 def run_execsrc():
     # prepare fix
@@ -40,8 +50,8 @@ def run_execsrc():
             logger.debug('not an agent: %s', agent)
             continue
         logger.debug( 'execsrc: agent=%s', agent)
-        port_execSrc    = agt_comm['port_execSrc']
-        port_sigCon     = agt_comm['port_sigCon']
+        port_execSrc    = agt_comm['agent_execSrc']
+        port_sigCon     = agt_comm['agent_sigCon']
 
         c = context.socket(zmq.PUB)
         c.bind('tcp://*:%s' % port_execSrc)
@@ -53,7 +63,7 @@ def run_execsrc():
 
     signalStrat = echocore.SignalStrat(conns)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
-    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=None)
+    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=msgAdapter)
     app = appThread.getApplication()
 
     # # Process messages from both sockets
@@ -68,19 +78,24 @@ def run_execsrc():
     #     c.send( '%d' % ix ) # process task
 
     while 1:
-        cmdMsg = cmdConn.recv()
-        print 'got', cmdMsg
+        msgs    = cmdConn.recv()
+        msg     = json.loads(msgs)
+        msg     = toStr(msg)
+        cmd     = msg['cmd']
+        agent   = msg['agent']
+        print 'got', msg
+
         cmdConn.send('done')
-        if cmdMsg == 'KILL':
+        if cmd == 'KILL':
             for c in sigs:
-                c.send( cmdMsg ) # process task
+                c.send( cmd ) # process task
             time.sleep(10)
             break
-        elif cmdMsg == 'SEND':
+        elif cmd == 'SEND':
             app.sendOrder(
                 senderCompID = 'BANZAI',
                 targetCompID = 'FIXIMULATOR',
-                account      = 'ECHO1',
+                account      = agent,
                 orderId      = newOrderId(),
                 symbol       = 'IBM',
                 qty          = 1000,
@@ -88,7 +103,7 @@ def run_execsrc():
                 timeInForce  = fut.Val_TimeInForce_DAY,
                 tagVal       = None )
         else:
-            logger.error('Unknown cmd=%s', cmdMsg)
+            logger.error('Unknown cmd=%s', cmd)
 
 if __name__ == '__main__':
     '''

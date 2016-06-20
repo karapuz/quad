@@ -12,38 +12,48 @@ import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 
 def run_agent():
-    # Prepare our context and sockets
-    strat           = twkval.getenv('agt_strat')
-    turf            = twkval.getenv('run_turf')
-
-    agt_comm        = turfutil.get(turf=turf, component='communication', sub=strat)
-
-    port_execSrc    = agt_comm['port_execSrc']
-    port_sigCon     = agt_comm['port_sigCon']
-
-    port_execSnkIn  = agt_comm['port_execSnkIn']
-    port_execSnkOut = agt_comm['port_execSnkOut']
+    strat            = twkval.getenv('agt_strat')
+    turf             = twkval.getenv('run_turf')
+    agt_comm         = turfutil.get(turf=turf, component='communication', sub=strat)
+    agent_execSrc    = agt_comm['agent_execSrc']
+    port_sigCon      = agt_comm['agent_sigCon']
+    agent_execSnkIn  = agt_comm['agent_execSnkIn']
+    agent_execSnkOut = agt_comm['agent_execSnkOut']
 
     context = zmq.Context()
-    dataCon = context.socket(zmq.SUB)
-    dataCon.setsockopt(zmq.SUBSCRIBE, b'')
-    dataCon.connect('tcp://localhost:%s' % port_execSrc)
+
+    reg_comm        = turfutil.get(turf=turf, component='communication', sub='SINK_REGISTER')
+    reg_port        = reg_comm['port_reg']
+    regConn         = context.socket(zmq.REQ)
+    regConn.connect("tcp://localhost:%s" % reg_port)
+
+    regConn.send('%s CanI?' % strat)
+    ok              = regConn.recv()
+    logger.debug('Can I login: %s', ok)
+
+    agentSrcInCon       = context.socket(zmq.SUB)
+    agentSrcInCon.connect('tcp://localhost:%s' % agent_execSrc)
 
     sigCon = context.socket(zmq.SUB)
     sigCon.setsockopt(zmq.SUBSCRIBE, b'')
     sigCon.connect('tcp://localhost:%s' % port_sigCon)
 
-    sinkOutCon = context.socket(zmq.PUB)
-    sinkOutCon.bind('tcp://*:%s' % port_execSnkOut)
-    sinkInCon = context.socket(zmq.SUB)
-    sinkInCon.setsockopt(zmq.SUBSCRIBE, b'')
-    sinkInCon.connect('tcp://localhost:%s' % port_execSnkIn)
+    agentSinkOutCon      = context.socket(zmq.PAIR) # PUB
+    agentSinkOutCon.bind('tcp://*:%s' % agent_execSnkOut)
+
+    agentSinkInCon       = context.socket(zmq.PAIR) # SUB
+    agentSinkInCon.connect('tcp://localhost:%s' % agent_execSnkIn)
 
     # Initialize poll set
     poller = zmq.Poller()
-    poller.register(dataCon,    zmq.POLLIN)
-    poller.register(sigCon,     zmq.POLLIN)
-    poller.register(sinkInCon,  zmq.POLLIN)
+    poller.register(sigCon,         zmq.POLLIN)
+    poller.register(agentSrcInCon,  zmq.POLLIN)
+    poller.register(agentSinkInCon, zmq.POLLIN)
+
+    cmd = 'NEW'
+    if cmd == 'NEW':
+        logger.debug('NEW is sent')
+        agentSinkOutCon.send('FAKE MESSAGE')
 
     # Process messages from both sockets
     while True:
@@ -52,17 +62,19 @@ def run_agent():
         except KeyboardInterrupt:
             break
 
-        if dataCon in socks:
-            msg = dataCon.recv() # process task
-            print 'got message = ', msg
         if sigCon in socks:
             msg = sigCon.recv() # process signal
             print 'got signal = ', msg
             break
-        if sinkInCon in socks:
-            msg = sinkInCon.recv() # process signal
+
+        if agentSinkInCon in socks:
+            msg = agentSrcInCon.recv() # process task
+            print 'got message = ', msg
+            agentSinkOutCon.send(msg)
+
+        if agentSrcInCon in socks:
+            msg = agentSrcInCon.recv() # process signal
             print 'got exec report = ', msg
-            break
 
 if __name__ == '__main__':
     '''

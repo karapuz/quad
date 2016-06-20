@@ -18,7 +18,9 @@ def main():
     subscriber = context.socket(zmq.SUB)
     subscriber.connect('tcp://localhost:5561')
     subscriber.setsockopt(zmq.SUBSCRIBE, b'')
-    time.sleep(1)
+    # time.sleep(1)
+    poller      = zmq.Poller()
+    poller.register(subscriber, zmq.POLLIN)
 
     # Second, synchronize with publisher
     syncclient = context.socket(zmq.REQ)
@@ -30,10 +32,17 @@ def main():
     # Third, get our updates and report how many we got
     nbr = 0
     while True:
-        msg = subscriber.recv()
-        if msg == b'END':
+        print 'in the loop'
+        try:
+            socks = dict(poller.poll())
+        except KeyboardInterrupt:
             break
-        nbr += 1
+
+        if subscriber in socks:
+            msg = subscriber.recv() # process signal
+            if msg == b'END':
+                break
+            nbr += 1
     print ('Received %d updates' % nbr)
 
 if __name__ == '__main__':
@@ -41,5 +50,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\example\zmq\example213\syncsub.py
+c:\Python27\python2.7.exe robbie\example\zmq\example213_poll\syncsub.py
 '''

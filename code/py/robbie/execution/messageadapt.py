@@ -47,9 +47,15 @@ class Message(object):
             orderId     = message.getField( fut.Tag_ClientOrderId   )
         '''
         if tag == fut.Tag_TransactTime:
-            return 'TIME'
+            try:
+                return self._orig_getField(tag)
+            except:
+                return 'TIME'
         elif tag == fut.Tag_Account:
-            return 'PRESMAN'
+            try:
+                return self._orig_getField(tag)
+            except:
+                return self._stratsNamess[self._ix]
         else:
             try:
                 return self._orig_getField(tag)

@@ -96,7 +96,10 @@ class OrderState( object ):
 
     def getLastError(self):
         return self._lastError
-        
+
+    def checkExistTag( self, tag ):
+        return tag in self._tag2ix
+
     def _addTag( self, tag ):        
         with self._addTagLock:
             if tag in self._tag2ix:

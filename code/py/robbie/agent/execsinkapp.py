@@ -5,6 +5,7 @@ DESCRIPTION : agent.execsrc module
 '''
 
 import zmq
+import json
 import time
 import argparse
 import datetime
@@ -15,81 +16,79 @@ import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 import robbie.execution.execsrclink as execsrclink
+import robbie.execution.messageadapt as messageadapt
 
 def newOrderId():
     now = datetime.datetime.now()
     return now.strftime('%Y%m%d_%H%M%S')
 
-def run_execsrc():
-    # prepare fix
-    signalStrat = echocore.SignalStrat()
-    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=None)
-    app = appThread.getApplication()
+def toVal(k,v):
+    return str(v)
 
-    # Prepare our context and sockets
+def toStr(c):
+    nc = {}
+    for k,v in c.iteritems():
+        nc[str(k)] = toVal(k,v)
+    return nc
+
+def run_execsrc():
     context     = zmq.Context()
     turf        = twkval.getenv('run_turf')
     agt_comms   = turfutil.get(turf=turf, component='communication')
     agt_list    = turfutil.get(turf=turf, component='agents')
 
-    cmd_port    = agt_comms['SRCCMD']['port_cmd']
-    cmdConn     = context.socket(zmq.REP)
-    cmdConn.bind("tcp://*:%s" % cmd_port)
+    poller      = zmq.Poller()
+    reg_port    = agt_comms['SINK_REGISTER']['port_reg']
+    regConn     = context.socket(zmq.REP)
+    regConn.bind("tcp://*:%s" % reg_port)
+    poller.register(regConn, zmq.POLLIN)
 
-    poller = zmq.Poller()
+    agentIn     = {}
+    agentOut    = {}
+    sigs        = []
 
-    subs   = {}
-    pubs   = {}
     for agent, agt_comm in agt_comms.iteritems():
         if agent not in agt_list:
             logger.debug('not an agent: %s', agent)
             continue
         logger.debug( 'execsink: agent=%s', agent)
 
-        port_execSnkIn  = agt_comm['port_execSnkIn']
-        port_execSnkOut = agt_comm['port_execSnkOut']
+        agent_execSnkIn  = agt_comm['agent_execSnkIn']
+        agent_execSnkOut = agt_comm['agent_execSnkOut']
 
-        sinkInCon = context.socket(zmq.SUB)
-        sinkInCon.setsockopt(zmq.SUBSCRIBE, b'')
-        sinkInCon.connect('tcp://localhost:%s' % port_execSnkOut)
-        subs[agent] = sinkInCon
+        sinkOutCon = context.socket(zmq.PAIR) # PUB
+        sinkOutCon.bind('tcp://*:%s' % agent_execSnkIn)
 
-        sinkOutCon = context.socket(zmq.PUB)
-        sinkOutCon.bind('tcp://*:%s' % port_execSnkIn)
-        pubs[agent] = sinkOutCon
+        sinkInCon = context.socket(zmq.PAIR) # SUB
+        sinkInCon.connect('tcp://localhost:%s' % agent_execSnkOut)
 
+        poller.register(sinkInCon, zmq.POLLIN)
+        agentIn [ agent ] = sinkInCon
+        agentOut[ agent ] = sinkOutCon
 
-        poller.register(sinkInCon,  zmq.POLLIN)
+    # signalStrat = echocore.SignalStrat(conns)
+    # msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
+    # appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=msgAdapter)
+    # app = appThread.getApplication()
 
-    cmd_port    = agt_comms['SRCCMD']['port_cmd']
-    cmdConn     = context.socket(zmq.REP)
-    cmdConn.bind("tcp://*:%s" % cmd_port)
-
-    poller.register(cmdConn,  zmq.POLLIN)
-
-    # Process messages from all sockets
+    # Process messages from both sockets
     while True:
+        logger.debug('in the loop')
         try:
             socks = dict(poller.poll())
         except KeyboardInterrupt:
             break
 
-        for agent, conn in subs.iteritems():
+        for agent, c in agentIn.iteritems():
+            if c in socks:
+                msg = c.recv() # process signal
+                print 'agentOut = ', msg
+                agentOut[ agent ].send('GOT agent=%s' % agent)
 
-            if conn in socks:
-                msg = conn.recv() # process task
-                print 'got message = ', msg
-                pubConn = pubs[agent]
-                pubConn.send('This is the response!')
-                print 'sent response message = ', msg
-
-        if cmdMsg in socks:
-            cmdMsg = cmdConn.recv()
-            print 'CMD got', cmdMsg
-            cmdConn.send('done')
-            if cmdMsg == 'KILL':
-                time.sleep(10)
-                break
+        if regConn in socks:
+            msg = regConn.recv()
+            regConn.send('Ok')
+            print 'registered[sink] = ', msg
 
 if __name__ == '__main__':
     '''
@@ -101,11 +100,11 @@ if __name__ == '__main__':
     tweaks  = {
         'run_turf'  : args.turf,
     }
-    logger.debug( 'agent: turf=%s', args.turf)
+    logger.debug( 'execsinkapp: turf=%s', args.turf)
     with twkcx.Tweaks( **tweaks ):
         run_execsrc()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\execsrc.py --turf=dev
+c:\Python27\python2.7.exe robbie\agent\execsinkapp.py --turf=dev
 '''

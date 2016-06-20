@@ -14,10 +14,10 @@ def nextport():
 def newAgent():
     '''  newAgent '''
     return {
-        'port_execSrc'      : nextport(),
-        'port_sigCon'       : nextport(),
-        'port_execSnkIn'    : nextport(),
-        'port_execSnkOut'   : nextport(),
+        'agent_execSrc'      : nextport(),
+        'agent_sigCon'       : nextport(),
+        'agent_execSnkIn'    : nextport(),
+        'agent_execSnkOut'   : nextport(),
     }
 
 def newSrcCmd():
@@ -25,11 +25,17 @@ def newSrcCmd():
         'port_cmd' : nextport(),
     }
 
+def newSinkReg():
+    return {
+        'port_reg' : nextport(),
+    }
+
 _conf = {
     'dev': {
         'execsrccmd': [ 'SRCCMD' ],
         'agents'    : [ 'ECHO1', 'ECHO2'  ],
         'communication': {
+            'SINK_REGISTER'  : newSinkReg(),
             'SRCCMD'    : newSrcCmd(),
             'ECHO1'     : newAgent(),
             'ECHO2'     : newAgent(),
