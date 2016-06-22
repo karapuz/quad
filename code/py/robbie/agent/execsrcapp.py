@@ -20,7 +20,7 @@ import robbie.execution.messageadapt as messageadapt
 
 def newOrderId():
     now = datetime.datetime.now()
-    return now.strftime('%Y%m%d_%H%M%S')
+    return now.strftime('SRC_%Y%m%d_%H%M%S')
 
 def toVal(k,v):
     return str(v)
@@ -63,19 +63,11 @@ def run_execsrc():
 
     signalStrat = echocore.SignalStrat(conns)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
-    appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=msgAdapter)
-    app = appThread.getApplication()
-
-    # # Process messages from both sockets
-    # for ix in xrange(1000):
-    #     for c in conns:
-    #         msg = '%d' % ix
-    #         c.send( msg ) # process task
-    #         print 'sending msg =', msg
-    #
-    # time.sleep(10)
-    # for c in sigs:
-    #     c.send( '%d' % ix ) # process task
+    appThread, thread = execsrclink.init(
+                            tweakName   = 'fix_SrcConnConfig',
+                            signalStrat = signalStrat,
+                            msgAdapter  = msgAdapter)
+    app         = appThread.getApplication()
 
     while 1:
         msgs    = cmdConn.recv()
@@ -114,6 +106,7 @@ if __name__ == '__main__':
     args    = parser.parse_args()
     tweaks  = {
         'run_turf'  : args.turf,
+        'run_domain': 'echo_source',
     }
     logger.debug( 'agent: turf=%s', args.turf)
     with twkcx.Tweaks( **tweaks ):

@@ -8,9 +8,9 @@ import zmq
 import json
 import time
 import argparse
-import datetime
-import robbie.fix.util as fut
 import robbie.echo.core as echocore
+import robbie.echo.sinkproc as sinkproc
+
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
@@ -18,9 +18,6 @@ from   robbie.util.logging import logger
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
 
-def newOrderId():
-    now = datetime.datetime.now()
-    return now.strftime('%Y%m%d_%H%M%S')
 
 def toVal(k,v):
     return str(v)
@@ -31,7 +28,7 @@ def toStr(c):
         nc[str(k)] = toVal(k,v)
     return nc
 
-def run_execsrc():
+def run_execSink():
     context     = zmq.Context()
     turf        = twkval.getenv('run_turf')
     agt_comms   = turfutil.get(turf=turf, component='communication')
@@ -42,6 +39,11 @@ def run_execsrc():
     regConn     = context.socket(zmq.REP)
     regConn.bind("tcp://*:%s" % reg_port)
     poller.register(regConn, zmq.POLLIN)
+
+    cmd_port    = agt_comms['SINKCMD']['port_cmd']
+    cmdConn     = context.socket(zmq.REP)
+    cmdConn.bind("tcp://*:%s" % cmd_port)
+    poller.register(cmdConn, zmq.POLLIN)
 
     agentIn     = {}
     agentOut    = {}
@@ -56,20 +58,28 @@ def run_execsrc():
         agent_execSnkIn  = agt_comm['agent_execSnkIn']
         agent_execSnkOut = agt_comm['agent_execSnkOut']
 
-        sinkOutCon = context.socket(zmq.PAIR) # PUB
-        sinkOutCon.bind('tcp://*:%s' % agent_execSnkIn)
+        agentSinkIntCon = context.socket(zmq.PAIR) # PUB
+        agentSinkIntCon.bind('tcp://*:%s' % agent_execSnkIn)
 
-        sinkInCon = context.socket(zmq.PAIR) # SUB
-        sinkInCon.connect('tcp://localhost:%s' % agent_execSnkOut)
+        agentSinkOutCon = context.socket(zmq.PAIR) # SUB
+        agentSinkOutCon.connect('tcp://localhost:%s' % agent_execSnkOut)
 
-        poller.register(sinkInCon, zmq.POLLIN)
-        agentIn [ agent ] = sinkInCon
-        agentOut[ agent ] = sinkOutCon
+        poller.register(agentSinkOutCon, zmq.POLLIN)
+        agentIn [ agent ] = agentSinkIntCon
+        agentOut[ agent ] = agentSinkOutCon
 
-    # signalStrat = echocore.SignalStrat(conns)
-    # msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
-    # appThread, thread = execsrclink.init(signalStrat=signalStrat,msgAdapter=msgAdapter)
-    # app = appThread.getApplication()
+    signalStrat = echocore.SignalStrat(agentIn)
+    msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
+    tweakName   = 'fix_SinkConnConfig'
+    appThread, thread = execsrclink.init(
+                            tweakName   = tweakName,
+                            signalStrat = signalStrat,
+                            msgAdapter  = msgAdapter)
+
+    app          = appThread.getApplication()
+    commCreds    = twkval.getenv( tweakName )
+    senderCompID = commCreds[ 'sender' ]
+    targetCompID = commCreds[ 'target' ]
 
     # Process messages from both sockets
     while True:
@@ -79,16 +89,32 @@ def run_execsrc():
         except KeyboardInterrupt:
             break
 
-        for agent, c in agentIn.iteritems():
+        for agent, c in agentOut.iteritems():
             if c in socks:
-                msg = c.recv() # process signal
-                print 'agentOut = ', msg
-                agentOut[ agent ].send('GOT agent=%s' % agent)
+                cmds    = c.recv() # process signal
+                cmd     = json.loads(cmds)
+                cmd     = toStr(cmd)
+                action  = cmd['action']
+
+                if action == 'new':
+                    logger.debug('agentOut msg = %s', cmd)
+                    sinkproc.signal2order(
+                        app          = app,
+                        cmd          = cmd,
+                        senderCompID = senderCompID,
+                        targetCompID = targetCompID )
+                else:
+                    msg = 'skip action=%s for msg=%s' % ( action, cmd)
+                    logger.error(msg)
 
         if regConn in socks:
             msg = regConn.recv()
             regConn.send('Ok')
             print 'registered[sink] = ', msg
+
+        if cmdConn in socks:
+            pass
+    # app.Boo()
 
 if __name__ == '__main__':
     '''
@@ -99,10 +125,11 @@ if __name__ == '__main__':
     args    = parser.parse_args()
     tweaks  = {
         'run_turf'  : args.turf,
+        'run_domain': 'echo_sink',
     }
     logger.debug( 'execsinkapp: turf=%s', args.turf)
     with twkcx.Tweaks( **tweaks ):
-        run_execsrc()
+        run_execSink()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py

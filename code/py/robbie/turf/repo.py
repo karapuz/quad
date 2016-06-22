@@ -37,6 +37,7 @@ _conf = {
         'communication': {
             'SINK_REGISTER'  : newSinkReg(),
             'SRCCMD'    : newSrcCmd(),
+            'SINKCMD'   : newSrcCmd(),
             'ECHO1'     : newAgent(),
             'ECHO2'     : newAgent(),
         },

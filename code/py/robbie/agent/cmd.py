@@ -49,6 +49,8 @@ c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=KILL --turf=dev
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO1
+
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO2
 
 '''

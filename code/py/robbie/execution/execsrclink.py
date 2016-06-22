@@ -4,7 +4,6 @@ TYPE:       : lib
 DESCRIPTION : execution.execsrclink - fixlink for the exec source
 '''
 
-import datetime
 import traceback
 
 import quickfix as quickfix
@@ -143,7 +142,6 @@ class Application( quickfix.Application ):
         
         orderId     = message.getField( fut.Tag_ClientOrderId   )
         txTime      = message.getField( fut.Tag_TransactTime    )
-        # txTime      = datetime.datetime.now()
 
         lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
         side        = message.getField( fut.Tag_Side    )
@@ -268,9 +266,9 @@ class Application( quickfix.Application ):
         logger.error( msg )
         raise ValueError(msg)
         
-def init(signalStrat, msgAdapter=None):
+def init(tweakName, signalStrat, msgAdapter=None):
     ''' '''
-    cfgpath     = execut.initFixConfig( 'fix_SrcConnConfig' )
+    cfgpath     = execut.initFixConfig( tweakName )
 
     app         = Application( )
     app.registerStratManager( signalStrat )

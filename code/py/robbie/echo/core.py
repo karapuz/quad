@@ -41,7 +41,7 @@ class SignalStrat(object):
     def __init__(self, sig2comm):
         self._symbols   = symboldb.currentSymbols()
         self._symIds    = symboldb.symbol2id(self._symbols)
-        self._maxNum    = 1000000
+        self._maxNum    = symboldb._maxNum
 
         self._orderstate = orderstate.OrderState(
                 readOnly    = False,
@@ -54,12 +54,13 @@ class SignalStrat(object):
         comm = self._sig2comm[ signalName ]
         msgd = dict(action='new', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
         msg  = json.dumps(msgd)
-        comm.send( msg )
         if self._orderstate.checkExistTag(orderId):
             self._orderstate.addError(status='DUPLICATE_NEW', data=(signalName, execTime, orderId, symbol, qty, price), msg='DUPLICATE_NEW')
             msg = 'Duplicate new for orderId=%s symbol=%s qty=%s' % (orderId, symbol, qty)
             logger.error(msg)
             return
+        logger.debug('comm.send onNew:%s' % str(msgd))
+        comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
 
@@ -67,6 +68,7 @@ class SignalStrat(object):
         comm = self._sig2comm[ signalName ]
         msgd = dict(action='fill', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
         msg  = json.dumps(msgd)
+        logger.debug('comm.send onFill:%s' % str(msgd))
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
@@ -75,6 +77,7 @@ class SignalStrat(object):
         comm = self._sig2comm[ signalName ]
         msgd = dict(action='cxrx', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty)
         msg  = json.dumps(msgd)
+        logger.debug('comm.send onCxRx:%s' % str(msgd))
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))

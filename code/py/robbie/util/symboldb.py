@@ -25,3 +25,5 @@ def currentSymbols():
     return (
         'IBM', 'MSFT', 'C', 'MS', 'AAPL', 'F', 'AMZN'
     )
+
+_maxNum    = 1000000

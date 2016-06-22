@@ -41,11 +41,12 @@ class OrderState( object ):
         self._tag2ix    = {}
         self._ix2tag    = {}
 
-        turf            = twkval.getenv( 'run_turf' )
-        domain          = turfutil.get(turf=turf, component='shared_location', sub='domain' )
+        turf            = twkval.getenv('run_turf')
+        # domain          = turfutil.get(turf=turf, component='shared_location', sub='domain' )
+        domain          = twkval.getenv('run_domain')
         session         = twkval.getenv('run_session')
-        user            = twkval.getenv('env_userName' )
-        shape           = ( self._maxNum,  )
+        user            = twkval.getenv('env_userName')
+        shape           = ( self._maxNum, )
 
         if readOnly:
             mmapFunc    = mmap_array.newRead

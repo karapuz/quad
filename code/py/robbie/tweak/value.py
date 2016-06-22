@@ -41,6 +41,12 @@ _funcvalues = {
         'sender': 'BANZAI',
         'target': 'FIXIMULATOR',
     }),
+    'fix_SinkConnConfig' : twfunc.const( {
+        'host'  : 'localhost',
+        'port'  : 9888,
+        'sender': 'BANZAISINK',
+        'target': 'FIXIMULATORSINK',
+    }),
 }
 
 def getval( name ):
