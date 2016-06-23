@@ -99,39 +99,48 @@ class SignalStrat(object):
         self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
 '''
 
-class EchoStrat(object):
-    '''
-    React to both signal
-        formulate order
-    React to execution
-        formulate order
-    '''
-    def __init__(self):
-        self._symIds = symboldb.currentSymbols()
-        self._maxNum = 1000000
-        self._orderstate = orderstate.OrderState(
-            readOnly    = False,
-            maxNum      = self._maxNum,
-            symIds      = self._symIds,
-            debug       = True )
+class EchoOrderState(object):
+    def __init__(self, domain):
+        '''
+        book keep order status
+        translate into
+
+            a. open    signal
+            b. close   signal
+            c. cancel  signal
+
+        '''
+
+        self._symbols    = symboldb.currentSymbols()
+        self._symIds     = symboldb.symbol2id(self._symbols)
+        self._maxNum     = symboldb._maxNum
+
+        with twkcx.Tweaks(run_domain=domain):
+            self._orderstate = orderstate.OrderState(
+                    readOnly    = False,
+                    maxNum      = self._maxNum,
+                    symIds      = self._symIds,
+                    debug       = True )
 
     def onNew(self, execTime, orderId, symbol, qty, price):
-        '''
-        1. Strategy has Open, Close and/or a Cancel Signal
-        2. Strategy has the following life-cycle
-            a. Open (triggered by New) order
-                i) no positions for the symbol, or positions in the same direction
-            b. Close (triggered by New) order
-                i) there is a position for the symbol
-            c. Cancel (triggered Cancel, or Reject) order
-                i) there is position for the symbol
-
-        '''
-        symIx = self._orderstate.getIxByTag(symbol)
-        #if self._orderstate.getStateByIx()
+        data = (execTime, orderId, symbol, qty, price)
+        if self._orderstate.checkExistTag(orderId):
+            self._orderstate.addError(status='DUPLICATE_NEW', data=data, msg='DUPLICATE_NEW')
+            msg = 'Duplicate new for orderId=%s symbol=%s qty=%s' % (orderId, symbol, qty)
+            logger.error(msg)
+            return
+        logger.debug('echo onNew:%s' % str(data))
+        ixs = self._orderstate.addTags((symbol, orderId))
+        self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
 
     def onFill(self, execTime, orderId, symbol, qty, price):
-        pass
+        data = execTime, orderId, symbol, qty, price
+        logger.debug('echo onFill:%s' % str(data))
+        ixs = self._orderstate.addTags((symbol, orderId))
+        self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
 
     def onCxRx(self, execTime, orderId, symbol, qty):
-        pass
+        data = (execTime, orderId, symbol, qty)
+        logger.debug('echo onCxRx:%s' % str(data))
+        ixs = self._orderstate.addTags((symbol, orderId))
+        self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))

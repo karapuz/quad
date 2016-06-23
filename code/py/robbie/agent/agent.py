@@ -11,41 +11,8 @@ import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
-import robbie.echo.orderstate as orderstate
+import robbie.echo.core as echocore
 
-class Agent(object):
-    def __init__(self):
-        self._symbols    = symboldb.currentSymbols()
-        self._symIds     = symboldb.symbol2id(self._symbols)
-        self._maxNum     = symboldb._maxNum
-        self._orderstate = orderstate.OrderState(
-                readOnly    = False,
-                maxNum      = self._maxNum,
-                symIds      = self._symIds,
-                debug       = True )
-
-    def onNew(self, execTime, orderId, symbol, qty, price):
-        if self._orderstate.checkExistTag(orderId):
-            self._orderstate.addError(status='DUPLICATE_NEW', data=(signalName, execTime, orderId, symbol, qty, price), msg='DUPLICATE_NEW')
-            msg = 'Duplicate new for orderId=%s symbol=%s qty=%s' % (orderId, symbol, qty)
-            logger.error(msg)
-            return
-        data = (execTime, orderId, symbol, qty, price)
-        logger.debug('agent onNew:%s' % str(data))
-        ixs = self._orderstate.addTags((symbol, orderId))
-        self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
-
-    def onFill(self, execTime, orderId, symbol, qty, price):
-        data = execTime, orderId, symbol, qty, price
-        logger.debug('agent onFill:%s' % str(data))
-        ixs = self._orderstate.addTags((symbol, orderId))
-        self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
-
-    def onCxRx(self, execTime, orderId, symbol, qty):
-        msgd = (execTime, orderId, symbol, qty)
-        logger.debug('agent onCxRx:%s' % str(data))
-        ixs = self._orderstate.addTags((symbol, orderId))
-        self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))
 
 def run_agent():
     strat            = twkval.getenv('agt_strat')
@@ -88,6 +55,9 @@ def run_agent():
     poller.register(sigCon,         zmq.POLLIN)
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
+
+    signalOrders = echocore.EchoOrderState('%s-signal' % strat)
+    echoOrders   = echocore.EchoOrderState('%s-echo' % strat)
 
     while True:
         try:
