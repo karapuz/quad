@@ -15,6 +15,7 @@ from   robbie.util.logging import logger
 import robbie.util.mmap_array as mmap_array
 
 MAXNUM = 1000000
+MAXNUMPOS = 0
 
 class OrderState( object ):
     '''
@@ -53,6 +54,7 @@ class OrderState( object ):
             mmapFunc    = mmap_array.zeros
 
         vars = dict( domain=domain, user=user, session=session, shape=shape )
+        self._support   = mmapFunc( activity='orderstate-support', **vars )
         self._realized  = mmapFunc( activity='orderstate-realized', **vars )
         self._pending   = mmapFunc( activity='orderstate-pending',  **vars )
         self._canceled  = mmapFunc( activity='orderstate-canceled', **vars )
@@ -76,13 +78,27 @@ class OrderState( object ):
     def getFullByType(self, posType, maxLen ):
         ''' get a slice of all data for the type '''
         return self._state[ posType ][: maxLen]
-    
+
+    def asTable(self, header=None):
+        mat = []
+        if header:
+            mat.append(header)
+
+        nextNum = self._support[ MAXNUMPOS ]
+        for k,v in self._state.iteritems():
+            row = [ k ]
+            row.extend( v[ : nextNum ].tolist() )
+            mat.append( row )
+        return mat
+
     def dump(self, fd, frmt='multiLine' ):
+        nextNum = self._support[ MAXNUMPOS ]
+
         if frmt == 'multiLine':
             fd.write( frmt + ':\n' )
             for k,v in self._state.iteritems():
                 fd.write( str( k ) + ':\n' )
-                fd.write( ','.join( v[ : self._nextNum ].tolist() ) + '\n' )
+                fd.write( ','.join( v[ : nextNum ].tolist() ) + '\n' )
             fd.write( 'tag2ix' + ':\n' )
             fd.write( str( self._tag2ix ) + '\n' )
         else:
@@ -107,7 +123,8 @@ class OrderState( object ):
             c = self._nextNum
             self._tag2ix[ tag ] = c
             self._ix2tag[ c   ] = tag        
-            self._nextNum += 1        
+            self._nextNum += 1
+            self._support[ MAXNUMPOS ] = self._nextNum
             return c
 
     def addTag( self, tag ):

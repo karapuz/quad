@@ -78,7 +78,10 @@ def run_agent():
             action  = cmd['action']
             data    = cmd['data'  ]
             logger.debug('AGENT: SNKIN = %s', msg)
-            echoStrat.processSnkMsg(action=action, data=data)
+
+            echoStrat.snkPreUpdate(action=action, data=data)
+            echoStrat.snkUpdate(action=action, data=data)
+            echoStrat.snkPostUpdate(action=action, data=data)
 
         if agentSrcInCon in socks:
             msg     = agentSrcInCon.recv() # process signal
@@ -86,7 +89,10 @@ def run_agent():
             action  = cmd['action']
             data    = cmd['data'  ]
             logger.debug('AGENT: SRCIN  = %s', msg)
+
+            echoStrat.preSrcUpdate(action=action, data=data)
             echoStrat.processSrcMsg(action=action, data=data)
+            echoStrat.postSrcUpdate(action=action, data=data)
 
             logger.debug('AGENT: SNKOUT = %s', msg)
             agentSinkOutCon.send(msg)

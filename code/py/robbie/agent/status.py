@@ -4,14 +4,11 @@ TYPE:       : lib
 DESCRIPTION : agent.agent module
 '''
 
-import json
-import zmq
 import argparse
-import robbie.turf.util as turfutil
+import robbie.util.libgui as libgui
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
-import robbie.echo.reflectstrat as strat
 import  robbie.util.symboldb as symboldb
 import robbie.echo.orderstate as orderstate
 
@@ -28,29 +25,18 @@ class OrderStatus(object):
                     symIds      = self._symIds,
                     debug       = True )
 
-class Status(object):
+    def getTable(self, header):
+        self._orderstate.asTable(header)
 
-    def __init__(self, agent):
-        self._agent     = agent
-        self._srcOrders = OrderStatus('%s-src' % agent)
-        self._snkOrders = OrderStatus('%s-snk' % agent)
 
 def run_agent():
-    agent            = twkval.getenv('agt_strat')
-    turf             = twkval.getenv('run_turf')
+    agent     = twkval.getenv('agt_strat')
+    srcOrders = OrderStatus('%s-src' % agent)
+    snkOrders = OrderStatus('%s-snk' % agent)
 
-    agt_comm         = turfutil.get(turf=turf, component='communication', sub=agent)
-
-    agent_execSrc    = agt_comm['agent_execSrc']
-    port_sigCon      = agt_comm['agent_sigCon']
-    agent_execSnkIn  = agt_comm['agent_execSnkIn']
-    agent_execSnkOut = agt_comm['agent_execSnkOut']
-
-    snkRegPort       = turfutil.get(turf=turf, component='communication', sub='SNK_REG')['port_reg']
-    srcRegPort       = turfutil.get(turf=turf, component='communication', sub='SRC_REG')['port_reg']
-
-    echoStrat        = strat.Strategy(agent=agent)
-
+    mat = srcOrders.asTable(header=['SRC'])
+    mat.extend( snkOrders.asTable(header=['SNK']) )
+    libgui.showTable( mat )
 
 if __name__ == '__main__':
     '''
