@@ -120,7 +120,7 @@ class Application( quickfix.Application ):
             else:
                 logger.error( 'onFromApp [1] unhandled %s %s %s' % ( msgType, execType, orderStatus ) )
         else:
-            logger.error( 'onFromApp [2] unhandled %s %s %s' % ( msgType, execType, orderStatus ) )
+            logger.error( 'onFromApp [2] unhandled %s' % ( msgType ) )
 
     def onToApp( self, sessionID, message ):
         hdr     = message.getHeader()
@@ -134,7 +134,7 @@ class Application( quickfix.Application ):
 
              return self.onSubmitToApp( message )
         else:
-            logger.error( 'onToApp [1] unhandled %s %s %s' % ( msgType, execType, orderStatus ) )
+            logger.error( 'onToApp [1] unhandled %s' % ( msgType  ) )
 
     def onOrderFill( self, message, execType, orderStatus ):
         ''' '''

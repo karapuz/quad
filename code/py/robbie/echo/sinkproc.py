@@ -13,14 +13,13 @@ def newOrderId():
     now = datetime.datetime.now()
     return now.strftime('SNK_%Y%m%d_%H%M%S')
 
-def signal2order(app, cmd, senderCompID, targetCompID ):
-    action = cmd['action']
+def signal2order(app, action, data, senderCompID, targetCompID ):
 
     if action == 'new':
-        account = cmd['signalName']
-        qty     = int(cmd['qty'])
-        symbol  = cmd['symbol']
-        price   = float(cmd['price'])
+        account = data['signalName']
+        symbol  = data['symbol']
+        qty     = int(data['qty'])
+        price   = float(data['price'])
 
         app.sendOrder(
             senderCompID = senderCompID,

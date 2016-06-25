@@ -83,3 +83,12 @@ class AppThread( object ):
         except (fix.ConfigError, fix.RuntimeError), _e:
             logger.error( traceback.format_exc() )
 
+def toVal(k,v):
+    return str(v)
+
+def toStr(c):
+    nc = {}
+    for k,v in c.iteritems():
+        nc[str(k)] = toVal(k,v)
+    return nc
+

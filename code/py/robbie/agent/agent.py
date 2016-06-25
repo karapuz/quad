@@ -4,6 +4,7 @@ TYPE:       : lib
 DESCRIPTION : agent.agent module
 '''
 
+import json
 import zmq
 import argparse
 import robbie.turf.util as turfutil
@@ -72,6 +73,9 @@ def run_agent():
 
         if agentSinkInCon in socks:
             msg = agentSinkInCon.recv() # process task
+            cmd = json.loads(msg)
+
+            action  = cmd['action']
             print 'got message = ', msg
 
         if agentSrcInCon in socks:

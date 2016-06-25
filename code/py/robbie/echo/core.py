@@ -51,14 +51,14 @@ class SignalStrat(object):
         self._sig2comm  = sig2comm
 
     def onNew(self, signalName, execTime, orderId, symbol, qty, price):
-        comm = self._sig2comm[ signalName ]
-        msgd = dict(action='new', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
-        msg  = json.dumps(msgd)
         if self._orderstate.checkExistTag(orderId):
             self._orderstate.addError(status='DUPLICATE_NEW', data=(signalName, execTime, orderId, symbol, qty, price), msg='DUPLICATE_NEW')
             msg = 'Duplicate new for orderId=%s symbol=%s qty=%s' % (orderId, symbol, qty)
             logger.error(msg)
             return
+        comm = self._sig2comm[ signalName ]
+        msgd = dict(action='new', data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
+        msg  = json.dumps(msgd)
         logger.debug('comm.send onNew:%s' % str(msgd))
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
@@ -66,7 +66,7 @@ class SignalStrat(object):
 
     def onFill(self, signalName, execTime, orderId, symbol, qty, price):
         comm = self._sig2comm[ signalName ]
-        msgd = dict(action='fill', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price)
+        msgd = dict(action='fill', data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
         msg  = json.dumps(msgd)
         logger.debug('comm.send onFill:%s' % str(msgd))
         comm.send( msg )
@@ -75,29 +75,12 @@ class SignalStrat(object):
 
     def onCxRx(self, signalName, execTime, orderId, symbol, qty):
         comm = self._sig2comm[ signalName ]
-        msgd = dict(action='cxrx', signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty)
+        msgd = dict(action='cxrx', data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty))
         msg  = json.dumps(msgd)
         logger.debug('comm.send onCxRx:%s' % str(msgd))
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))
-
-'''
-    def onSubmit( self, message, execType, orderStatus ):
-        self._signalStrat.onNew( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-
-    def onOrderFill( self, message, execType, orderStatus ):
-        self._signalStrat.onFill( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
-
-    def onOrderPendingCancel( self, message, execType, orderStatus ):
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-
-    def onOrderCancel( self, message, execType, orderStatus ):
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-
-    def onOrderReject( self, message, execType, orderStatus ):
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-'''
 
 class EchoOrderState(object):
     def __init__(self, domain):

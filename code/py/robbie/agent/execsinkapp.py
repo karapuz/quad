@@ -15,18 +15,9 @@ import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
+import robbie.execution.util as executil
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
-
-
-def toVal(k,v):
-    return str(v)
-
-def toStr(c):
-    nc = {}
-    for k,v in c.iteritems():
-        nc[str(k)] = toVal(k,v)
-    return nc
 
 def run_execSink():
     context     = zmq.Context()
@@ -91,16 +82,18 @@ def run_execSink():
 
         for agent, c in agentOut.iteritems():
             if c in socks:
-                cmds    = c.recv() # process signal
-                cmd     = json.loads(cmds)
-                cmd     = toStr(cmd)
-                action  = cmd['action']
+                cmds        = c.recv() # process signal
+                cmd         = json.loads(cmds)
+                action      = cmd['action']
+                data        = cmd['data']
+                data        = executil.toStr(data)
 
                 if action == 'new':
                     logger.debug('agentOut msg = %s', cmd)
                     sinkproc.signal2order(
                         app          = app,
-                        cmd          = cmd,
+                        action       = action,
+                        data         = data,
                         senderCompID = senderCompID,
                         targetCompID = targetCompID )
                 else:
