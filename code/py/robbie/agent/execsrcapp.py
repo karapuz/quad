@@ -69,37 +69,6 @@ def run_execsrc():
                             msgAdapter  = msgAdapter)
     app         = appThread.getApplication()
 
-    '''
-    while 1:
-        msgs    = cmdConn.recv()
-        msg     = json.loads(msgs)
-        msg     = toStr(msg)
-        cmd     = msg['cmd']
-        agent   = msg['agent']
-        logger.debug('EXECSRCAPP: CMD=%s', msg)
-        cmdConn.send('RECIEVED')
-
-        if cmd == 'KILL':
-            for c in sigs:
-                c.send( cmd ) # process task
-            time.sleep(10)
-            break
-
-        elif cmd == 'SEND':
-            app.sendOrder(
-                senderCompID = 'BANZAI',
-                targetCompID = 'FIXIMULATOR',
-                account      = agent,
-                orderId      = newOrderId(),
-                symbol       = 'IBM',
-                qty          = 1000,
-                price        = 200,
-                timeInForce  = fut.Val_TimeInForce_DAY,
-                tagVal       = None )
-        else:
-            logger.error('Unknown cmd=%s', cmd)
-    '''
-
     while True:
         logger.debug('in the loop')
         try:
@@ -140,7 +109,7 @@ def run_execsrc():
                     timeInForce  = fut.Val_TimeInForce_DAY,
                     tagVal       = None )
             else:
-                logger.error('Unknown cmd=%s', cmd)
+                logger.error('EXECSRCAPP: Unknown cmd=%s', cmd)
 
             continue
 

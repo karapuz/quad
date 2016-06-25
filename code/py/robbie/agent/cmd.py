@@ -34,10 +34,10 @@ def run_cmd(cmd, agent):
 
     elif cmd == 'KILL':
         msgOut     = json.dumps( {'cmd': cmd } )
-        logger.debug("CMD: SRC Sending %s [%s]" % (srcCmd, msgOut))
+        logger.debug("CMD: SRC Sending %s [%s]" % (srcPort, msgOut))
         srcCmd.send(msgOut)
         msgIn = srcCmd.recv()
-        logger.debug("CMD: SRC Received reply %s [%s]" % (srcCmd, msgIn))
+        logger.debug("CMD: SRC Received reply %s [%s]" % (srcPort, msgIn))
 
         logger.debug("CMD: SNK Sending %s [%s]" % (snkPort, msgOut))
         snkCmd.send(msgOut)

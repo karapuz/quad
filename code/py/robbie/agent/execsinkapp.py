@@ -39,13 +39,12 @@ def run_execSink():
 
     agentIn     = {}
     agentOut    = {}
-    sigs        = []
 
     for agent, agt_comm in agt_comms.iteritems():
         if agent not in agt_list:
-            logger.debug('not an agent: %s', agent)
+            logger.debug('EXECSINKAPP: not an agent: %s', agent)
             continue
-        logger.debug( 'execsink: agent=%s', agent)
+        logger.debug( 'EXECSINKAPP: agent=%s', agent)
 
         agent_execSnkIn  = agt_comm['agent_execSnkIn']
         agent_execSnkOut = agt_comm['agent_execSnkOut']
@@ -75,7 +74,7 @@ def run_execSink():
 
     # Process messages from both sockets
     while True:
-        logger.debug('in the loop')
+        logger.debug('EXECSINKAPP: in the loop')
         try:
             socks = dict(poller.poll())
         except KeyboardInterrupt:
@@ -90,7 +89,7 @@ def run_execSink():
                 data        = executil.toStr(data)
 
                 if action == 'new':
-                    logger.debug('agentOut msg = %s', cmd)
+                    logger.debug('EXECSINKAPP: agentOut msg = %s', cmd)
                     sinkproc.signal2order(
                         app          = app,
                         action       = action,
@@ -98,7 +97,7 @@ def run_execSink():
                         senderCompID = senderCompID,
                         targetCompID = targetCompID )
                 else:
-                    msg = 'skip action=%s for msg=%s' % ( action, cmd)
+                    msg = 'EXECSINKAPP: skip action=%s for msg=%s' % ( action, cmd)
                     logger.error(msg)
 
         if regConn in socks:
@@ -131,7 +130,7 @@ if __name__ == '__main__':
         'run_turf'  : args.turf,
         'run_domain': 'echo_sink',
     }
-    logger.debug( 'execsinkapp: turf=%s', args.turf)
+    logger.debug( 'EXECSINKAPP: turf=%s', args.turf)
     with twkcx.Tweaks( **tweaks ):
         run_execSink()
 

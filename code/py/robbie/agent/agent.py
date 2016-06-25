@@ -15,6 +15,13 @@ from   robbie.util.logging import logger
 import robbie.echo.core as echocore
 
 
+def register(context, regPort, agent):
+    regConn          = context.socket(zmq.REQ)
+    regConn.connect("tcp://localhost:%s" % regPort)
+    regConn.send('AGENT: %s: can i?' % agent)
+    ok = regConn.recv()
+    logger.debug('AGENT: REGISTER: %s', ok)
+
 def run_agent():
     strat            = twkval.getenv('agt_strat')
     turf             = twkval.getenv('run_turf')
@@ -26,16 +33,20 @@ def run_agent():
     agent_execSnkIn  = agt_comm['agent_execSnkIn']
     agent_execSnkOut = agt_comm['agent_execSnkOut']
 
-    reg_comm        = turfutil.get(turf=turf, component='communication', sub='SNK_REG')
-    reg_port        = reg_comm['port_reg']
+    context          = zmq.Context()
 
-    context         = zmq.Context()
-    regConn         = context.socket(zmq.REQ)
-    regConn.connect("tcp://localhost:%s" % reg_port)
+    snkRegPort       = turfutil.get(turf=turf, component='communication', sub='SNK_REG')['port_reg']
+    register(context, regPort=snkRegPort, agent=strat)
 
-    regConn.send('%s: can i?' % strat)
-    ok = regConn.recv()
-    logger.debug('can i login?: %s', ok)
+    srcRegPort       = turfutil.get(turf=turf, component='communication', sub='SRC_REG')['port_reg']
+    register(context, regPort=srcRegPort, agent=strat)
+
+    # regConn          = context.socket(zmq.REQ)
+    # regConn.connect("tcp://localhost:%s" % snkRegPort)
+    #
+    # regConn.send('AGENT: %s: can i?' % strat)
+    # ok = regConn.recv()
+    # logger.debug('AGENT: REGISTER: %s', ok)
 
     agentSrcInCon       = context.socket(zmq.SUB)
     agentSrcInCon.setsockopt(zmq.SUBSCRIBE, b'')
