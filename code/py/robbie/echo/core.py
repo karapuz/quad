@@ -5,8 +5,6 @@ DESCRIPTION : echo.core module
 '''
 
 import json
-import robbie.turf.util as turfutil
-import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 import  robbie.util.symboldb as symboldb
@@ -50,14 +48,28 @@ class SignalStrat(object):
                 debug       = True )
         self._sig2comm  = sig2comm
 
-    def onNew(self, signalName, execTime, orderId, symbol, qty, price):
+    def onNew(self, signalName, execTime, orderId, symbol, qty, price, orderType):
         if self._orderstate.checkExistTag(orderId):
-            self._orderstate.addError(status='DUPLICATE_NEW', data=(signalName, execTime, orderId, symbol, qty, price), msg='DUPLICATE_NEW')
+            self._orderstate.addError(
+                status = 'DUPLICATE_NEW',
+                data  = (signalName, execTime, orderId, symbol, qty, price, orderType),
+                msg   = 'DUPLICATE_NEW')
+
             msg = 'Duplicate new for orderId=%s symbol=%s qty=%s' % (orderId, symbol, qty)
             logger.error(msg)
             return
+
         comm = self._sig2comm[ signalName ]
-        msgd = dict(action='new', data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
+        msgd = dict(
+                    action = 'new',
+                    data   = dict(
+                                    signalName  = signalName,
+                                    execTime    = execTime,
+                                    orderId     = orderId,
+                                    symbol      = symbol,
+                                    qty         = qty,
+                                    price       = price,
+                                    orderType   = orderType))
         msg  = json.dumps(msgd)
         logger.debug('comm.send onNew:%s' % str(msgd))
         comm.send( msg )

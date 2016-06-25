@@ -31,7 +31,8 @@ def signal2order(app, action, data, senderCompID, targetCompID ):
             price        = price,
             timeInForce  = fut.Val_TimeInForce_DAY,
             tagVal       = None )
-
+    else:
+        logger.error('SINKPROC: Unknown action=%s data=%s', action, str(data))
 '''
 agentOut =  {
     "orderId"    : "20160621_075324",

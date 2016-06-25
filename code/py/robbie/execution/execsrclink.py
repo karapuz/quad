@@ -101,7 +101,7 @@ class Application( quickfix.Application ):
         if msgType == fut.Msg_ExecReport:
             execType    = message.getField( fut.Tag_ExecType    )
             orderStatus = message.getField( fut.Tag_OrderStatus )
-            
+
             if execType == fut.Val_ExecType_New:
                  return self.onSubmit( message, execType, orderStatus )
 
@@ -147,6 +147,7 @@ class Application( quickfix.Application ):
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
         account     = message.getField( fut.Tag_Account )
+        # orderType   = message.getField( fut.Tag_OrderType )
 
         # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
         # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
@@ -167,6 +168,7 @@ class Application( quickfix.Application ):
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
         account     = message.getField( fut.Tag_Account )
+        # orderType   = message.getField( fut.Tag_OrderType )
 
         if lastShares == 0:
             cumQty  = fut.convertQty( side, int( message.getField( fut.Tag_CumQty ) ) )
@@ -188,6 +190,7 @@ class Application( quickfix.Application ):
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
         account     = message.getField( fut.Tag_Account )
+        # orderType   = message.getField( fut.Tag_OrderType )
 
         if lastShares == 0:
             cumQty  = fut.convertQty( side, int( message.getField( fut.Tag_CumQty ) ) )
@@ -225,6 +228,7 @@ class Application( quickfix.Application ):
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
         account     = message.getField( fut.Tag_Account )
+        orderType   = message.getField( fut.Tag_OrderType )
 
         # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
         # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
@@ -234,7 +238,15 @@ class Application( quickfix.Application ):
         qty         = fut.convertQty( side, lastShares )
         lastPx      = 0
 
-        self._signalStrat.onNew( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
+        self._signalStrat.onNew(
+            signalName  = account,
+            execTime    = txTime,
+            orderId     = orderId,
+            symbol      = symbol,
+            qty         = qty,
+            price       = lastPx,
+            orderType   = orderType)
+
         logger.debug( 'fix.new oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
     def onOrderPendingCancel( self, message, execType, orderStatus ):
@@ -243,9 +255,6 @@ class Application( quickfix.Application ):
 
     ''' order issuing block '''
     def sendOrder( self, senderCompID, targetCompID, account, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
-        # senderCompID = 'BANZAI',
-        # targetCompID = 'FIXIMULATOR',
-        # logger.debug( 'fix.new  enter' )
         msg = fut.form_NewOrder(
             senderCompID = senderCompID,
             targetCompID = targetCompID,
@@ -256,7 +265,6 @@ class Application( quickfix.Application ):
             qty          = qty,
             price        = price,
             tagVal       = tagVal )
-
         session = self.getSession()
         session.sendToTarget( msg )
         logger.debug( 'fix.new  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price ))

@@ -42,7 +42,6 @@ class OrderState( object ):
         self._ix2tag    = {}
 
         turf            = twkval.getenv('run_turf')
-        # domain          = turfutil.get(turf=turf, component='shared_location', sub='domain' )
         domain          = twkval.getenv('run_domain')
         session         = twkval.getenv('run_session')
         user            = twkval.getenv('env_userName')
@@ -83,7 +82,7 @@ class OrderState( object ):
             fd.write( frmt + ':\n' )
             for k,v in self._state.iteritems():
                 fd.write( str( k ) + ':\n' )
-                fd.write( str( v[ : self._nextNum ].tolist() ) + '\n' )
+                fd.write( ','.join( v[ : self._nextNum ].tolist() ) + '\n' )
             fd.write( 'tag2ix' + ':\n' )
             fd.write( str( self._tag2ix ) + '\n' )
         else:

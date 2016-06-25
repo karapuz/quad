@@ -238,7 +238,6 @@ def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, sy
     msg = fix.Message()
     hdr = msg.getHeader()
 
-
     for tag, val in create_NewOrderHeader(senderCompID, targetCompID).iteritems():
         hdr.setField( tag, val )
 

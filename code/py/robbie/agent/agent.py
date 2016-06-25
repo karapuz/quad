@@ -10,23 +10,21 @@ import argparse
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
-import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
-import robbie.echo.core as echocore
+import robbie.echo.reflectstrat as strat
 
-
-def register(context, regPort, agent):
+def register(context, regPort, agent, logName):
     regConn          = context.socket(zmq.REQ)
     regConn.connect("tcp://localhost:%s" % regPort)
     regConn.send('AGENT: %s: can i?' % agent)
     ok = regConn.recv()
-    logger.debug('AGENT: REGISTER: %s', ok)
+    logger.debug('AGENT: REGISTER: %s, %s', logName, ok)
 
 def run_agent():
-    strat            = twkval.getenv('agt_strat')
+    agent            = twkval.getenv('agt_strat')
     turf             = twkval.getenv('run_turf')
 
-    agt_comm         = turfutil.get(turf=turf, component='communication', sub=strat)
+    agt_comm         = turfutil.get(turf=turf, component='communication', sub=agent)
 
     agent_execSrc    = agt_comm['agent_execSrc']
     port_sigCon      = agt_comm['agent_sigCon']
@@ -36,17 +34,10 @@ def run_agent():
     context          = zmq.Context()
 
     snkRegPort       = turfutil.get(turf=turf, component='communication', sub='SNK_REG')['port_reg']
-    register(context, regPort=snkRegPort, agent=strat)
+    register(context, regPort=snkRegPort, agent=agent, logName='SNK')
 
     srcRegPort       = turfutil.get(turf=turf, component='communication', sub='SRC_REG')['port_reg']
-    register(context, regPort=srcRegPort, agent=strat)
-
-    # regConn          = context.socket(zmq.REQ)
-    # regConn.connect("tcp://localhost:%s" % snkRegPort)
-    #
-    # regConn.send('AGENT: %s: can i?' % strat)
-    # ok = regConn.recv()
-    # logger.debug('AGENT: REGISTER: %s', ok)
+    register(context, regPort=srcRegPort, agent=agent, logName='SRC')
 
     agentSrcInCon       = context.socket(zmq.SUB)
     agentSrcInCon.setsockopt(zmq.SUBSCRIBE, b'')
@@ -68,8 +59,7 @@ def run_agent():
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
 
-    signalOrders = echocore.EchoOrderState('%s-signal' % strat)
-    echoOrders   = echocore.EchoOrderState('%s-echo' % strat)
+    echoStrat = strat.Strategy(agent=agent)
 
     while True:
         try:
@@ -79,42 +69,28 @@ def run_agent():
 
         if sigCon in socks:
             msg = sigCon.recv() # process signal
-            print 'got signal = ', msg
+            logger.debug('AGENT: SIG = %s', msg)
             break
 
         if agentSinkInCon in socks:
-            msg = agentSinkInCon.recv() # process task
-            cmd = json.loads(msg)
-
+            msg     = agentSinkInCon.recv() # process task
+            cmd     = json.loads(msg)
             action  = cmd['action']
-            print 'got message = ', msg
+            data    = cmd['data'  ]
+            logger.debug('AGENT: SNKIN = %s', msg)
+            echoStrat.processSnkMsg(action=action, data=data)
 
         if agentSrcInCon in socks:
-            msg = agentSrcInCon.recv() # process signal
-            print 'got exec report = ', msg
-            print 'some complext strat proc = ', msg
+            msg     = agentSrcInCon.recv() # process signal
+            cmd     = json.loads(msg)
+            action  = cmd['action']
+            data    = cmd['data'  ]
+            logger.debug('AGENT: SRCIN  = %s', msg)
+            echoStrat.processSrcMsg(action=action, data=data)
+
+            logger.debug('AGENT: SNKOUT = %s', msg)
             agentSinkOutCon.send(msg)
 
-'''
-form sink =  {
-    "orderId"    : "20160621_182343",
-    "action"     : "new",
-    "execTime"   : "20160621-22:23:43.556",
-    "price"      : 0,
-    "signalName" : "ECHO1",
-    "symbol"     : "IBM",
-    "qty"        : 1000}
-
-from src  =  {
-    "orderId"    : "20160621_182343",
-    "action"     : "fill",
-    "execTime"   : "TIME",
-    "price"      : 200.0,
-    "signalName" : "ECHO1",
-    "symbol"     : "IBM",
-    "qty"        : 200}
-
-'''
 if __name__ == '__main__':
     '''
     -T turf
@@ -139,4 +115,25 @@ c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=dev
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=dev
+'''
+
+'''
+form sink =  {
+    "orderId"    : "20160621_182343",
+    "action"     : "new",
+    "execTime"   : "20160621-22:23:43.556",
+    "price"      : 0,
+    "signalName" : "ECHO1",
+    "symbol"     : "IBM",
+    "qty"        : 1000}
+
+from src  =  {
+    "orderId"    : "20160621_182343",
+    "action"     : "fill",
+    "execTime"   : "TIME",
+    "price"      : 200.0,
+    "signalName" : "ECHO1",
+    "symbol"     : "IBM",
+    "qty"        : 200}
+
 '''
