@@ -26,12 +26,13 @@ def run_execSink():
     agt_list    = turfutil.get(turf=turf, component='agents')
 
     poller      = zmq.Poller()
-    reg_port    = agt_comms['SINK_REGISTER']['port_reg']
+
+    reg_port    = agt_comms['SNK_REG']['port_reg']
     regConn     = context.socket(zmq.REP)
     regConn.bind("tcp://*:%s" % reg_port)
     poller.register(regConn, zmq.POLLIN)
 
-    cmd_port    = agt_comms['SINKCMD']['port_cmd']
+    cmd_port    = agt_comms['SNK_CMD']['port_cmd']
     cmdConn     = context.socket(zmq.REP)
     cmdConn.bind("tcp://*:%s" % cmd_port)
     poller.register(cmdConn, zmq.POLLIN)
@@ -102,12 +103,22 @@ def run_execSink():
 
         if regConn in socks:
             msg = regConn.recv()
-            regConn.send('Ok')
-            print 'registered[sink] = ', msg
+            regConn.send('OK')
+            logger.debug('EXECSINKAPP: REGISTERED[SINK] = %s', msg)
 
         if cmdConn in socks:
-            pass
-    # app.Boo()
+            msgs    = cmdConn.recv()
+            msg     = json.loads(msgs)
+            msg     = executil.toStr(msg)
+            action     = msg['cmd']
+            logger.debug('EXECSINKAPP: CMD=%s', msg)
+            cmdConn.send('RECEIVED')
+
+            if action == 'KILL':
+                time.sleep(10)
+                break
+            else:
+                logger.error('EXECSINKAPP: Unknown action=%s', action)
 
 if __name__ == '__main__':
     '''

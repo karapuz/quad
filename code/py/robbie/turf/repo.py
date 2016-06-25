@@ -32,14 +32,20 @@ def newSinkReg():
 
 _conf = {
     'dev': {
-        'execsrccmd': [ 'SRCCMD' ],
-        'agents'    : [ 'ECHO1', 'ECHO2'  ],
-        'communication': {
-            'SINK_REGISTER'  : newSinkReg(),
-            'SRCCMD'    : newSrcCmd(),
-            'SINKCMD'   : newSrcCmd(),
-            'ECHO1'     : newAgent(),
-            'ECHO2'     : newAgent(),
+        'cmd': [
+            'CMD'
+        ],
+        'agents': [
+            'ECHO1',
+            'ECHO2'
+        ],
+        'communication' : {
+            'SNK_REG'      : newSinkReg(),
+            'SRC_REG'       : newSinkReg(),
+            'SNK_CMD'       : newSrcCmd(),
+            'SRC_CMD'       : newSrcCmd(),
+            'ECHO1'         : newAgent(),
+            'ECHO2'         : newAgent(),
         },
         'shared_location': {
             'domain'     : 'echo',

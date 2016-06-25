@@ -14,17 +14,37 @@ from   robbie.util.logging import logger
 
 def run_cmd(cmd, agent):
     # Prepare our context and sockets
-    turf            = twkval.getenv('run_turf')
-    cmd_comms   = turfutil.get(turf=turf, component='communication', sub='SRCCMD')
-    cmd_port    = cmd_comms['port_cmd']
+    turf        = twkval.getenv('run_turf')
     context     = zmq.Context()
-    socket      = context.socket(zmq.REQ)
-    socket.connect ("tcp://localhost:%s" % cmd_port)
-    msg = json.dumps( {'cmd': cmd, 'agent': agent} )
-    socket.send(msg)
-    message = socket.recv()
-    print("Received reply %s [%s]" % (cmd_port, message))
 
+    srcPort    = turfutil.get(turf=turf, component='communication', sub='SRC_CMD')['port_cmd']
+    srcCmd      = context.socket(zmq.REQ)
+    srcCmd.connect ("tcp://localhost:%s" % srcPort)
+
+    snkPort    = turfutil.get(turf=turf, component='communication', sub='SNK_CMD')['port_cmd']
+    snkCmd      = context.socket(zmq.REQ)
+    snkCmd.connect ("tcp://localhost:%s" % snkPort)
+
+    if cmd == 'SEND':
+        msg     = json.dumps( {'cmd': cmd, 'agent': agent} )
+        logger.debug("CMD: Sending %s [%s]" % (srcPort, msg))
+        srcCmd.send(msg)
+        msg = srcCmd.recv()
+        logger.debug("CMD: Received reply %s [%s]" % (srcPort, msg))
+
+    elif cmd == 'KILL':
+        msgOut     = json.dumps( {'cmd': cmd } )
+        logger.debug("CMD: SRC Sending %s [%s]" % (srcCmd, msgOut))
+        srcCmd.send(msgOut)
+        msgIn = srcCmd.recv()
+        logger.debug("CMD: SRC Received reply %s [%s]" % (srcCmd, msgIn))
+
+        logger.debug("CMD: SNK Sending %s [%s]" % (snkPort, msgOut))
+        snkCmd.send(msgOut)
+        msgIn = snkCmd.recv()
+        logger.debug("CMD: SNK Received reply %s [%s]" % (snkPort, msgIn))
+    else:
+        logger.error('Uknown cmd=%s' % cmd )
 
 if __name__ == '__main__':
     '''
@@ -52,5 +72,4 @@ c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO2
-
 '''

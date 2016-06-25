@@ -26,7 +26,7 @@ def run_agent():
     agent_execSnkIn  = agt_comm['agent_execSnkIn']
     agent_execSnkOut = agt_comm['agent_execSnkOut']
 
-    reg_comm        = turfutil.get(turf=turf, component='communication', sub='SINK_REGISTER')
+    reg_comm        = turfutil.get(turf=turf, component='communication', sub='SNK_REG')
     reg_port        = reg_comm['port_reg']
 
     context         = zmq.Context()
