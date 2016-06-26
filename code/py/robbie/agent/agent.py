@@ -90,12 +90,18 @@ def run_agent():
             data    = cmd['data'  ]
             logger.debug('AGENT: SRCIN  = %s', msg)
 
-            echoStrat.preSrcUpdate(action=action, data=data)
-            echoStrat.processSrcMsg(action=action, data=data)
-            echoStrat.postSrcUpdate(action=action, data=data)
+            echoStrat.srcPreUpdate(action=action, data=data)
+            echoStrat.srcUpdate(action=action, data=data)
+            echoStrat.srcPostUpdate(action=action, data=data)
 
-            logger.debug('AGENT: SNKOUT = %s', msg)
-            agentSinkOutCon.send(msg)
+            status, msg = echoStrat.newMsg()
+
+            if status == 'SEND':
+                logger.debug('AGENT: SNKOUT = %s', msg)
+                msg = json.dumps(msg)
+                agentSinkOutCon.send(msg)
+            else:
+                logger.debug('AGENT: STATUS=%s', status)
 
 if __name__ == '__main__':
     '''

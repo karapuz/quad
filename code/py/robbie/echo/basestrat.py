@@ -87,18 +87,27 @@ class BaseStrat(object):
             symbol      = data['execTime'],
             qty         = int(data['qty']),
         )
-
     ##
     ##
     ##
+    def snkPreUpdate(self, action, data):
+        pass
 
-    def processSrcMsg(self, action, data):
-        self._srcAction2proc[action](action=action, data=data)
+    def snkPostUpdate(self, action, data):
+        pass
 
-    def processSnkMsg(self, action, data):
+    def snkUpdate(self, action, data):
         self._snkAction2proc[action](action=action, data=data)
 
+    def srcUpdate(self, action, data):
+        self._srcAction2proc[action](action=action, data=data)
 
+    def srcPreUpdate(self, action, data):
+        pass
 
+    def srcPostUpdate(self, action, data):
+        pass
 
-
+    def newMsg(self):
+        status, msg = None, None
+        return status, msg
