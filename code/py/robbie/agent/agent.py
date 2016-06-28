@@ -67,22 +67,6 @@ def run_agent():
         except KeyboardInterrupt:
             break
 
-        if sigCon in socks:
-            msg = sigCon.recv() # process signal
-            logger.debug('AGENT: SIG = %s', msg)
-            break
-
-        if agentSinkInCon in socks:
-            msg     = agentSinkInCon.recv() # process task
-            cmd     = json.loads(msg)
-            action  = cmd['action']
-            data    = cmd['data'  ]
-            logger.debug('AGENT: SNKIN = %s', msg)
-
-            echoStrat.snkPreUpdate(action=action, data=data)
-            echoStrat.snkUpdate(action=action, data=data)
-            echoStrat.snkPostUpdate(action=action, data=data)
-
         if agentSrcInCon in socks:
             msg     = agentSrcInCon.recv() # process signal
             cmd     = json.loads(msg)
@@ -102,6 +86,22 @@ def run_agent():
                 agentSinkOutCon.send(msg)
             else:
                 logger.debug('AGENT: STATUS=%s', status)
+
+        if agentSinkInCon in socks:
+            msg     = agentSinkInCon.recv() # process task
+            cmd     = json.loads(msg)
+            action  = cmd['action']
+            data    = cmd['data'  ]
+            logger.debug('AGENT: SNKIN = %s', msg)
+
+            echoStrat.snkPreUpdate(action=action, data=data)
+            echoStrat.snkUpdate(action=action, data=data)
+            echoStrat.snkPostUpdate(action=action, data=data)
+
+        if sigCon in socks:
+            msg = sigCon.recv() # process signal
+            logger.debug('AGENT: SIG = %s', msg)
+            break
 
 if __name__ == '__main__':
     '''

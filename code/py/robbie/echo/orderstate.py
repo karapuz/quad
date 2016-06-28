@@ -58,7 +58,7 @@ class OrderState( object ):
         self._realized  = mmapFunc( activity='orderstate-realized', **vars )
         self._pending   = mmapFunc( activity='orderstate-pending',  **vars )
         self._canceled  = mmapFunc( activity='orderstate-canceled', **vars )
-        self._rejected  = mmapFunc( activity='orderstate-rejected', **vars )
+        # self._rejected  = mmapFunc( activity='orderstate-rejected', **vars )
         self._symids    = mmapFunc( activity='orderstate-symids',   **vars )
         
         if symIds != None and not readOnly:
@@ -68,7 +68,7 @@ class OrderState( object ):
             'realized'      : self._realized,
             'pending'       : self._pending,
             'canceled'      : self._canceled,
-            'rejected'      : self._rejected,
+            # 'rejected'      : self._rejected,
         }
     
         self._lastError     = None
@@ -166,7 +166,6 @@ class OrderState( object ):
     def getPendingByIx(self, ix ):
         '''
         return signed pending amount 
-        Note: the same order can not have both pending long and short, but aggregates CAN!
         '''
         return self._pending[ ix ]
 
@@ -174,16 +173,16 @@ class OrderState( object ):
         '''return signed cancelled amount '''
         return self._canceled[ ix ]
 
-    def getRejectedByIx(self, ix ):
-        '''return signed rejected amount '''
-        return self._rejected[ ix ]
+    # def getRejectedByIx(self, ix ):
+    #     '''return signed rejected amount '''
+    #     return self._rejected[ ix ]
 
-    def getKilledByIx(self, ix ):
-        '''
-        return signed rejected and canceled amount 
-        Note: the same order can not have both pending long and short
-        '''
-        return self._rejected[ ix ] + self._canceled[ ix ]
+    # def getKilledByIx(self, ix ):
+    #     '''
+    #     return signed rejected and canceled amount
+    #     Note: the same order can not have both pending long and short
+    #     '''
+    #     return self._rejected[ ix ] + self._canceled[ ix ]
 
     def getRealizedByIx(self, ix ):
         '''return signed realized amount '''
@@ -241,10 +240,10 @@ class OrderState( object ):
 
         return True
 
-    def addRejectedByIx(self, ix, vals, checked = False, verbose = True ):
-        '''return newly cancelled amount '''
-        return self._addByNameByIx(
-            name='rejected', ix=ix, vals=vals, checked=checked, verbose=verbose )
+    # def addRejectedByIx(self, ix, vals, checked = False, verbose = True ):
+    #     '''return newly cancelled amount '''
+    #     return self._addByNameByIx(
+    #         name='rejected', ix=ix, vals=vals, checked=checked, verbose=verbose )
 
     def addCanceledByIx(self, ix, vals, checked = False, verbose = True ):
         '''return newly cancelled amount '''

@@ -6,6 +6,8 @@ DESCRIPTION : this module contains strategies
 '''
 
 import robbie.echo.core as echocore
+from   robbie.util.logging import logger
+import robbie.echo.stratutil as stratutil
 
 '''
 msgd = dict(action='new',  data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
@@ -31,11 +33,9 @@ class BaseStrat(object):
             'fill' : self._onSrcFill,
             'cxrx' : self._onSrcCxRx,
         }
-
     ##
     ##
     ##
-
     def _onSnkNew(self, action, data):
         self._snkOrders.onNew(
             execTime    = data['execTime'],
@@ -111,3 +111,65 @@ class BaseStrat(object):
     def newMsg(self):
         status, msg = None, None
         return status, msg
+
+    def _getTargetOrderState(self, target):
+        if target == 'SNK':
+            orderstat = self._srcOrders
+        elif target == 'SRC':
+            orderstat = self._snkOrders
+        else:
+            logger.error('Uknown target=%s', target)
+        return orderstat
+
+    def _hasPositionForSymbol(self, target, symbol):
+        orderstat   = self._getTargetOrderState(target=target)
+
+        ix          = orderstat.getIxByTag(tag=symbol)
+        pendingPos  = orderstat.getPendingByIx( ix )
+        realizedPos = orderstat.getRealizedByIx( ix )
+
+        if pendingPos or realizedPos:
+            return True
+        else:
+            return False
+
+    def _getCurrentState(self, target, symbol):
+        '''
+            state
+            CLOSING = 'CLOSING STATE'
+            OPENING = 'OPENING STATE'
+            EMPTY   = 'EMPTY STATE'
+        '''
+        orderstat   = self._getTargetOrderState(target=target)
+
+        ix          = orderstat.getIxByTag(tag=symbol)
+        pendingPos  = orderstat.getPendingByIx( ix )
+        realizedPos = orderstat.getRealizedByIx( ix )
+
+        state, sign = stratutil.getCurrentState(pendingPos=pendingPos, realizedPos=realizedPos)
+
+        return state, sign
+
+    def _getAction(self, target, qty, symbol):
+        '''
+            action
+            ISSUEOPENORDER  = 'ISSUE OPEN ORDER'
+            ISSUECLOSEORDER = 'ISSUE CLOSE ORDER'
+        '''
+
+        state, sign             = self._getCurrentState(target=target, symbol=symbol)
+        nextState, nextAction   = stratutil.getAction( state=state, sign=sign, qty=qty)
+
+        return nextState, nextAction
+
+    def getEchoOpenOrder( self, data ):
+        echoAction, echoData = None, None
+        return echoAction, echoData
+
+    def getEchoCancelOrder( self, data ):
+        echoAction, echoData = None, None
+        return echoAction, echoData
+
+    def getEchoCloseOrder( self, data ):
+        echoAction, echoData = None, None
+        return echoAction, echoData
