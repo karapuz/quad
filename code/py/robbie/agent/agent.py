@@ -59,7 +59,8 @@ def run_agent():
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
 
-    echoStrat = strat.Strategy(agent=agent)
+    policy    = strat.ScaleVenuePolicy( scale=.5, venue='GREY')
+    echoStrat = strat.Strategy(agent=agent, policy=policy)
 
     while True:
         try:
@@ -70,22 +71,21 @@ def run_agent():
         if agentSrcInCon in socks:
             msg     = agentSrcInCon.recv() # process signal
             cmd     = json.loads(msg)
-            action  = cmd['action']
-            data    = cmd['data'  ]
+            action  = cmd[ 'action' ]
+            data    = cmd[ 'data'   ]
             logger.debug('AGENT: SRCIN  = %s', msg)
 
             echoStrat.srcPreUpdate(action=action, data=data)
             echoStrat.srcUpdate(action=action, data=data)
             echoStrat.srcPostUpdate(action=action, data=data)
 
-            status, msg = echoStrat.newMsg()
-
-            if status == 'SEND':
-                logger.debug('AGENT: SNKOUT = %s', msg)
-                msg = json.dumps(msg)
-                agentSinkOutCon.send(msg)
-            else:
-                logger.debug('AGENT: STATUS=%s', status)
+            for status, msg in echoStrat.newMsg():
+                if status == 'SEND':
+                    logger.debug('AGENT: SNKOUT = %s', msg)
+                    msg = json.dumps(msg)
+                    agentSinkOutCon.send(msg)
+                else:
+                    logger.debug('AGENT: STATUS=%s', status)
 
         if agentSinkInCon in socks:
             msg     = agentSinkInCon.recv() # process task

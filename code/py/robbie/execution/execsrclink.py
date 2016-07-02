@@ -176,9 +176,11 @@ class Application( quickfix.Application ):
             cxqty   = orderQty - cumQty
         else:
             cxqty   = fut.convertQty( side, lastShares )
-              
+
+        origOrderId = message.getField( fut.Tag_OrigClOrdID )
+
         logger.debug( 'fix.cxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, cxqty ))
-        self._signalStrat.onCxRx( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
+        self._signalStrat.onCxRx( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty, origOrderId=origOrderId )
 
     def onOrderReject( self, message, execType, orderStatus ):
         ''' '''
@@ -199,7 +201,7 @@ class Application( quickfix.Application ):
         else:
             rxqty   = fut.convertQty( side, lastShares )
                 
-        self._signalStrat.onCxRx(signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty )
+        self._signalStrat.onCxRx(signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty, origOrderId=None )
         logger.debug( 'fix.rxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, rxqty ))
     
     def onSubmit( self, message, execType, orderStatus ):

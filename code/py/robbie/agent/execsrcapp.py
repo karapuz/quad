@@ -8,9 +8,10 @@ import zmq
 import json
 import time
 import argparse
-import datetime
 import robbie.fix.util as fut
 import robbie.echo.core as echocore
+import robbie.echo.stratutil as stratutil
+
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
@@ -18,10 +19,6 @@ from   robbie.util.logging import logger
 import robbie.execution.util as executil
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
-
-def newOrderId():
-    now = datetime.datetime.now()
-    return now.strftime('SRC_%Y%m%d_%H%M%S')
 
 def run_execsrc():
     # prepare fix
@@ -102,7 +99,7 @@ def run_execsrc():
                     senderCompID = 'BANZAI',
                     targetCompID = 'FIXIMULATOR',
                     account      = agent,
-                    orderId      = newOrderId(),
+                    orderId      = stratutil.newOrderId('SRC'),
                     symbol       = 'IBM',
                     qty          = 1000,
                     price        = 200,

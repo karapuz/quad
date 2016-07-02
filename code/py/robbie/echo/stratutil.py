@@ -5,18 +5,30 @@ DESCRIPTION : echo.stratutil module
 DESCRIPTION : this module contains utilities for strategies
 '''
 
+import datetime
 from   robbie.util.logging import logger
 
+def newOrderId(base):
+    now = datetime.datetime.now()
+    return now.strftime(base + '_%Y%m%d_%H%M%S' )
+
 class STRATSTATE(object):
+    '''  state, action, and order type   '''
 
     ''' state '''
-    CLOSING = 'CLOSING STATE'
-    OPENING = 'OPENING STATE'
-    EMPTY   = 'EMPTY STATE'
+    CLOSING         = 'CLOSING STATE'
+    OPENING         = 'OPENING STATE'
+    EMPTY           = 'EMPTY STATE'
 
     ''' action '''
     ISSUEOPENORDER  = 'ISSUE OPEN ORDER'
     ISSUECLOSEORDER = 'ISSUE CLOSE ORDER'
+    ISSUECXORDER    = 'ISSUE CX ORDER'
+
+    ''' order type '''
+    ORDERTYPE_NEW   = 'ORDER TYPE NEW'
+    ORDERTYPE_CXRX  = 'ORDER TYPE CXRX'
+    ORDERTYPE_FILL  = 'ORDER TYPE FILL'
 
 def _sign(x):
     if x == 0:
@@ -32,6 +44,7 @@ def getAction(state, sign, qty):
     if state == STRATSTATE.EMPTY:
         nextAction  = STRATSTATE.ISSUEOPENORDER
         nextState   = STRATSTATE.OPENING
+
     elif state == STRATSTATE.OPENING:
         if qty * sign > 0:
             nextAction  = STRATSTATE.ISSUEOPENORDER
@@ -39,13 +52,16 @@ def getAction(state, sign, qty):
         else:
             nextAction  = STRATSTATE.ISSUECLOSEORDER
             nextState   = STRATSTATE.CLOSING
+
     elif state == STRATSTATE.CLOSING:
             nextAction  = None
             nextState   = STRATSTATE.CLOSING
+
     else:
         logger.error('_getAction: Unknown state=%s', state)
         nextAction  = None
         nextState   = None
+
     return nextState, nextAction
 
 def getCurrentState(pendingPos, realizedPos):

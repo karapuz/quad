@@ -7,66 +7,67 @@ DESCRIPTION : this module contains order state objects
 import os
 import numpy
 import threading
-import robbie.util.margot as margot
 import robbie.tweak.value as twkval
-import robbie.turf.util as turfutil
-import robbie.tweak.context as twkcx
+import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
 import robbie.util.mmap_array as mmap_array
 
-MAXNUM = 1000000
-MAXNUMPOS = 0
+MAXNUM      = 1000000
+POS_MAXNUM  = 0
 
 class OrderState( object ):
     '''
-    OrderState tracks status of related orders/exposure objects
-    MargotRoot   = /margot/ivp
-    Domain       = echo         # pretty much a constant. Other domains: risk management?
-    Session      = 20160504     # tied to a day
-    Activity     = mirror       # is related to echo; mirror, trade, market
+        OrderState tracks status of related orders/exposure objects
+        MargotRoot   = /margot/ivp
+        Domain       = echo         # pretty much a constant. Other domains: risk management?
+        Session      = 20160504     # tied to a day
+        Activity     = mirror       # is related to echo; mirror, trade, market
     '''
-    def __init__(self, readOnly, maxNum, symIds, debug=True ):
+    def __init__(self, readOnly, maxNum, symbols, debug=True ):
         ''' the constructor '''
-        return self.init( readOnly=readOnly, maxNum=maxNum, symIds=symIds, debug=debug )
+        return self.init( readOnly=readOnly, maxNum=maxNum, symbols=symbols, debug=debug )
 
-    def init( self, readOnly ,maxNum, symIds, debug ):
+    def init( self, readOnly, maxNum, symbols, debug ):
         '''
             realized
-            pending
+            pending_long
+            pending_short
             rejected
             canceled
         '''
-
         self._maxNum    = maxNum
         self._nextNum   = 0
         self._tag2ix    = {}
         self._ix2tag    = {}
+        self._symbols   = symbols
 
         turf            = twkval.getenv('run_turf')
         domain          = twkval.getenv('run_domain')
         session         = twkval.getenv('run_session')
         user            = twkval.getenv('env_userName')
         shape           = ( self._maxNum, )
-
+        symIds          = symboldb.symbol2id(self._symbols)
         if readOnly:
             mmapFunc    = mmap_array.newRead
         else:
             mmapFunc    = mmap_array.zeros
 
         vars = dict( domain=domain, user=user, session=session, shape=shape )
-        self._support   = mmapFunc( activity='orderstate-support', **vars )
-        self._realized  = mmapFunc( activity='orderstate-realized', **vars )
-        self._pending   = mmapFunc( activity='orderstate-pending',  **vars )
-        self._canceled  = mmapFunc( activity='orderstate-canceled', **vars )
-        # self._rejected  = mmapFunc( activity='orderstate-rejected', **vars )
-        self._symids    = mmapFunc( activity='orderstate-symids',   **vars )
-        
+        self._support       = mmapFunc( activity='orderstate-support',      **vars )
+        self._realized      = mmapFunc( activity='orderstate-realized',     **vars )
+        self._pending_long  = mmapFunc( activity='orderstate-pndng_l',      **vars )
+        self._pending_short = mmapFunc( activity='orderstate-pndng_s',      **vars )
+        self._canceled      = mmapFunc( activity='orderstate-canceled',     **vars )
+        self._symids        = mmapFunc( activity='orderstate-symids',       **vars )
+        # self._rejected    = mmapFunc( activity='orderstate-rejected',     **vars )
+
         if symIds != None and not readOnly:
             self._symids[ :len( symIds ) ] = symIds
 
         self._state         = { 
             'realized'      : self._realized,
-            'pending'       : self._pending,
+            'pending_long'  : self._pending_long,
+            'pending_short' : self._pending_short,
             'canceled'      : self._canceled,
             # 'rejected'      : self._rejected,
         }
@@ -74,17 +75,21 @@ class OrderState( object ):
         self._lastError     = None
         self._addTagLock    = threading.Lock()
         self._pending_Lock  = threading.Lock()
-        
+        self.addTags( symbols )
+
     def getFullByType(self, posType, maxLen ):
         ''' get a slice of all data for the type '''
-        return self._state[ posType ][: maxLen]
+        if posType == 'pending':
+            return self._state[ 'pending_long' ][: maxLen] + self._state[ 'pending_short' ][: maxLen]
+        else:
+            return self._state[ posType ][: maxLen]
 
     def asTable(self, header=None):
         mat = []
         if header:
             mat.append(header)
 
-        nextNum = self._support[ MAXNUMPOS ]
+        nextNum = self._support[ POS_MAXNUM ]
         for k,v in self._state.iteritems():
             row = [ k ]
             row.extend( v[ : nextNum ].tolist() )
@@ -92,7 +97,7 @@ class OrderState( object ):
         return mat
 
     def dump(self, fd, frmt='multiLine' ):
-        nextNum = self._support[ MAXNUMPOS ]
+        nextNum = self._support[ POS_MAXNUM ]
 
         if frmt == 'multiLine':
             fd.write( frmt + ':\n' )
@@ -117,15 +122,15 @@ class OrderState( object ):
         return tag in self._tag2ix
 
     def _addTag( self, tag ):        
-        with self._addTagLock:
-            if tag in self._tag2ix:
-                return self._tag2ix[ tag ]
-            c = self._nextNum
-            self._tag2ix[ tag ] = c
-            self._ix2tag[ c   ] = tag        
-            self._nextNum += 1
-            self._support[ MAXNUMPOS ] = self._nextNum
-            return c
+        #with self._addTagLock:
+        if tag in self._tag2ix:
+            return self._tag2ix[ tag ]
+        c = self._nextNum
+        self._tag2ix[ tag ] = c
+        self._ix2tag[ c   ] = tag
+        self._nextNum += 1
+        self._support[ POS_MAXNUM ] = self._nextNum
+        return c
 
     def addTag( self, tag ):
         return self._addTag( tag )
@@ -151,38 +156,30 @@ class OrderState( object ):
     def getPosStateByIx(self, ix, typ='dict' ):
         if typ == 'dict':
             return { 
-                'realized'  : self._realized[ix],
-                'pending'   : self._pending[ix],
+                'realized' : self._realized[ix],
+                'pending'  : self.pending_long[ix] + self.pending_short[ix],
             }
         else:
-            return self._realized[ix], self._pending[ix]
+            return self._realized[ix], self.pending_long[ix] + self.pending_short[ix]
 
     def getPosStateByTag(self, tag, asDict=False ):
         return self.getPosStateByIx(ix=self.getIxByTag(tag), asDict=asDict )
 
     def getStateByIx(self, name, ix ):
-        return self._state[ name ][ ix ]
+        if name == 'pending':
+            return self._state[ 'pending_long' ][ ix ] + self._state[ 'pending_short' ][ ix ]
+        else:
+            return self._state[ name ][ ix ]
 
     def getPendingByIx(self, ix ):
         '''
         return signed pending amount 
         '''
-        return self._pending[ ix ]
+        return self._pending_long[ ix ] + self._pending_short[ ix ]
 
     def getCanceledByIx(self, ix ):
         '''return signed cancelled amount '''
         return self._canceled[ ix ]
-
-    # def getRejectedByIx(self, ix ):
-    #     '''return signed rejected amount '''
-    #     return self._rejected[ ix ]
-
-    # def getKilledByIx(self, ix ):
-    #     '''
-    #     return signed rejected and canceled amount
-    #     Note: the same order can not have both pending long and short
-    #     '''
-    #     return self._rejected[ ix ] + self._canceled[ ix ]
 
     def getRealizedByIx(self, ix ):
         '''return signed realized amount '''
@@ -201,7 +198,7 @@ class OrderState( object ):
     def _validKillAddByIx( self, name, vals, ix, verbose=True ):
         '''check new add for validity '''
 
-        pending = self._pending[ ix ]
+        pending = self._pending_long[ ix ] + self._pending_short[ ix ]
 
         if numpy.any( vals * pending < 0 ):
             msg = 'wrong sign %s %s %s' % ( str( ix ), str( vals ), str( pending ) )
@@ -232,18 +229,19 @@ class OrderState( object ):
 
         if name == 'realized':
             self._realized[ ix ] += vals
+
+        elif name == 'canceled':
+            self._canceled[ ix ] += vals
+
+        elif name == 'pending':
+            with self._pending_Lock:
+                if vals[0] > 0:
+                    self._pending_long[ ix ] += vals
+                else:
+                    self._pending_short[ ix ] += vals
         else:
-            self._state[ name  ][ ix ] += vals
-
-        with self._pending_Lock:        
-            self._pending[ ix ] += vals
-
+            raise ValueError('Uknown name=%s', name)
         return True
-
-    # def addRejectedByIx(self, ix, vals, checked = False, verbose = True ):
-    #     '''return newly cancelled amount '''
-    #     return self._addByNameByIx(
-    #         name='rejected', ix=ix, vals=vals, checked=checked, verbose=verbose )
 
     def addCanceledByIx(self, ix, vals, checked = False, verbose = True ):
         '''return newly cancelled amount '''
@@ -255,10 +253,8 @@ class OrderState( object ):
         return self._addByNameByIx(
             name='realized', ix=ix, vals=vals, checked=checked, verbose=verbose )
 
-    def addPendingByIx(self, ix, vals, verbose=False ):
+    def addPendingByIx(self, ix, vals, checked=True, verbose=False ):
         '''main entry point - adding new pending positions '''
-        vals = numpy.array( vals )
-        ix   = numpy.array( ix )
-        with self._pending_Lock:
-            self._pending[ ix ] += vals
-        return True
+        logger.debug('addPendingByIx: ix=%s vals=%s', ix, vals)
+        return self._addByNameByIx(
+            name='pending', ix=ix, vals=vals, checked=checked, verbose=verbose )

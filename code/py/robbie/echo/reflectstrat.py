@@ -9,45 +9,61 @@ from   robbie.util.logging import logger
 import robbie.echo.basestrat as basestrat
 from   robbie.echo.stratutil import STRATSTATE
 
+# if nextState ==  STRATSTATE.CLOSING:
+#     pass
+# elif nextState ==  STRATSTATE.OPENING:
+#     pass
+# elif nextState ==  STRATSTATE.EMPTY:
+#     pass
+# else:
+#     raise ValueError('Uknown nextState=%s' % nextState)
+
 class Strategy(basestrat.BaseStrat):
 
-    def __init__(self, agent):
-        super(Strategy, self).__init__(agent)
+    def __init__(self, agent, policy):
+        super(Strategy, self).__init__(agent=agent, policy=policy)
     ##
     ##
     ##
-    def snkPreUpdate(self, action, data):
-        symbol  = data['symbol' ]
-        qty     = data['qty'    ]
-        nextState, nextAction = self._getAction(target='SNK', qty=qty, symbol=symbol)
+    # self._src2snk    = {}
+    # self._snk2src    = {}
+    # self._cx2snk        = {}
+    # self._snk2cx        = {}
+    # self._cx2src        = {}
+    # self._src2cx        = {}
+    def srcPreUpdate(self, action, data):
+        orderId     = data[ 'orderId']
+        # symbol      = data[ 'symbol' ]
+        # qty         = data[ 'qty'    ]
 
-        if nextState ==  STRATSTATE.CLOSING:
-            pass
-        elif nextState ==  STRATSTATE.OPENING:
-            pass
-        elif nextState ==  STRATSTATE.EMPTY:
-            pass
-        else:
-            raise ValueError('Uknown nextState=%s' % nextState)
+        if action  == STRATSTATE.ORDERTYPE_NEW:
+            # either open or close - REFLECT does not care
+            echoAction, echoData = self.getEchoOrder( data )
+            echoOrderId = echoData['orderId']
 
-        actionData = []
-        if nextAction ==  STRATSTATE.ISSUEOPENORDER:
-            echoAction, echoData = self.getEchoOpenOrder( data )
-            actionData.append( (echoAction, echoData) )
-        elif nextAction ==  STRATSTATE.ISSUECLOSEORDER:
-            echoAction, echoData = self.getEchoCancelOrder( data )
-            actionData.append( (echoAction, echoData) )
-            echoAction, echoData = self.getEchoCloseOrder( data )
-            actionData.append( (echoAction, echoData) )
+            self.linkSignalEchoOrders(signalOrderId=orderId, echoOrderId=echoOrderId)
+            self.addActionData( {'action':echoAction, 'data':echoData} )
+
+        elif action  == STRATSTATE.ORDERTYPE_CXRX:
+            origOrderId = data['origOrderId' ]
+
+            self.linkOrigOrderCx(orderId=orderId, origOrderId=origOrderId)
+            echoOrderId = self._src2snk[ origOrderId ]
+
+            echoAction, echoData = self.getEchoCancelOrder( origOrderId=echoOrderId, data=data )
+            self.addActionData( {'action':echoAction, 'data':echoData} )
+
+        elif action  == STRATSTATE.ORDERTYPE_FILL:
+            pass
+
         else:
-            msg = 'Uknown nextAction=%s' % nextAction
+            msg = 'Uknown action=%s for data=%s' % (str(action), str(data))
             logger.error(msg)
-        self._actionData = actionData
 
-    def snkPostUpdate(self, action, data):
+    def snkPreUpdate(self, action, data):
         pass
 
-    def srcPreUpdate(self, action, data):
+    def snkPostUpdate(self, action, data):
         pass
 
     def srcPostUpdate(self, action, data):
@@ -55,5 +71,5 @@ class Strategy(basestrat.BaseStrat):
 
     def newMsg(self):
         actionData = self._actionData
-        self._actionData = None
+        self._actionData = []
         return actionData
