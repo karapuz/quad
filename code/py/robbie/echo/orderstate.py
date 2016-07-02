@@ -177,6 +177,53 @@ class OrderState( object ):
         '''
         return self._pending_long[ ix ] + self._pending_short[ ix ]
 
+    def getCurrentState(self, where='all', which='pending', how='pandas'):
+        '''
+        return signed pending amount
+        '''
+
+        if where == 'symbols':
+            bx      = 0
+            ex      = len( self._symbols)
+        elif where == 'all':
+            bx      = 0
+            ex      = self._nextNum
+        elif where == 'orders':
+            bx      = self._nextNum - 1
+            ex      = len( self._symbols)
+        else:
+            raise ValueError('Unknown where=%s' % where )
+
+        names   = [ self._ix2tag[i] for i in xrange(bx,ex) ]
+
+        if which == 'pending':
+            qty     = self._pending_long[ bx:ex ] + self._pending_short[ bx:ex ]
+        elif which == 'canceled':
+            qty     = self._canceled[ bx:ex ]
+        elif which == 'realized':
+            qty     = self._realized[ bx:ex ]
+        elif which == 'all':
+            realized     = self._realized[ bx:ex ]
+            canceled     = self._canceled[ bx:ex ]
+            pending    = self._pending_long[ bx:ex ] + self._pending_short[ bx:ex ]
+            import pandas
+            return pandas.DataFrame( [pending, realized, canceled], columns=names )
+        else:
+            raise ValueError('Unknown which=%s' % which )
+
+        if how == 'raw':
+            return names, qty
+        elif how == 'dict':
+            return dict( (n,q) for (n,q) in zip(names, qty))
+        elif how == 'table':
+            return dict( (n,q) for (n,q) in zip(names, qty))
+        elif how == 'pandas':
+            import pandas
+            return pandas.DataFrame( [qty], columns=names )
+
+        else:
+            raise ValueError('Unknown how=%s' % how )
+
     def getCanceledByIx(self, ix ):
         '''return signed cancelled amount '''
         return self._canceled[ ix ]
@@ -216,6 +263,13 @@ class OrderState( object ):
 
         return True
 
+    def _adjustPending(self, ix, vals):
+        with self._pending_Lock:
+            if vals[0] > 0:
+                self._pending_long[ ix ] -= vals
+            else:
+                self._pending_short[ ix ] -= vals
+
     def _addByNameByIx(self, name, ix, vals, checked=False, verbose=True ):
         '''return newly cancelled amount '''
         vals = numpy.array( vals )
@@ -229,9 +283,11 @@ class OrderState( object ):
 
         if name == 'realized':
             self._realized[ ix ] += vals
+            self._adjustPending(ix=ix, vals=vals)
 
         elif name == 'canceled':
             self._canceled[ ix ] += vals
+            self._adjustPending(ix=ix, vals=vals)
 
         elif name == 'pending':
             with self._pending_Lock:
@@ -240,7 +296,7 @@ class OrderState( object ):
                 else:
                     self._pending_short[ ix ] += vals
         else:
-            raise ValueError('Uknown name=%s', name)
+            raise ValueError('Unknown name=%s', name)
         return True
 
     def addCanceledByIx(self, ix, vals, checked = False, verbose = True ):

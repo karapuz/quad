@@ -5,12 +5,12 @@ DESCRIPTION : robbie.test.unittest.echo.test_stratutil.py
 DESCRIPTION : this module contains unittest for echo.stratutil
 '''
 
+from   pprint import pprint as pp
 import unittest
 from   robbie.util.logging import logger
 import robbie.echo.reflectstrat as strat
 import robbie.echo.basestrat as basestrat
 from   robbie.echo.stratutil import STRATSTATE
-
 
 class Test(unittest.TestCase):
 
@@ -52,21 +52,63 @@ class Test(unittest.TestCase):
 
         msgs = srcStep(cmd1)
         procSnkMsgs(msgs)
+        logger.debug( 'SRC 1:')
+        pp( echoStrat.getCurrentState('SRC', which='all') )
+
+        logger.debug( 'SNK 1:')
+        pp( echoStrat.getCurrentState('SNK', which='all') )
+
+        cmd1f = {
+            'action': STRATSTATE.ORDERTYPE_FILL,
+            'data': {
+                'symbol'    : 'IBM',
+                'qty'       : 700,
+                'orderId'   : 'SRC_ORDER_1',
+                'execTime'  : 'NOW',
+                'price'     : 100,
+            }
+        }
+        msgs = srcStep(cmd1f)
+        procSnkMsgs(msgs)
+
+        cmd1f = {
+            'action': STRATSTATE.ORDERTYPE_FILL,
+            'data': {
+                'symbol'    : 'IBM',
+                'qty'       : 70,
+                'orderId'   : 'SRC_ORDER_1',
+                'execTime'  : 'NOW',
+                'price'     : 100,
+            }
+        }
+        msgs = srcStep(cmd1f)
+        procSnkMsgs(msgs)
+
+        logger.debug( 'SRC 1f:')
+        pp( echoStrat.getCurrentState('SRC', which='all') )
+        logger.debug( 'SNK 1f:')
+        pp( echoStrat.getCurrentState('SNK', which='all') )
 
         cmd2 = {
             'action': STRATSTATE.ORDERTYPE_CXRX,
             'data': {
-                'symbol'    : 'IBM',
-                'qty'       : 1000,
+                'symbol'        : 'IBM',
+                'qty'           : 230,
                 'orderId'       : 'SRC_CX_ORDER_1',
                 'origOrderId'   : 'SRC_ORDER_1',
-                'execTime'  : 'NOW',
-                'price'     : 100,
+                'execTime'      : 'NOW',
+                'price'         : 100,
             }
         }
 
         msgs = srcStep(cmd2)
         procSnkMsgs(msgs)
+
+        logger.debug( 'SRC 3:')
+        pp( echoStrat.getCurrentState('SRC', which='all') )
+
+        logger.debug( 'SNK 3:')
+        pp( echoStrat.getCurrentState('SNK', which='all') )
 
 if __name__ == '__main__':
     unittest.main()

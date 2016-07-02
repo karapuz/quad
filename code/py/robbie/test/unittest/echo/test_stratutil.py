@@ -10,7 +10,6 @@ from   robbie.util.logging import logger
 import robbie.echo.stratutil as stratutil
 from   robbie.echo.stratutil import STRATSTATE
 
-
 class Test(unittest.TestCase):
 
     def test_1(self):
@@ -49,10 +48,7 @@ if __name__ == '__main__':
     unittest.main()
 
 '''
-robbie\test\unittest\echo\test_stratutil.py
-
-c:\Python27\python2.7.exe -m unittest robbie.test.unittest
-
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe -m unittest robbie.test.unittest.echo.test_stratutil
 
 

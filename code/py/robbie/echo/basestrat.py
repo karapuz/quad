@@ -103,7 +103,7 @@ class BaseStrat(object):
     def _onSnkCxRx(self, action, data):
         self._snkOrders.onCxRx(
             execTime    = data['execTime'],
-            orderId     = data['orderId'],
+            orderId     = data['origOrderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
         )
@@ -177,7 +177,7 @@ class BaseStrat(object):
         echoQty          = self.getCurrentPending( target='SNK', orderId=origOrderId )
         orderId          = stratutil.newOrderId('ECHO')
         origData         = {
-                            'origOriderId'  : origOrderId,
+                            'origOrderId'   : origOrderId,
                             'orderId'       : orderId,
                             'venue'         : data.get('venue'),
                             'symbol'        : data['symbol'],
@@ -206,3 +206,7 @@ class BaseStrat(object):
         ix  = orderState.getIxByTag( orderId )
         qty = orderState.getPendingByIx( ix=ix )
         return qty
+
+    def getCurrentState( self, target, where='all', which='pending', how='pandas'):
+        orderState = self._getTargetOrderState(target=target)
+        return orderState.getCurrentState(where=where, which=which, how=how)
