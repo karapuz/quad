@@ -10,6 +10,7 @@ import time
 import argparse
 import robbie.echo.core as echocore
 import robbie.echo.sinkproc as sinkproc
+from   robbie.echo.stratutil import EXECUTION_MODE
 
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
@@ -24,6 +25,7 @@ def run_execSink():
     turf        = twkval.getenv('run_turf')
     agt_comms   = turfutil.get(turf=turf, component='communication')
     agt_list    = turfutil.get(turf=turf, component='agents')
+    signalMode  = turfutil.get(turf=turf, component='signal')
 
     poller      = zmq.Poller()
 
@@ -59,12 +61,13 @@ def run_execSink():
         agentIn [ agent ] = agentSinkIntCon
         agentOut[ agent ] = agentSinkOutCon
 
-    signalStrat = echocore.SignalStrat(agentIn)
+    signalStrat = echocore.SignalStrat(agentIn, mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
     tweakName   = 'fix_SinkConnConfig'
     appThread, thread = execsrclink.init(
                             tweakName   = tweakName,
                             signalStrat = signalStrat,
+                            mode        = signalMode,
                             msgAdapter  = msgAdapter)
 
     app          = appThread.getApplication()
@@ -88,17 +91,13 @@ def run_execSink():
                 data        = cmd['data']
                 data        = executil.toStr(data)
 
-                if action == 'new':
-                    logger.debug('EXECSINKAPP: agentOut msg = %s', cmd)
-                    sinkproc.signal2order(
-                        app          = app,
-                        action       = action,
-                        data         = data,
-                        senderCompID = senderCompID,
-                        targetCompID = targetCompID )
-                else:
-                    msg = 'EXECSINKAPP: skip action=%s for msg=%s' % ( action, cmd)
-                    logger.error(msg)
+                logger.debug('EXECSINKAPP: AGNTOUT action = %s data = %s', action, data)
+                sinkproc.signal2order(
+                    app          = app,
+                    action       = action,
+                    data         = data,
+                    senderCompID = senderCompID,
+                    targetCompID = targetCompID )
 
         if regConn in socks:
             msg = regConn.recv()

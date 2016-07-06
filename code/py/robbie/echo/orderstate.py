@@ -4,8 +4,8 @@ TYPE:       : lib
 DESCRIPTION : echo.orderstate module
 DESCRIPTION : this module contains order state objects
 '''
-import os
 import numpy
+import pandas
 import threading
 import robbie.tweak.value as twkval
 import robbie.util.symboldb as symboldb
@@ -23,11 +23,11 @@ class OrderState( object ):
         Session      = 20160504     # tied to a day
         Activity     = mirror       # is related to echo; mirror, trade, market
     '''
-    def __init__(self, readOnly, maxNum, symbols, debug=True ):
+    def __init__(self, readOnly, maxNum, symbols, seePending,debug=True ):
         ''' the constructor '''
-        return self.init( readOnly=readOnly, maxNum=maxNum, symbols=symbols, debug=debug )
+        return self.init( readOnly=readOnly, maxNum=maxNum, symbols=symbols, seePending=seePending, debug=debug )
 
-    def init( self, readOnly, maxNum, symbols, debug ):
+    def init( self, readOnly, maxNum, symbols, seePending, debug ):
         '''
             realized
             pending_long
@@ -40,6 +40,7 @@ class OrderState( object ):
         self._tag2ix    = {}
         self._ix2tag    = {}
         self._symbols   = symbols
+        self._seePending= seePending
 
         turf            = twkval.getenv('run_turf')
         domain          = twkval.getenv('run_domain')
@@ -75,7 +76,7 @@ class OrderState( object ):
         self._lastError     = None
         self._addTagLock    = threading.Lock()
         self._pending_Lock  = threading.Lock()
-        self.addTags( symbols )
+        self.addTags( symbols, readOnly=readOnly )
 
     def getFullByType(self, posType, maxLen ):
         ''' get a slice of all data for the type '''
@@ -121,7 +122,7 @@ class OrderState( object ):
     def checkExistTag( self, tag ):
         return tag in self._tag2ix
 
-    def _addTag( self, tag ):        
+    def _addTag( self, tag, readOnly=False ):
         #with self._addTagLock:
         if tag in self._tag2ix:
             return self._tag2ix[ tag ]
@@ -129,17 +130,18 @@ class OrderState( object ):
         self._tag2ix[ tag ] = c
         self._ix2tag[ c   ] = tag
         self._nextNum += 1
-        self._support[ POS_MAXNUM ] = self._nextNum
+        if not readOnly:
+            self._support[ POS_MAXNUM ] = self._nextNum
         return c
 
-    def addTag( self, tag ):
-        return self._addTag( tag )
+    def addTag( self, tag, readOnly=False ):
+        return self._addTag( tag, readOnly=readOnly )
 
-    def addTags( self, tag, asDict=False ):
+    def addTags( self, tag, readOnly=False, asDict=False ):
         if asDict:
-            return dict( ( t , self._addTag( t ) ) for t in tag )
+            return dict( ( t , self._addTag( t, readOnly=readOnly ) ) for t in tag )
         else:
-            return [ self._addTag( t ) for t in tag ]
+            return [ self._addTag( t, readOnly=readOnly ) for t in tag ]
 
     def getTagByIx(self, ix):
         if isinstance( ix, ( numpy.ndarray, tuple, list ) ):
@@ -203,10 +205,9 @@ class OrderState( object ):
         elif which == 'realized':
             qty     = self._realized[ bx:ex ]
         elif which == 'all':
-            realized     = self._realized[ bx:ex ]
-            canceled     = self._canceled[ bx:ex ]
-            pending    = self._pending_long[ bx:ex ] + self._pending_short[ bx:ex ]
-            import pandas
+            pending     = self._pending_long[ bx:ex ] + self._pending_short[ bx:ex ]
+            realized    = self._realized[ bx:ex ]
+            canceled    = self._canceled[ bx:ex ]
             return pandas.DataFrame( [pending, realized, canceled], columns=names )
         else:
             raise ValueError('Unknown which=%s' % which )
@@ -218,9 +219,7 @@ class OrderState( object ):
         elif how == 'table':
             return dict( (n,q) for (n,q) in zip(names, qty))
         elif how == 'pandas':
-            import pandas
             return pandas.DataFrame( [qty], columns=names )
-
         else:
             raise ValueError('Unknown how=%s' % how )
 
@@ -232,7 +231,7 @@ class OrderState( object ):
         '''return signed realized amount '''
         return self._realized[ ix ]
 
-    def validLenIx(self, ix, vals, verbose = True ):
+    def _validLenIx(self, ix, vals, verbose=True ):
         l0, l1 = len(ix), len(vals)
         if l0 != l1:
             msg = 'Wrong sizes for ix=%s and vals=%s' % ( str( l0 ), str( l1 ) )
@@ -275,10 +274,10 @@ class OrderState( object ):
         vals = numpy.array( vals )
         ix   = numpy.array( ix )
         
-        if not self.validLenIx( ix, vals, verbose = verbose ):
+        if not self._validLenIx( ix=ix, vals=vals, verbose=verbose ):
             return False
 
-        if not checked and not self._validKillAddByIx( name=name, vals=vals, ix=ix, verbose=verbose ):
+        if self._seePending and (not checked) and not self._validKillAddByIx( name=name, vals=vals, ix=ix, verbose=verbose ):
             return False
 
         if name == 'realized':
@@ -299,13 +298,15 @@ class OrderState( object ):
             raise ValueError('Unknown name=%s', name)
         return True
 
-    def addCanceledByIx(self, ix, vals, checked = False, verbose = True ):
+    def addCanceledByIx(self, ix, vals, checked=False, verbose=True ):
         '''return newly cancelled amount '''
+        logger.debug('addCanceledByIx: ix=%s vals=%s', ix, vals)
         return self._addByNameByIx(
             name='canceled', ix=ix, vals=vals, checked=checked, verbose=verbose )
 
-    def addRealizedByIx(self, ix, vals, checked = False, verbose = True ):
+    def addRealizedByIx(self, ix, vals, checked=False, verbose=True ):
         '''return newly cancelled amount '''
+        logger.debug('addRealizedByIx: ix=%s vals=%s', ix, vals)
         return self._addByNameByIx(
             name='realized', ix=ix, vals=vals, checked=checked, verbose=verbose )
 

@@ -20,6 +20,10 @@ def mapMsgType( n ):
     global _msgType
     return _msgType[ n ]
 
+def msgVal2Name(n):
+    global _tagVals
+    return _tagVals[ 'MsgType' ][n]
+
 def mapTimeInForce( name ):
     global _timeInForce
     return _timeInForce[ name ]
@@ -38,6 +42,7 @@ Msg_Logon           = mapMsgType( 'Logon'           )
 Msg_Heartbeat       = mapMsgType( 'Heartbeat'       )
 Msg_ExecReport      = mapMsgType( 'ExecutionReport' )
 Msg_NewOrderSingle  = mapMsgType( 'NewOrderSingle' )
+Msg_OrderCancelRequest = mapMsgType( 'OrderCancelRequest' )
 
 # maps
 Tag_OrderStatus     = name2tag( 'OrdStatus'     )
@@ -152,14 +157,12 @@ def create_NewOrderHeader( senderCompID, targetCompID):
     headerConfig = {
          8: 'FIX.4.2',
         35: 'D',
-        # Tag_SenderCompID    : 'CLIENT1',
-        # Tag_TargetCompID    : 'IREACH',
         Tag_SenderCompID    : senderCompID,
         Tag_TargetCompID    : targetCompID,
     }
     return headerConfig
 
-def create_CancelHeader():
+def create_CancelHeader(senderCompID, targetCompID):
     '''populate static header info of the message'''
     
     global Tag_SenderCompID, Tag_TargetCompID
@@ -167,8 +170,8 @@ def create_CancelHeader():
     headerConfig = {
          8: 'FIX.4.2',
         35: 'F',
-        Tag_SenderCompID    : 'CLIENT1',
-        Tag_TargetCompID    : 'IREACH',
+        Tag_SenderCompID    : senderCompID,
+        Tag_TargetCompID    : targetCompID,
     }
     return headerConfig
 
@@ -227,6 +230,7 @@ def create_CancelMsg( orderId, origOrderId, symbol, qty ):
         Tag_Symbol          : symbol,
         Tag_Side            : fix.Side_BUY if qty > 0 else fix.Side_SELL ,
         Tag_OrderQty        : str( abs( qty ) ),
+        Tag_LastShares      : str( abs( qty ) ),
         Tag_TransactTime    : transactionTime(),
     }
     
@@ -253,16 +257,16 @@ def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, sy
         
     return msg
 
-def form_Cancel( orderId, origOrderId, symbol, qty, tagVal ):
+def form_Cancel( senderCompID, targetCompID, account, orderId, origOrderId, symbol, qty, tagVal=None ):
     '''create a cancel message'''
     
     msg = fix.Message()
     hdr = msg.getHeader()
 
-    for tag, val in create_CancelHeader().iteritems():
+    for tag, val in create_CancelHeader(senderCompID, targetCompID).iteritems():
         hdr.setField( tag, val )
 
-    for tag, val in create_staticCancelMsg().iteritems():
+    for tag, val in create_staticCancelMsg(account).iteritems():
         msg.setField( tag, val )
     
     for tag, val in create_CancelMsg( orderId=orderId, origOrderId=origOrderId, symbol=symbol, qty=qty ).iteritems():    

@@ -7,6 +7,7 @@ DESCRIPTION : this module contains order processing code
 
 import datetime
 import robbie.fix.util as fut
+from   robbie.echo.stratutil import STRATSTATE
 from   robbie.util.logging import logger
 
 def newOrderId():
@@ -15,7 +16,7 @@ def newOrderId():
 
 def signal2order(app, action, data, senderCompID, targetCompID ):
 
-    if action == 'new':
+    if action  == STRATSTATE.ORDERTYPE_NEW:
         account = data['signalName']
         symbol  = data['symbol']
         qty     = int(data['qty'])
@@ -31,6 +32,20 @@ def signal2order(app, action, data, senderCompID, targetCompID ):
             price        = price,
             timeInForce  = fut.Val_TimeInForce_DAY,
             tagVal       = None )
+
+    elif action  == STRATSTATE.ORDERTYPE_CXRX:
+        account = data['signalName']
+        symbol  = data['symbol']
+        qty     = int(data['qty'])
+
+        app.sendOrder(
+            senderCompID = senderCompID,
+            targetCompID = targetCompID,
+            account      = account,
+            orderId      = newOrderId(),
+            symbol       = symbol,
+            qty          = qty,
+            tagVal       = None )
     else:
         logger.error('SINKPROC: Unknown action=%s data=%s', action, str(data))
 '''
@@ -43,4 +58,20 @@ agentOut =  {
     "symbol"     : "IBM",
     "qty"        : 1000
 }
+
+ERROR EXECSINKAPP: skip
+    action=ORDER TYPE NEW for
+    msg={
+        u'action': u'ORDER TYPE NEW',
+        u'data': {
+            u'orderId'      : u'ECHO_20160702_145031_1',
+            u'execTime'     : u'20160702-18:50:31.362',
+            u'orderType'    : u'2',
+            u'price'        : 0,
+            u'venue'        : u'GREY',
+            u'qty'          : 500,
+            u'symbol'       : u'IBM',
+            u'signalName'   : u'ECHO1'
+            }
+        }
 '''

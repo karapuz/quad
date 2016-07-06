@@ -6,9 +6,9 @@ DESCRIPTION : this module contains unittest for echo.stratutil
 '''
 
 import unittest
+import robbie.echo.policy as stratpolicy
 from   robbie.util.logging import logger
 import robbie.echo.reflectstrat as strat
-import robbie.echo.basestrat as basestrat
 from   robbie.echo.stratutil import STRATSTATE
 
 
@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
 
     def test_1(self):
         agent     = 'ECHO1'
-        policy    = basestrat.ScaleVenuePolicy( scale=.5, venue='GREY')
+        policy    = stratpolicy.ScaleVenuePolicy( scale=.5, venue='GREY')
         echoStrat = strat.Strategy(agent=agent, policy=policy)
 
         def srcStep(cmd):

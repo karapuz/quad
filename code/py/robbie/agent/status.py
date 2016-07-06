@@ -5,11 +5,13 @@ DESCRIPTION : agent.agent module
 '''
 
 import argparse
+import robbie.turf.util as turfutil
 import robbie.util.libgui as libgui
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
+import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
-import  robbie.util.symboldb as symboldb
+import robbie.echo.stratutil as stratutil
 import robbie.echo.orderstate as orderstate
 
 class OrderStatus(object):
@@ -17,17 +19,25 @@ class OrderStatus(object):
         self._symbols    = symboldb.currentSymbols()
         self._symIds     = symboldb.symbol2id(self._symbols)
         self._maxNum     = symboldb._maxNum
+        turf             = twkval.getenv('run_turf')
+        mode             = turfutil.get(turf=turf, component='signal')
+        if mode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
+            seePending = True
+        elif mode == stratutil.EXECUTION_MODE.FILL_ONLY:
+            seePending = False
+        else:
+            raise ValueError('Unknown mode=%s' % mode)
 
         with twkcx.Tweaks(run_domain=domain):
             self._orderstate = orderstate.OrderState(
                     readOnly    = True,
                     maxNum      = self._maxNum,
-                    symIds      = self._symIds,
+                    symbols     = self._symbols,
+                    seePending  = seePending,
                     debug       = True )
 
-    def getTable(self, header):
-        self._orderstate.asTable(header)
-
+    def asTable(self, header):
+        return self._orderstate.asTable(header)
 
 def run_agent():
     agent     = twkval.getenv('agt_strat')

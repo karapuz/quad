@@ -10,8 +10,9 @@ import argparse
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
+import robbie.echo.policy as stratpolicy
+import robbie.echo.stratutil as stratutil
 from   robbie.util.logging import logger
-import robbie.echo.reflectstrat as strat
 
 def register(context, regPort, agent, logName):
     regConn          = context.socket(zmq.REQ)
@@ -59,8 +60,17 @@ def run_agent():
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
 
-    policy    = strat.ScaleVenuePolicy( scale=.5, venue='GREY')
-    echoStrat = strat.Strategy(agent=agent, policy=policy)
+    policy      = stratpolicy.ScaleVenuePolicy( scale=.5, venue='GREY')
+    signalMode  = turfutil.get(turf=turf, component='signal')
+
+    if signalMode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
+        import robbie.echo.reflectstrat as reflectstrat
+        echoStrat = reflectstrat.Strategy(agent=agent, policy=policy)
+    elif signalMode == stratutil.EXECUTION_MODE.FILL_ONLY:
+        import robbie.echo.reflectstrat2 as reflectstrat2
+        echoStrat = reflectstrat2.Strategy(agent=agent, policy=policy)
+    else:
+        raise ValueError('Unknown signalMode=%s' % signalMode)
 
     while True:
         try:
@@ -79,13 +89,10 @@ def run_agent():
             echoStrat.srcUpdate(action=action, data=data)
             echoStrat.srcPostUpdate(action=action, data=data)
 
-            for status, msg in echoStrat.newMsg():
-                if status == 'SEND':
-                    logger.debug('AGENT: SNKOUT = %s', msg)
-                    msg = json.dumps(msg)
-                    agentSinkOutCon.send(msg)
-                else:
-                    logger.debug('AGENT: STATUS=%s', status)
+            for cmd in echoStrat.newMsg():
+                logger.debug('AGENT: SNKOUT = %s', cmd)
+                msg = json.dumps(cmd)
+                agentSinkOutCon.send(msg)
 
         if agentSinkInCon in socks:
             msg     = agentSinkInCon.recv() # process task

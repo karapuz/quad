@@ -8,10 +8,6 @@ DESCRIPTION : this module contains utilities for strategies
 import datetime
 from   robbie.util.logging import logger
 
-def newOrderId(base):
-    now = datetime.datetime.now()
-    return now.strftime(base + '_%Y%m%d_%H%M%S' )
-
 class STRATSTATE(object):
     '''  state, action, and order type   '''
 
@@ -29,6 +25,18 @@ class STRATSTATE(object):
     ORDERTYPE_NEW   = 'ORDER TYPE NEW'
     ORDERTYPE_CXRX  = 'ORDER TYPE CXRX'
     ORDERTYPE_FILL  = 'ORDER TYPE FILL'
+
+class EXECUTION_MODE(object):
+    NEW_FILL_CX = 'NEW_FILL_CX'
+    FILL_ONLY   = 'FILL_ONLY'
+
+_newOrderIx = 0
+def newOrderId(base):
+    global _newOrderIx
+    _newOrderIx += 1
+    now         = datetime.datetime.now()
+    return '%s_%s_%s' % ( base, now.strftime('%Y%m%d_%H%M%S' ), _newOrderIx)
+
 
 def _sign(x):
     if x == 0:

@@ -4,6 +4,8 @@ DESCRIPTION : turf.repo module
 AUTHOR      : ilya presman, 2016
 '''
 
+from   robbie.echo.stratutil import EXECUTION_MODE
+
 _p = 5000
 def nextport():
     ''' nextport '''
@@ -32,6 +34,7 @@ def newSinkReg():
 
 _conf = {
     'dev': {
+        'signal': EXECUTION_MODE.FILL_ONLY,
         'cmd': [
             'CMD'
         ],

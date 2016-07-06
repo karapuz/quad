@@ -7,37 +7,20 @@ DESCRIPTION : this module contains strategies
 
 from   robbie.util.logging import logger
 import robbie.echo.basestrat as basestrat
+import robbie.echo.stratutil as stratutil
 from   robbie.echo.stratutil import STRATSTATE
-
-# if nextState ==  STRATSTATE.CLOSING:
-#     pass
-# elif nextState ==  STRATSTATE.OPENING:
-#     pass
-# elif nextState ==  STRATSTATE.EMPTY:
-#     pass
-# else:
-#     raise ValueError('Uknown nextState=%s' % nextState)
 
 class Strategy(basestrat.BaseStrat):
 
-    def __init__(self, agent, policy):
-        super(Strategy, self).__init__(agent=agent, policy=policy)
+    def __init__(self, agent, policy, mode):
+        super(Strategy, self).__init__(agent=agent, policy=policy, mode=stratutil.EXECUTION_MODE.NEW_FILL_CX)
     ##
     ##
     ##
-    # self._src2snk    = {}
-    # self._snk2src    = {}
-    # self._cx2snk        = {}
-    # self._snk2cx        = {}
-    # self._cx2src        = {}
-    # self._src2cx        = {}
     def srcPreUpdate(self, action, data):
         orderId     = data[ 'orderId']
-        # symbol      = data[ 'symbol' ]
-        # qty         = data[ 'qty'    ]
 
         if action  == STRATSTATE.ORDERTYPE_NEW:
-            # either open or close - REFLECT does not care
             echoAction, echoData = self.getEchoOrder( data )
             echoOrderId = echoData['orderId']
 
@@ -57,7 +40,7 @@ class Strategy(basestrat.BaseStrat):
             pass
 
         else:
-            msg = 'Uknown action=%s for data=%s' % (str(action), str(data))
+            msg = 'Unknown action=%s for data=%s' % (str(action), str(data))
             logger.error(msg)
 
     def snkPreUpdate(self, action, data):
@@ -69,7 +52,3 @@ class Strategy(basestrat.BaseStrat):
     def srcPostUpdate(self, action, data):
         pass
 
-    def newMsg(self):
-        actionData = self._actionData
-        self._actionData = []
-        return actionData

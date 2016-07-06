@@ -28,6 +28,8 @@ def run_execsrc():
     agt_comms   = turfutil.get(turf=turf, component='communication')
     agt_list    = turfutil.get(turf=turf, component='agents')
 
+    signalMode  = turfutil.get(turf=turf, component='signal')
+
     poller      = zmq.Poller()
 
     cmd_port    = agt_comms['SRC_CMD']['port_cmd']
@@ -58,13 +60,14 @@ def run_execsrc():
         c.bind('tcp://*:%s' % port_sigCon)
         sigs.append( c )
 
-    signalStrat = echocore.SignalStrat(conns)
+    signalStrat = echocore.SignalStrat(conns,mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
-    appThread, thread = execsrclink.init(
-                            tweakName   = 'fix_SrcConnConfig',
-                            signalStrat = signalStrat,
-                            msgAdapter  = msgAdapter)
-    app         = appThread.getApplication()
+    appShell, _ = execsrclink.init(
+                    tweakName   = 'fix_SrcConnConfig',
+                    signalStrat = signalStrat,
+                    mode        = signalMode,
+                    msgAdapter  = msgAdapter)
+    app         = appShell.getApplication()
 
     while True:
         logger.debug('in the loop')
@@ -95,16 +98,33 @@ def run_execsrc():
 
             elif cmd == 'SEND':
                 agent   = msg['agent']
+                qty     = int(msg.get('qty','1000'))
+                symbol  = msg.get('sybol', 'IBM')
                 app.sendOrder(
                     senderCompID = 'BANZAI',
                     targetCompID = 'FIXIMULATOR',
                     account      = agent,
                     orderId      = stratutil.newOrderId('SRC'),
-                    symbol       = 'IBM',
-                    qty          = 1000,
+                    symbol       = symbol,
+                    qty          = qty,
                     price        = 200,
                     timeInForce  = fut.Val_TimeInForce_DAY,
                     tagVal       = None )
+
+            elif cmd == 'CX':
+                agent         = msg['agent']
+                origOrderId   = msg['origOrderId']
+                qty           = int(msg.get('qty','200'))
+                symbol        = msg.get('sybol', 'IBM')
+                app.cancelOrder(
+                    senderCompID = 'BANZAI',
+                    targetCompID = 'FIXIMULATOR',
+                    account      = agent,
+                    orderId      = stratutil.newOrderId('CX_SRC'),
+                    symbol       = symbol,
+                    qty          = qty,
+                    origOrderId  = origOrderId)
+
             else:
                 logger.error('EXECSRCAPP: Unknown cmd=%s', cmd)
 

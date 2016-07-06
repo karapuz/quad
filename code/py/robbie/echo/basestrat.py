@@ -10,46 +10,12 @@ from   robbie.util.logging import logger
 import robbie.echo.stratutil as stratutil
 from   robbie.echo.stratutil import STRATSTATE
 
-'''
-msgd = dict(action='new',  data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
-msgd = dict(action='fill', data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
-msgd = dict(action='cxrx', data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty))
-'''
-import copy
-
-class StratPolicy(object):
-    pass
-
-class ScaleVenuePolicy(StratPolicy):
-    def __init__(self, scale, venue):
-        self._scale = scale
-        self._venue = venue
-
-    def newOrder(self, orderId, data):
-        qty     = data[ 'qty'   ]
-        venue   = data.get( 'venue' )
-        d = copy.deepcopy(data)
-        d[ 'orderId' ] = orderId
-        d[ 'qty'     ] = int(self._scale * qty )
-        d[ 'venue'   ] = self._venue
-        return d
-
-    def newCxOrder( self, orderId, origOrderId, origData ):
-        qty     = origData[ 'qty'   ]
-        venue   = origData.get( 'venue' )
-        d = copy.deepcopy(origData)
-        d[ 'orderId'     ] = orderId
-        d[ 'origOrderId' ] = origOrderId
-        d[ 'qty'         ] = qty
-        d[ 'venue'       ] = self._venue
-        return d
-
 class BaseStrat(object):
 
-    def __init__(self, agent, policy):
+    def __init__(self, agent, policy, mode):
         self._agent     = agent
-        self._srcOrders = echocore.EchoOrderState('%s-src' % agent)
-        self._snkOrders = echocore.EchoOrderState('%s-snk' % agent)
+        self._srcOrders = echocore.EchoOrderState('%s-src' % agent, mode=mode)
+        self._snkOrders = echocore.EchoOrderState('%s-snk' % agent, mode=mode)
         self._policy    = policy
 
         self._snkAction2proc = {
@@ -73,14 +39,6 @@ class BaseStrat(object):
         self._cx2src    = {}
         self._src2cx    = {}
         self._actionData= []
-
-    def addActionData(self, data ):
-        self._actionData.append( data )
-
-    def getActionData(self):
-        actionData = self._actionData
-        self._actionData = []
-        return actionData
 
     def _onSnkNew(self, action, data):
         self._snkOrders.onNew(
@@ -210,3 +168,13 @@ class BaseStrat(object):
     def getCurrentState( self, target, where='all', which='pending', how='pandas'):
         orderState = self._getTargetOrderState(target=target)
         return orderState.getCurrentState(where=where, which=which, how=how)
+
+    def addActionData(self, data ):
+        self._actionData.append( data )
+
+    def getActionData(self):
+        actionData = self._actionData
+        self._actionData = []
+        return actionData
+
+    newMsg = getActionData

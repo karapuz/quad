@@ -5,28 +5,12 @@ DESCRIPTION : echo.core module
 '''
 
 import json
+import robbie.turf.util as turfutil
 import robbie.tweak.context as twkcx
 import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
 import robbie.echo.orderstate as orderstate
-from   robbie.echo.stratutil import STRATSTATE
-
-'''
-    def onSubmit( self, message, execType, orderStatus ):
-        self._signalStrat.onNew( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-
-    def onOrderFill( self, message, execType, orderStatus ):
-        self._signalStrat.onFill( execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
-
-    def onOrderPendingCancel( self, message, execType, orderStatus ):
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-
-    def onOrderCancel( self, message, execType, orderStatus ):
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-
-    def onOrderReject( self, message, execType, orderStatus ):
-        self._signalStrat.onCxRx( execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty )
-'''
+from   robbie.echo.stratutil import STRATSTATE, EXECUTION_MODE
 
 class SignalStrat(object):
     '''
@@ -37,16 +21,25 @@ class SignalStrat(object):
         onReject    -> 'rx'
         onFill      -> 'fill'
     '''
-    def __init__(self, sig2comm):
+    def __init__(self, sig2comm, mode):
         self._symbols   = symboldb.currentSymbols()
         self._symIds    = symboldb.symbol2id(self._symbols)
         self._maxNum    = symboldb._maxNum
 
+        if mode == EXECUTION_MODE.NEW_FILL_CX:
+            seePending = True
+        elif mode == EXECUTION_MODE.FILL_ONLY:
+            seePending = False
+        else:
+            raise ValueError('Unknown mode=%s' % mode)
+
         self._orderstate = orderstate.OrderState(
                 readOnly    = False,
                 maxNum      = self._maxNum,
-                symIds      = self._symIds,
+                symbols     = self._symbols,
+                seePending  = seePending,
                 debug       = True )
+
         self._sig2comm  = sig2comm
 
     def onNew(self, signalName, execTime, orderId, symbol, qty, price, orderType):
@@ -81,7 +74,15 @@ class SignalStrat(object):
     def onFill(self, signalName, execTime, orderId, symbol, qty, price):
         comm    = self._sig2comm[ signalName ]
         action  = STRATSTATE.ORDERTYPE_FILL
-        msgd    = dict(action=action , data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price))
+        msgd    = dict(
+                    action  = action ,
+                    data    = dict(
+                                    signalName  = signalName,
+                                    execTime    = execTime,
+                                    orderId     = orderId,
+                                    symbol      = symbol,
+                                    qty         = qty,
+                                    price       = price))
         msg     = json.dumps(msgd)
         logger.debug('comm.send onFill:%s' % str(msgd))
         comm.send( msg )
@@ -90,19 +91,27 @@ class SignalStrat(object):
 
     def onCxRx(self, signalName, execTime, orderId, symbol, qty, origOrderId):
         comm    = self._sig2comm[ signalName ]
-        action  = STRATSTATE.ORDERTYPE_NEW
-        msgd    = dict(action=action, data=dict(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, origOrderId=origOrderId))
+        action  = STRATSTATE.ORDERTYPE_CXRX
+        msgd    = dict(
+                    action  = action,
+                    data    = dict(
+                                    signalName  = signalName,
+                                    execTime    = execTime,
+                                    orderId     = orderId,
+                                    symbol      = symbol,
+                                    qty         = qty,
+                                    origOrderId = origOrderId))
         msg     = json.dumps(msgd)
         logger.debug('comm.send onCxRx:%s' % str(msgd))
         comm.send( msg )
-        ixs = self._orderstate.addTags((symbol, orderId))
+        ixs = self._orderstate.addTags((symbol, origOrderId))
         self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))
 
     def getOrderState(self):
         return self._orderstate
 
 class EchoOrderState(object):
-    def __init__(self, domain):
+    def __init__(self, domain, mode):
         '''
         book keep order status
         translate into
@@ -117,10 +126,18 @@ class EchoOrderState(object):
         self._maxNum     = symboldb._maxNum
 
         with twkcx.Tweaks(run_domain=domain):
+            if mode == EXECUTION_MODE.NEW_FILL_CX:
+                seePending = True
+            elif mode == EXECUTION_MODE.FILL_ONLY:
+                seePending = False
+            else:
+                raise ValueError('Unknown signalMode=%s' % mode)
+
             self._orderstate = orderstate.OrderState(
                     readOnly    = False,
                     maxNum      = self._maxNum,
                     symbols     = self._symbols,
+                    seePending  = seePending,
                     debug       = True )
 
     def onNew(self, execTime, orderId, symbol, qty, price):
