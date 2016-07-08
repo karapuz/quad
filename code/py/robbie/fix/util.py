@@ -230,7 +230,7 @@ def create_CancelMsg( orderId, origOrderId, symbol, qty ):
         Tag_Symbol          : symbol,
         Tag_Side            : fix.Side_BUY if qty > 0 else fix.Side_SELL ,
         Tag_OrderQty        : str( abs( qty ) ),
-        Tag_LastShares      : str( abs( qty ) ),
+        # Tag_LastShares      : str( abs( qty ) ),
         Tag_TransactTime    : transactionTime(),
     }
     

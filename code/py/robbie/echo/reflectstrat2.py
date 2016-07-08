@@ -13,7 +13,7 @@ from   robbie.echo.stratutil import STRATSTATE
 class Strategy(basestrat.BaseStrat):
 
     def __init__(self, agent, policy):
-        super(Strategy, self).__init__(agent=agent, policy=policy, mode=stratutil.EXECUTION_MODE.NEW_FILL_CX)
+        super(Strategy, self).__init__(agent=agent, policy=policy, mode=stratutil.EXECUTION_MODE.FILL_ONLY)
     ##
     ##
     ##
@@ -21,23 +21,18 @@ class Strategy(basestrat.BaseStrat):
         orderId     = data[ 'orderId']
 
         if action  == STRATSTATE.ORDERTYPE_NEW:
+            logger.error('Unexpected action=%s', action)
+
+        elif action  == STRATSTATE.ORDERTYPE_CXRX:
+            logger.error('Unexpected action=%s', action)
+
+        elif action  == STRATSTATE.ORDERTYPE_FILL:
+            # either open or close - REFLECT does not care
             echoAction, echoData = self.getEchoOrder( data )
             echoOrderId = echoData['orderId']
 
             self.linkSignalEchoOrders(signalOrderId=orderId, echoOrderId=echoOrderId)
             self.addActionData( {'action':echoAction, 'data':echoData} )
-
-        elif action  == STRATSTATE.ORDERTYPE_CXRX:
-            origOrderId = data['origOrderId' ]
-
-            self.linkOrigOrderCx(orderId=orderId, origOrderId=origOrderId)
-            echoOrderId = self._src2snk[ origOrderId ]
-
-            echoAction, echoData = self.getEchoCancelOrder( origOrderId=echoOrderId, data=data )
-            self.addActionData( {'action':echoAction, 'data':echoData} )
-
-        elif action  == STRATSTATE.ORDERTYPE_FILL:
-            pass
 
         else:
             msg = 'Unknown action=%s for data=%s' % (str(action), str(data))

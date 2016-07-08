@@ -43,7 +43,7 @@ _conf = {
             'ECHO2'
         ],
         'communication' : {
-            'SNK_REG'      : newSinkReg(),
+            'SNK_REG'       : newSinkReg(),
             'SRC_REG'       : newSinkReg(),
             'SNK_CMD'       : newSrcCmd(),
             'SRC_CMD'       : newSrcCmd(),
@@ -61,3 +61,5 @@ _conf = {
     }
 }
 
+_conf[ 'dev_full' ] = _conf[ 'dev' ]
+_conf[ 'dev_full' ]['signal'] = EXECUTION_MODE.NEW_FILL_CX

@@ -124,25 +124,26 @@ class Application( quickfix.Application ):
             orderStatus = message.getField( fut.Tag_OrderStatus )
             orderId     = message.getField( fut.Tag_ClientOrderId   )
 
-            if orderId in self._seenOrderId:
-                logger.error('onFromApp: see duplicate orderId=%s', orderId)
-                return
-            self._seenOrderId.add( orderId )
-
             if execType == fut.Val_ExecType_New:
-                 return self.onSubmit( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
+
+                if orderId in self._seenOrderId:
+                    logger.error('onFromApp: see duplicate orderId=%s', orderId)
+                    return
+                self._seenOrderId.add( orderId )
+
+                return self.onSubmit( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
 
             elif orderStatus in ( fut.Val_OrderStatus_Fs ):
-                 return self.onOrderFill( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
+                return self.onOrderFill( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
 
             elif orderStatus == fut.Val_OrderStatus_Cx:
-                 return self.onOrderCancel( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
+                return self.onOrderCancel( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
 
             elif orderStatus == fut.Val_OrderStatus_Rx:
-                 return self.onOrderReject( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
+                return self.onOrderReject( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
             
             elif orderStatus == fut.Val_OrderStatus_Pnd_Cx:
-                 return self.onOrderPendingCancel( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
+                return self.onOrderPendingCancel( orderId=orderId, message=message, execType=execType, orderStatus=orderStatus )
             
             else:
                 logger.error( 'onFromApp [1] unhandled %s %s %s' % ( msgType, execType, orderStatus ) )
@@ -169,8 +170,8 @@ class Application( quickfix.Application ):
         if msgType == fut.Msg_NewOrderSingle:
              return self.onSubmitToApp( orderId=orderId, message=message )
 
-        elif msgType == fut.Msg_OrderCancelRequest:
-             return  self.onOrderCancelToApp( orderId=orderId, message=message)
+        # elif msgType == fut.Msg_OrderCancelRequest:
+        #      return  self.onOrderCancelToApp( orderId=orderId, message=message)
 
         else:
             logger.error( 'onToApp [1] unhandled %s' % ( msgType  ) )
@@ -195,6 +196,9 @@ class Application( quickfix.Application ):
         
         self._signalStrat.onFill( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
         logger.debug( 'fix.fill oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
+
+    def onOrderCancelToApp( self, orderId, message):
+        return self.onOrderCancel( orderId=orderId, message=message, execType=None, orderStatus=None )
 
     def onOrderCancel( self, orderId, message, execType, orderStatus ):
         ''' '''
@@ -260,36 +264,42 @@ class Application( quickfix.Application ):
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
 
-        self._signalStrat.onNew( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
+        self._signalStrat.onNew(
+            signalName  = account,
+            execTime    = txTime,
+            orderId     = orderId,
+            symbol      = symbol,
+            qty         = qty,
+            price       = lastPx )
         logger.debug( 'fix.new formApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
-    # def onSubmitToApp( self, orderId, message ):
-    #     logger.debug( 'onSubmitToApp' )
-    #     # orderId     = message.getField( fut.Tag_ClientOrderId   )
-    #     txTime      = message.getField( fut.Tag_TransactTime    )
-    #     side        = message.getField( fut.Tag_Side    )
-    #     symbol      = message.getField( fut.Tag_Symbol  )
-    #     account     = message.getField( fut.Tag_Account )
-    #     orderType   = message.getField( fut.Tag_OrderType )
-    #
-    #     # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
-    #     # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
-    #
-    #     #lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
-    #     lastShares  = int   ( message.getField( fut.Tag_OrderQty  ) )
-    #     qty         = fut.convertQty( side, lastShares )
-    #     lastPx      = 0
-    #
-    #     self._signalStrat.onNew(
-    #         signalName  = account,
-    #         execTime    = txTime,
-    #         orderId     = orderId,
-    #         symbol      = symbol,
-    #         qty         = qty,
-    #         price       = lastPx,
-    #         orderType   = orderType)
-    #
-    #     logger.debug( 'fix.new toApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
+    def onSubmitToApp( self, orderId, message ):
+        logger.debug( 'onSubmitToApp' )
+        # orderId     = message.getField( fut.Tag_ClientOrderId   )
+        txTime      = message.getField( fut.Tag_TransactTime    )
+        side        = message.getField( fut.Tag_Side    )
+        symbol      = message.getField( fut.Tag_Symbol  )
+        account     = message.getField( fut.Tag_Account )
+        orderType   = message.getField( fut.Tag_OrderType )
+
+        # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
+        # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
+
+        #lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
+        lastShares  = int   ( message.getField( fut.Tag_OrderQty  ) )
+        qty         = fut.convertQty( side, lastShares )
+        lastPx      = 0
+
+        self._signalStrat.onNew(
+            signalName  = account,
+            execTime    = txTime,
+            orderId     = orderId,
+            symbol      = symbol,
+            qty         = qty,
+            price       = lastPx,
+            orderType   = orderType)
+
+        logger.debug( 'fix.new toApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
     def onOrderPendingCancel( self, orderId, message, execType, orderStatus ):
         logger.debug( 'onOrderPendingCancel %s %s' % ( execType, orderStatus ) )
@@ -324,6 +334,7 @@ class Application( quickfix.Application ):
             qty             = qty )
         session = self.getSession()
         session.sendToTarget( msg )
+        logger.debug( 'fix.lnk.cx  msg=%s' % ( msg ))
         logger.debug( 'fix.lnk.cx  id=%s s=%-4s q=%4d' % ( orderId, symbol, qty ))
 
 def init(tweakName, signalStrat, mode, msgAdapter=None):

@@ -25,6 +25,9 @@ def run_agent():
     agent            = twkval.getenv('agt_strat')
     turf             = twkval.getenv('run_turf')
 
+    policy           = stratpolicy.ScaleVenuePolicy( scale=.5, venue='GREY')
+
+    signalMode       = turfutil.get(turf=turf, component='signal')
     agt_comm         = turfutil.get(turf=turf, component='communication', sub=agent)
 
     agent_execSrc    = agt_comm['agent_execSrc']
@@ -59,9 +62,6 @@ def run_agent():
     poller.register(sigCon,         zmq.POLLIN)
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
-
-    policy      = stratpolicy.ScaleVenuePolicy( scale=.5, venue='GREY')
-    signalMode  = turfutil.get(turf=turf, component='signal')
 
     if signalMode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
         import robbie.echo.reflectstrat as reflectstrat
