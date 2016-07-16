@@ -91,6 +91,11 @@ cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO2
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=CX --turf=dev --agent=ECHO1 --data="{'origOrderId':'SRC_20160703_083150_1','qty':'100'}"
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev_full --agent=ECHO2
+
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=CX --turf=dev --agent=ECHO1 --data="{'origOrderId':'SRC_20160714_205230_1','qty':'100'}"
+
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=KILL --turf=dev --data="('SRC','SNK')"
 
 '''

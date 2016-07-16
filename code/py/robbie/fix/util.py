@@ -189,15 +189,17 @@ def create_staticNewOrderMsg( timeInForce, account ):
     
     return bodyConfig
 
-def create_staticCancelMsg(account):
+def create_staticCancelMsg(account, ccy='USD'):
     '''populate static info of the message'''
     global Tag_Account, Tag_Currency
-    
+
     bodyConfig = {
         Tag_Account     : account,
-        Tag_Currency    : 'USD',
     }
     
+    if ccy:
+        bodyConfig[ Tag_Currency] = ccy
+
     return bodyConfig
 
 def create_NewOrderMsg( orderId, symbol, qty, price=None ):
@@ -221,19 +223,20 @@ def create_NewOrderMsg( orderId, symbol, qty, price=None ):
     return bodyConfig
 
 def create_CancelMsg( orderId, origOrderId, symbol, qty ):
-    '''populate dynamic info of the message'''
+    ''' populate dynamic info of the message '''
     global Tag_OrigClOrdID, Tag_ClientOrderId, Tag_Symbol, Tag_Side, Tag_OrderQty, Tag_TransactTime
     
     bodyConfig = {
         Tag_ClientOrderId   : orderId,
         Tag_OrigClOrdID     : origOrderId,
         Tag_Symbol          : symbol,
-        Tag_Side            : fix.Side_BUY if qty > 0 else fix.Side_SELL ,
-        Tag_OrderQty        : str( abs( qty ) ),
-        # Tag_LastShares      : str( abs( qty ) ),
         Tag_TransactTime    : transactionTime(),
     }
-    
+
+    if qty:
+        bodyConfig[ Tag_Side ]      = fix.Side_BUY if qty > 0 else fix.Side_SELL
+        bodyConfig[ Tag_OrderQty ]  = str( abs( qty ) )
+
     return bodyConfig
 
 def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, symbol, qty, price=None, tagVal=None ):
@@ -257,7 +260,7 @@ def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, sy
         
     return msg
 
-def form_Cancel( senderCompID, targetCompID, account, orderId, origOrderId, symbol, qty, tagVal=None ):
+def form_Cancel( senderCompID, targetCompID, account, orderId, origOrderId, symbol, qty, ccy, tagVal=None ):
     '''create a cancel message'''
     
     msg = fix.Message()
@@ -266,7 +269,7 @@ def form_Cancel( senderCompID, targetCompID, account, orderId, origOrderId, symb
     for tag, val in create_CancelHeader(senderCompID, targetCompID).iteritems():
         hdr.setField( tag, val )
 
-    for tag, val in create_staticCancelMsg(account).iteritems():
+    for tag, val in create_staticCancelMsg(account=account,ccy=ccy).iteritems():
         msg.setField( tag, val )
     
     for tag, val in create_CancelMsg( orderId=orderId, origOrderId=origOrderId, symbol=symbol, qty=qty ).iteritems():    

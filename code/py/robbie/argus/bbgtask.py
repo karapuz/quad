@@ -1,21 +1,21 @@
 import os
-import numpy
 import traceback
 import subprocess
 
-import robbie.argus.task as argTask
+import numpy
 
-import robbie.util.io as io
+import robbie.argus.task as argTask
 import robbie.util.winston as winston
 import robbie.util.config as libconf
 import robbie.tweak.value as twkval
-import robbie.argus.bbgutil as bbgutil
+import util.bbgutil as bbgutil
 import robbie.argus.util as argusutil
 import robbie.util.datetime_util as dut
 from   robbie.util.logging import logger
 import robbie.util.environment as environment
 import robbie.util.journalling as journalling
 import robbie.util.space as libspace
+
 
 bbgFields = (
     'BID',

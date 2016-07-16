@@ -114,7 +114,10 @@ def run_execsrc():
             elif cmd == 'CX':
                 agent         = msg['agent']
                 origOrderId   = msg['origOrderId']
-                qty           = int(msg.get('qty','200'))
+                if 'qty' in msg:
+                    qty = int(msg['qty'])
+                else:
+                    qty = None
                 symbol        = msg.get('sybol', 'IBM')
                 app.cancelOrder(
                     senderCompID = 'BANZAI',
@@ -148,4 +151,7 @@ if __name__ == '__main__':
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=dev
+
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=dev_full
 '''

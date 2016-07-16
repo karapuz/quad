@@ -136,4 +136,7 @@ if __name__ == '__main__':
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\execsinkapp.py --turf=dev
+
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+c:\Python27\python2.7.exe robbie\agent\execsinkapp.py --turf=dev_full
 '''

@@ -27,7 +27,11 @@ class Application( quickfix.Application ):
 
     def getSession(self):
         return self._session
-    
+
+    def registerPriceStrip( self, priceStrip ):
+        '''setup price strip '''
+        self._priceStrip = priceStrip
+
     def registerStratManager( self, signalStrat ):
         '''callback into the execution sink'''
         self._signalStrat = signalStrat
@@ -66,6 +70,9 @@ class Application( quickfix.Application ):
         
     def toApp(self, message, sessionID ): 
         try:
+            ### TODO need access to the price slice here.
+            ### TODO Should update self._price
+
             if self._mode == EXECUTION_MODE.NEW_FILL_CX:
                 onToApp = self.onToApp
             elif self._mode == EXECUTION_MODE.FILL_ONLY:
@@ -251,7 +258,6 @@ class Application( quickfix.Application ):
     def onSubmit( self, orderId, message, execType, orderStatus ):
         # logger.debug( 'onSubmit %s %s' % ( execType, orderStatus ) )
         logger.debug( 'onSubmit %s %s' % ( execType, orderStatus ) )
-        # orderId     = message.getField( fut.Tag_ClientOrderId   )
         txTime      = message.getField( fut.Tag_TransactTime    )
         side        = message.getField( fut.Tag_Side    )
         symbol      = message.getField( fut.Tag_Symbol  )
@@ -264,6 +270,7 @@ class Application( quickfix.Application ):
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
 
+        ### TODO - here's where I need to extract message type, and propagate all relevant fields
         self._signalStrat.onNew(
             signalName  = account,
             execTime    = txTime,
@@ -331,6 +338,7 @@ class Application( quickfix.Application ):
             orderId         = orderId,
             origOrderId     = origOrderId,
             symbol          = symbol,
+            ccy             = None,
             qty             = qty )
         session = self.getSession()
         session.sendToTarget( msg )
