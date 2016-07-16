@@ -197,6 +197,8 @@ void bidAskTradeMMappedElements(Event event)
 
 		msgStr = msg.getElementAsString("MKTDATA_EVENT_TYPE");
 
+    cout << msg << "\n";
+
 		if(msgStr == "QUOTE"){
 		  msgStr = msg.getElementAsString("MKTDATA_EVENT_SUBTYPE");
 		  if(msgStr == "ASK"){

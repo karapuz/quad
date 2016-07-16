@@ -24,6 +24,7 @@
 using namespace std;
 #define MAX_LINE_LENGTH 200
 #define DEFAULT_PORT 8194
+/* #define DEFAULT_PORT 8185 */
 
 // const char* root = "/home/ipresman/projects/winston/shared/NYC_1/FIRM";
 
@@ -122,6 +123,8 @@ int main(int argc, char **argv)
 	  else
 	    curSec.alias = line.substr(delimLoc + 1);
 
+	  cout << "SEC = " << curSec.name << "ALIAS =" << curSec.alias << "\n";
+
 	  secs.push_back(curSec);
 	  getline(cin,line);
 	}
@@ -140,6 +143,7 @@ int main(int argc, char **argv)
 	    handlerEIDaliasMap[atoi(eidStr.c_str())] = eidStr; //Set the alias to a string of the number if no delimeter
 	  else
 	    handlerEIDaliasMap[atoi(eidStr.c_str())] = line.substr(delimLoc + 1);
+	  cout << "EID = " << eidStr << "\n";
 	  getline(cin,line);
 	}
 	

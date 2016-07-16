@@ -19,7 +19,11 @@ const Name TOKEN("token");
 const char *MKTDATA_SVC = "//blp/mktdata";
 const char *AUTH_SVC = "//blp/apiauth";
 
+// const std::string configOptions::authMethod = "OS_LOGON";
+// const std::string configOptions::authMethod = "USER_APP";
 const std::string configOptions::authMethod = "APPLICATION";
+// const std::string configOptions::authMethod = "USER_APP";
+//const std::string configOptions::authMethod = "USER_APP_KEY";
 
 bool subscribedBpipe::init(configOptions config_in)
 {
@@ -136,10 +140,18 @@ std::string subscribedBpipe::getAuthOptions()
 	} else if (!strcmp(config.authMethod.c_str(), "USER_APP")) {
 		// Set User and Application Authentication Option
 		authOptions = "AuthenticationMode=USER_AND_APPLICATION;";
-		authOptions += "AuthenticationType=OS_LOGON;";
 		authOptions += "ApplicationAuthenticationType=APPNAME_AND_KEY;";
+		authOptions += "ApplicationName=" + config.applicationName + ";";
+		authOptions += "AuthenticationType=OS_LOGON";
 		// ApplicationName is the entry in EMRS.
-		authOptions += "ApplicationName=" + config.applicationName;
+	} else if (!strcmp(config.authMethod.c_str(), "USER_APP_KEY")) {
+		// Set User and Application Authentication Option
+		authOptions = "AuthenticationMode=USER_AND_APPLICATION;";
+		authOptions += "ApplicationAuthenticationType=APPNAME_AND_KEY;";
+		authOptions += "ApplicationName=" + config.applicationName + ";";
+		// authOptions += "AuthenticationType=OS_LOGON";
+		// ApplicationName is the entry in EMRS.
+
 	} else if (!strcmp(config.authMethod.c_str(), "DIRSVC")) {		
 		// Authenticate user using active directory service property
 		authOptions = "AuthenticationType=DIRECTORY_SERVICE;";
