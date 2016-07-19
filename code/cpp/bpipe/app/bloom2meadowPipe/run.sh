@@ -1,0 +1,37 @@
+export BLPAPI_LOGLEVEL=DEBUG
+export BLPAPI_LOGFILE=/tmp/bpipe.log
+
+\rm -f /tmp/bpipe.log
+\mkdir -p /tmp/mmaps/20160708
+
+echo "BID
+BID_SIZE
+BID_UPDATE_STAMP_RT
+ASK
+ASK_SIZE
+ASK_UPDATE_STAMP_RT
+EVT_TRADE_PRICE_RT
+LAST_PRICE
+EVT_TRADE_SIZE_RT
+TRADE_UPDATE_STAMP_RT
+
+IBM US Equity,1
+MMM US Equity,2
+
+39491,1
+
+
+" | ./Linux/bloom2MeadowPipe -h 10.240.16.157:8194 -n QuadApp:Echo -p /tmp/mmaps/20160708
+
+
+#
+#
+#
+# 14005,4
+# 14019,5
+# 39493,2
+# 39500,1
+
+# 14003,4
+# 39500,1
+# 400089,2
