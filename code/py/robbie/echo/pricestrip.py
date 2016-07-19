@@ -4,6 +4,7 @@ TYPE:       : lib
 DESCRIPTION : echo.pricestrip module
 DESCRIPTION : this module contains price strip object definition
 '''
+
 import numpy
 import threading
 import robbie.tweak.value as twkval
@@ -53,14 +54,16 @@ class PriceStrip( object ):
             mmapFunc    = mmap_array.zeros
 
         vars = dict( domain=domain, user=user, session=session, shape=shape )
-        self._strips = {}
+        self._strip = {}
 
         for c in center:
             for i in xrange(3):
                 activity = '%s-%d.mmap' % (c,i)
                 self._strip[ activity ] = mmapFunc( activity=activity, **vars )
+                # logger.debug('pricestrip: init activity=%s', activity)
 
         self._support = mmapFunc( activity='orderstate-support', **vars )
+        self._symids  = mmapFunc( activity='symids', **vars )
 
         if symIds != None and not readOnly:
             self._symids[ :len( symIds ) ] = symIds
@@ -69,12 +72,14 @@ class PriceStrip( object ):
         self._addTagLock    = threading.Lock()
         self.addTags( symbols, readOnly=readOnly )
 
-    def getInstantPriceByName(self, priceType, symbol ):
+    def getInstantPriceByName(self, priceType, symbol, val=None ):
         ''' get a slice of all data for the type '''
         instant  = 1
         activity = '%s-%d.mmap' % (priceType, instant)
         arr      = self._strip[ activity ]
         ix       = self.getIxByTag( symbol )
+        if val is not None:
+            arr[ ix ] = val
         return arr[ ix ]
 
     # def asTable(self, header=None):

@@ -3,7 +3,7 @@ TYPE:       : lib
 DESCRIPTION : turf.repo module
 AUTHOR      : ilya presman, 2016
 '''
-
+import copy
 from   robbie.echo.stratutil import EXECUTION_MODE
 
 _p = 5000
@@ -52,7 +52,23 @@ _conf = {
         },
         'shared_location': {
             'domain'     : 'echo',
-        }
+        },
+        'pricestrip':{
+            'domain' : 'echo',
+            'user'   : 'bbg',
+        },
+        'fix_SrcConnConfig' : {
+            'host'  : 'localhost',
+            'port'  : 9878,
+            'sender': 'BANZAI',
+            'target': 'FIXIMULATOR',
+        },
+        'fix_SinkConnConfig' : {
+            'host'  : 'localhost',
+            'port'  : 9888,
+            'sender': 'BANZAISINK',
+            'target': 'FIXIMULATORSINK',
+        },
     },
     'example_turf': {
         'shared_location': {
@@ -61,5 +77,16 @@ _conf = {
     }
 }
 
-_conf[ 'dev_full' ] = _conf[ 'dev' ]
+_conf[ 'dev_full' ] = copy.deepcopy(_conf[ 'dev' ])
 _conf[ 'dev_full' ]['signal'] = EXECUTION_MODE.NEW_FILL_CX
+
+###
+# QUAD drop copy
+#
+_conf[ 'dev_quad' ] = copy.deepcopy(_conf[ 'dev_full' ])
+_conf[ 'dev_quad' ][ 'fix_SrcConnConfig' ] = {
+            'host'  : '207.17.44.100',
+            'port'  : 40000,
+            'sender': 'QUADEQTRPTS',
+            'target': 'REDIRPT',
+        }

@@ -35,6 +35,11 @@ _funcvalues = {
 
     'agt_strat'         : twfunc.const( None ),
     'fix_source'        : twfunc.const( None ),
+    'fix_SrcConnConfig' : twfunc.const( None ),
+    'fix_SinkConnConfig' : twfunc.const( None ),
+}
+
+'''
     'fix_SrcConnConfig' : twfunc.const( {
         'host'  : 'localhost',
         'port'  : 9878,
@@ -47,8 +52,7 @@ _funcvalues = {
         'sender': 'BANZAISINK',
         'target': 'FIXIMULATORSINK',
     }),
-}
-
+'''
 def getval( name ):
     global _setvalues
     return _setvalues.get( name, None )

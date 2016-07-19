@@ -81,9 +81,10 @@ def run_agent():
         if agentSrcInCon in socks:
             msg     = agentSrcInCon.recv() # process signal
             cmd     = json.loads(msg)
-            action  = cmd[ 'action' ]
-            data    = cmd[ 'data'   ]
-            logger.debug('AGENT: SRCIN  = %s', msg)
+            action  = cmd[ 'action'   ]
+            data    = cmd[ 'data'     ]
+            mrkPrice= cmd[ 'mrkPrice' ]
+            logger.debug('AGENT: SRCIN  = %s mrkPrice = %s', msg, mrkPrice)
 
             echoStrat.srcPreUpdate(action=action, data=data)
             echoStrat.srcUpdate(action=action, data=data)

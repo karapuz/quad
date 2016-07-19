@@ -42,7 +42,7 @@ class SignalStrat(object):
 
         self._sig2comm  = sig2comm
 
-    def onNew(self, signalName, execTime, orderId, symbol, qty, price, orderType):
+    def onNew(self, signalName, execTime, orderId, symbol, qty, price, orderType, mrkPrice):
         if self._orderstate.checkExistTag(orderId):
             self._orderstate.addError(
                 status = 'DUPLICATE_NEW',
@@ -64,14 +64,16 @@ class SignalStrat(object):
                                     symbol      = symbol,
                                     qty         = qty,
                                     price       = price,
-                                    orderType   = orderType))
+                                    orderType   = orderType),
+                    mrkPrice = mrkPrice,
+                    )
         msg  = json.dumps(msgd)
         logger.debug('comm.send onNew:%s' % str(msgd))
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
 
-    def onFill(self, signalName, execTime, orderId, symbol, qty, price):
+    def onFill(self, signalName, execTime, orderId, symbol, qty, price, mrkPrice):
         comm    = self._sig2comm[ signalName ]
         action  = STRATSTATE.ORDERTYPE_FILL
         msgd    = dict(
@@ -82,14 +84,16 @@ class SignalStrat(object):
                                     orderId     = orderId,
                                     symbol      = symbol,
                                     qty         = qty,
-                                    price       = price))
+                                    price       = price),
+                    mrkPrice = mrkPrice,
+                    )
         msg     = json.dumps(msgd)
         logger.debug('comm.send onFill:%s' % str(msgd))
         comm.send( msg )
         ixs     = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
 
-    def onCxRx(self, signalName, execTime, orderId, symbol, qty, origOrderId):
+    def onCxRx(self, signalName, execTime, orderId, symbol, qty, origOrderId, mrkPrice):
         comm    = self._sig2comm[ signalName ]
         action  = STRATSTATE.ORDERTYPE_CXRX
         msgd    = dict(
@@ -100,7 +104,9 @@ class SignalStrat(object):
                                     orderId     = orderId,
                                     symbol      = symbol,
                                     qty         = qty,
-                                    origOrderId = origOrderId))
+                                    origOrderId = origOrderId),
+                    mrkPrice = mrkPrice,
+                    )
         msg     = json.dumps(msgd)
         logger.debug('comm.send onCxRx:%s' % str(msgd))
         comm.send( msg )

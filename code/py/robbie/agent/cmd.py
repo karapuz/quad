@@ -81,6 +81,7 @@ if __name__ == '__main__':
         run_cmd(args.cmd, args.agent, args.data)
 
 '''
+del C:\Users\ilya\GenericDocs\dev\data\margot\20160718\fix\store\*.*
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=KILL --turf=dev --data="('SRC',)"
 

@@ -4,12 +4,18 @@ import subprocess
 
 import numpy
 
-import util.bbgutil as bbgutil
+#import util.bbgutil as bbgutil
 import robbie.tweak.value as twkval
-import robbie.util.space as libspace
-import robbie.util.config as libconf
+#import robbie.util.space as libspace
+#import robbie.util.config as libconf
 from   robbie.util.logging import logger
-import robbie.util.environment as environment
+#import robbie.util.environment as environment
+
+import robbie.turf.util as turfutil
+import robbie.tweak.context as twkcx
+import robbie.util.symboldb as symboldb
+import robbie.echo.pricestrip as pricestrip
+
 
 '''BID
 ASK
@@ -189,3 +195,15 @@ def _terminate( names, pipes, pipe ):
             logger.error( 'got an exception while closing pipe %s' % n )
             logger.error(  traceback.format_exc() )
 
+def createPriceStrip(turf, readOnly):
+    # init pricestrip
+    priceStripConf    = turfutil.get(turf=turf, component='pricestrip')
+    domain  = priceStripConf[ 'domain' ]
+    user    = priceStripConf[ 'user'   ]
+    tweaks  = {
+        'run_domain'    : domain,
+        'env_userName'  : user,
+    }
+    symbols = symboldb.currentSymbols()
+    with twkcx.Tweaks( **tweaks ):
+        return pricestrip.PriceStrip(readOnly=readOnly, symbols=symbols)

@@ -20,6 +20,8 @@ import robbie.execution.util as executil
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
 
+import robbie.util.pricestriputil as pricestriputil
+
 def run_execsrc():
     # prepare fix
     # Prepare our context and sockets
@@ -60,12 +62,16 @@ def run_execsrc():
         c.bind('tcp://*:%s' % port_sigCon)
         sigs.append( c )
 
+    # bbg = pricestriputil.createPriceStrip(turf=turf, readOnly=True)
+    bbg = None
+
     signalStrat = echocore.SignalStrat(conns,mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
     appShell, _ = execsrclink.init(
                     tweakName   = 'fix_SrcConnConfig',
                     signalStrat = signalStrat,
                     mode        = signalMode,
+                    pricestrip  = bbg,
                     msgAdapter  = msgAdapter)
     app         = appShell.getApplication()
 
@@ -140,17 +146,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
     args    = parser.parse_args()
+    turf    = args.turf
+    logger.debug( 'agent: turf=%s', turf)
+
+    fix_SrcConnConfig = turfutil.get(turf=turf, component='fix_SrcConnConfig')
+    fix_SinkConnConfig = turfutil.get(turf=turf, component='fix_SinkConnConfig')
+
     tweaks  = {
-        'run_turf'  : args.turf,
-        'run_domain': 'echo_source',
+        'run_turf'          : turf,
+        'run_domain'        : 'echo_source',
+        'fix_SrcConnConfig' : fix_SrcConnConfig,
+        'fix_SinkConnConfig': fix_SinkConnConfig,
     }
-    logger.debug( 'agent: turf=%s', args.turf)
+
     with twkcx.Tweaks( **tweaks ):
         run_execsrc()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=dev
+c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=dev_quad
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=dev_full

@@ -201,7 +201,16 @@ class Application( quickfix.Application ):
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
         
-        self._signalStrat.onFill( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=qty, price=lastPx )
+        mrkPrice    = self.getMarketPrices(symbol=symbol)
+
+        self._signalStrat.onFill(
+                    signalName  = account,
+                    execTime    = txTime,
+                    orderId     = orderId,
+                    symbol      = symbol,
+                    qty         = qty,
+                    price       = lastPx,
+                    mrkPrice    = mrkPrice)
         logger.debug( 'fix.fill oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
     def onOrderCancelToApp( self, orderId, message):
@@ -229,9 +238,17 @@ class Application( quickfix.Application ):
             cxqty   = fut.convertQty( side, lastShares )
 
         origOrderId = message.getField( fut.Tag_OrigClOrdID )
+        mrkPrice    = self.getMarketPrices(symbol=symbol)
 
         logger.debug( 'fix.cxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, cxqty ))
-        self._signalStrat.onCxRx( signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=cxqty, origOrderId=origOrderId )
+        self._signalStrat.onCxRx(
+                    signalName  = account,
+                    execTime    = txTime,
+                    orderId     = orderId,
+                    symbol      = symbol,
+                    qty         = cxqty,
+                    origOrderId = origOrderId,
+                    mrkPrice    = mrkPrice)
 
     def onOrderReject( self, orderId, message, execType, orderStatus ):
         ''' '''
@@ -252,7 +269,17 @@ class Application( quickfix.Application ):
         else:
             rxqty   = fut.convertQty( side, lastShares )
                 
-        self._signalStrat.onCxRx(signalName=account, execTime=txTime, orderId=orderId, symbol=symbol, qty=rxqty, origOrderId=None )
+        mrkPrice    = self.getMarketPrices(symbol=symbol)
+
+        self._signalStrat.onCxRx(
+                    signalName  = account,
+                    execTime    = txTime,
+                    orderId     = orderId,
+                    symbol      = symbol,
+                    qty         = rxqty,
+                    origOrderId = None,
+                    mrkPrice    = mrkPrice)
+
         logger.debug( 'fix.rxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, rxqty ))
     
     def onSubmit( self, orderId, message, execType, orderStatus ):
@@ -270,6 +297,8 @@ class Application( quickfix.Application ):
         lastShares  = int   ( message.getField( fut.Tag_LastShares  ) )
         qty         = fut.convertQty( side, lastShares )
 
+        mrkPrice    = self.getMarketPrices(symbol=symbol)
+
         ### TODO - here's where I need to extract message type, and propagate all relevant fields
         self._signalStrat.onNew(
             signalName  = account,
@@ -277,7 +306,8 @@ class Application( quickfix.Application ):
             orderId     = orderId,
             symbol      = symbol,
             qty         = qty,
-            price       = lastPx )
+            price       = lastPx,
+            mrkPrice    = mrkPrice)
         logger.debug( 'fix.new formApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
     def onSubmitToApp( self, orderId, message ):
@@ -296,6 +326,7 @@ class Application( quickfix.Application ):
         lastShares  = int   ( message.getField( fut.Tag_OrderQty  ) )
         qty         = fut.convertQty( side, lastShares )
         lastPx      = 0
+        mrkPrice    = self.getMarketPrices(symbol=symbol)
 
         self._signalStrat.onNew(
             signalName  = account,
@@ -304,13 +335,25 @@ class Application( quickfix.Application ):
             symbol      = symbol,
             qty         = qty,
             price       = lastPx,
-            orderType   = orderType)
+            orderType   = orderType,
+            mrkPrice    = mrkPrice)
 
         logger.debug( 'fix.new toApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
     def onOrderPendingCancel( self, orderId, message, execType, orderStatus ):
         logger.debug( 'onOrderPendingCancel %s %s' % ( execType, orderStatus ) )
         account     = message.getField( fut.Tag_Account )
+        mrkPrice    = self.getMarketPrices(symbol=symbol)
+
+    def getMarketPrices(self, symbol):
+        ''' get Market Prices  '''
+        if self._priceStrip is None:
+            return {}
+
+        trade   = self._priceStrip.getInstantPriceByName(priceType='TRADE', symbol=symbol)
+        bid     = self._priceStrip.getInstantPriceByName(priceType='BID', symbol=symbol)
+        ask     = self._priceStrip.getInstantPriceByName(priceType='ASK', symbol=symbol)
+        return {'TRADE': trade, 'bid': bid, 'ask': ask}
 
     ''' order issuing block '''
     def sendOrder( self, senderCompID, targetCompID, account, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
@@ -345,7 +388,7 @@ class Application( quickfix.Application ):
         logger.debug( 'fix.lnk.cx  msg=%s' % ( msg ))
         logger.debug( 'fix.lnk.cx  id=%s s=%-4s q=%4d' % ( orderId, symbol, qty ))
 
-def init(tweakName, signalStrat, mode, msgAdapter=None):
+def init(tweakName, signalStrat, mode, pricestrip, msgAdapter=None):
     ''' '''
     cfgpath     = execut.initFixConfig( tweakName )
 
@@ -354,6 +397,7 @@ def init(tweakName, signalStrat, mode, msgAdapter=None):
     app.registerStratManager( signalStrat )
     app.addMessageAdapter( msgAdapter )
     app._seenOrderId = set()
+    app.registerPriceStrip(pricestrip)
 
     appThread   = execut.AppThread( app=app, cfgpath=cfgpath )
     appThread.run()
