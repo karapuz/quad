@@ -5,16 +5,9 @@ DESCRIPTION : util.margot module
 '''
 
 import os
-import glob
-import shutil
 import threading
-import cPickle as pickle
 import robbie.util.misc as libmisc
-#import meadow.lib.calendar as cal
-#import meadow.lib.context as libcx
-#import meadow.run.util as run_util
 import robbie.tweak.value as twkval
-import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 
 _getMargotRootLock = threading.Lock()
