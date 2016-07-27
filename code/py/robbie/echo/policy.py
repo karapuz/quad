@@ -11,6 +11,7 @@ class StratPolicy(object):
     pass
 
 class ScaleVenuePolicy(StratPolicy):
+
     def __init__(self, scale, venue):
         self._scale = scale
         self._venue = venue
