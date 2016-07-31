@@ -5,6 +5,9 @@ DESCRIPTION : echo.strat module
 DESCRIPTION : this module contains strategies
 '''
 
+import zmq
+import json
+from   threading import Timer
 import robbie.echo.core as echocore
 from   robbie.util.logging import logger
 import robbie.echo.stratutil as stratutil
@@ -29,16 +32,25 @@ class BaseStrat(object):
             STRATSTATE.ORDERTYPE_FILL   : self._onSrcFill,
             STRATSTATE.ORDERTYPE_CXRX   : self._onSrcCxRx,
         }
-    ##
-    ##
-    ##
-        self._src2snk   = {}
-        self._snk2src   = {}
-        self._cx2snk    = {}
-        self._snk2cx    = {}
-        self._cx2src    = {}
-        self._src2cx    = {}
-        self._actionData= []
+        ##
+        ##
+        ##
+        self._src2snk       = {}
+        self._snk2src       = {}
+        self._cx2snk        = {}
+        self._snk2cx        = {}
+        self._cx2src        = {}
+        self._src2cx        = {}
+        self._actionData    = []
+        self._actionOrders  = []
+        self._orderQueueBySymbol = {}
+
+        #
+        # order cmd
+        #
+        self._agent_orderCmd  = None
+        self._context         = None
+        self._sender          = None
 
     def _onSnkNew(self, action, data):
         self._snkOrders.onNew(
@@ -122,11 +134,11 @@ class BaseStrat(object):
         return orderstat
 
     def getEchoOrder( self, data ):
-        orderId          = stratutil.newOrderId('ECHO')
+        echoAction  = STRATSTATE.ORDERTYPE_NEW
+        orderId     = stratutil.newOrderId('ECHO')
         echoData    = self._policy.newOrder(
                             orderId = orderId,
                             data    = data )
-        echoAction  = STRATSTATE.ORDERTYPE_NEW
         return echoAction, echoData
 
     def getEchoCancelOrder( self, origOrderId, data ):
@@ -150,31 +162,194 @@ class BaseStrat(object):
         return echoAction, echoData
 
     def linkSignalEchoOrders(self, signalOrderId, echoOrderId):
+        ''' '''
         self._snk2src[ echoOrderId   ] = signalOrderId
         self._src2snk[ signalOrderId ] = echoOrderId
         logger.debug('basestrat: new %s --> %s', signalOrderId, echoOrderId)
 
     def linkOrigOrderCx(self, orderId, origOrderId):
+        ''' '''
         self._src2cx[ origOrderId ] = orderId
         self._cx2src[ orderId     ] = origOrderId
         logger.debug('basestrat:  cx %s --> %s', orderId, origOrderId)
 
-    def getCurrentPending( self, target, orderId ):
+    def getCurrentPending( self, target, tag ):
+        ''' '''
         orderState = self._getTargetOrderState(target=target)
-        ix  = orderState.getIxByTag( orderId )
-        qty = orderState.getPendingByIx( ix=ix )
-        return qty
+        ix  = orderState.getIxByTag( tag )
+        return orderState.getPendingByIx( ix=ix )
+
+    getPendingByOrderId = getCurrentPending
 
     def getCurrentState( self, target, where='all', which='pending', how='pandas'):
+        ''' '''
         orderState = self._getTargetOrderState(target=target)
         return orderState.getCurrentState(where=where, which=which, how=how)
 
+    def getRealizedBySymbol(self, target, tag, shouldExist=True ):
+        ''' '''
+        orderState = self._getTargetOrderState(target=target)
+        return orderState.getRealizedByTag(tag=tag, shouldExist=shouldExist )
+
+    getRealizedByOrderId = getRealizedBySymbol
+
+    def getPendingBySymbol(self, target, symbol, side=None ):
+        ''' '''
+        orderState = self._getTargetOrderState(target=target)
+        l = orderState.getLongPendingByIx(tag=symbol )
+        s = orderState.getShortPendingByIx(tag=symbol )
+
+        if side == None:
+            if l and not s:
+                return l
+            if s and not l:
+                return s
+            if s and l:
+                logger.error('Confusing Pending state: both l=%s and s=%s', l, s)
+                return l + s
+        elif side == 'long':
+            return l
+        elif side == 'short':
+            return s
+        else:
+            raise ValueError('Wrong side=%s' % side )
+
     def addActionData(self, data ):
-        self._actionData.append( data )
+        ''' '''
+        if isinstance(data, (list, tuple)):
+            self._actionData.extend( data )
+        else:
+            self._actionData.append( data )
+
+    def addOrder( self, action ):
+        self._actionOrders.append( action )
+
+    def addCancelOrder( self, delay, order ):
+        self.addOrder( dict(delay=delay, order=order, orderType='CANCEL') )
+
+    def addLiquidateOrder( self, delay, order ):
+        self.addOrder( dict(delay=delay, order=order, orderType='LIQUIDATE') )
 
     def getActionData(self):
-        actionData = self._actionData
+        ''' '''
+        q = self._actionData
         self._actionData = []
-        return actionData
+        return q
 
     newMsg = getActionData
+
+    def getActionOrders(self):
+        ''' '''
+        q = self._actionOrders
+        self._actionOrders = []
+        return q
+
+    def startOrdersToAction(self):
+        byTime = {}
+        for orderAction in self._actionOrders:
+            # dict(delay=delay, order=order, orderType='CANCEL')
+            # dict(delay=delay, order=order, orderType='LIQUIDATE')
+            delay = orderAction['delay']
+            if delay not in byTime:
+                byTime[ delay ] = []
+            byTime[ delay ].append( orderAction )
+
+        for delay, actions in byTime.iteritems():
+            Timer(delay, self.transferOrders, (actions,)).start()
+
+    def getOrderCmdCon(self):
+        if self._context is None:
+            self._agent_orderCmd  = "ORDER_CMD"
+            self._context         = zmq.Context.instance()
+            self._sender          = self._context.socket(zmq.PAIR)
+            self._sender.connect("inproc://%s" % self._agent_orderCmd)
+        return self._sender
+
+    def transferOrders(self, actions):
+        sender          = self.getOrderCmdCon()
+        msg             = json.dumps(actions)
+        logger.debug('transferOrders-> %s', str(actions))
+        sender.send(msg)
+
+    def orderUpdate(self, actions):
+        # dict(delay=delay, order=order, orderType='CANCEL')
+        # dict(delay=delay, order=order, orderType='LIQUIDATE')
+        data = []
+        for action in actions:
+            orderType       = action['orderType']
+
+            order           = action['order']
+
+            openOrder       = order.getOpenOrder()
+            closeOrder      = order.getCloseOrder()
+
+            symbol          = openOrder['symbol']
+            openOrderId     = openOrder[ 'orderId' ]
+
+            # for either liquidate or cancel, we need to cancel pendings
+            if orderType in ('LIQUIDATE', 'CANCEL'):
+                # cancel all pending orders
+
+                openPend        = self.getPendingByOrderId(target='SNK', tag=openOrderId)
+                venue           = 'NYSE'
+                if openPend:
+                    data.append({
+                        'orderType'     : 'CANCEL',
+                        'orderId'       : stratutil.newOrderId('EO-CX'),
+                        'origOrderId'   : openOrderId,
+                        'venue'         : venue,
+                        'symbol'        : symbol,
+                        'qty'           : openPend,
+                        'execTime'      : 'NOW',
+                    } )
+                if closeOrder:
+                    closePend       = self.getPendingByOrderId(target='SNK', tag=closeOrderId)
+                else:
+                    closePend       = 0
+
+                if closePend:
+                    closeOrderId    = closeOrder[ 'orderId' ]
+                    data.append({
+                        'orderType'     : 'CANCEL',
+                        'orderId'       : stratutil.newOrderId('EC-CX'),
+                        'origOrderId'   : closeOrderId,
+                        'venue'         : venue,
+                        'symbol'        : symbol,
+                        'qty'           : openPend,
+                        'execTime'      : 'NOW',
+                    } )
+
+            if orderType == 'LIQUIDATE':
+                # liquidate all realized exposure
+
+                openOrderId     = openOrder[ 'orderId' ]
+                openRlzd        = self.getRealizedByOrderId(target='SNK', tag=openOrderId)
+                if closeOrder:
+                    closeOrderId    = closeOrder[ 'orderId' ]
+                    closeRlzd       = self.getRealizedByOrderId(target='SNK', tag=closeOrderId)
+                else:
+                    closeRlzd       = 0
+
+                venue           = 'NYSE'
+                if openRlzd + closeRlzd:
+                    data.append({
+                        'orderType'     : 'MARKET',
+                        'orderId'       : stratutil.newOrderId('EOC-LQ'),
+                        'origOrderId'   : openOrderId,
+                        'venue'         : venue,
+                        'symbol'        : symbol,
+                        'qty'           : -(closeRlzd + openPend),
+                        'execTime'      : 'NOW',
+                    } )
+
+            if orderType not in ('LIQUIDATE', 'CANCEL'):
+                raise ValueError('Unknown orderType=%s' % orderType)
+
+        self.addActionData(data=data)
+
+    def getOrdersForSymbol(self, symbol):
+        q = self._orderQueueBySymbol
+        if symbol not in q:
+            q[ symbol ] = []
+        return q[ symbol ]
+

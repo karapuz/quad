@@ -179,6 +179,18 @@ class OrderState( object ):
         '''
         return self._pending_long[ ix ] + self._pending_short[ ix ]
 
+    def getLongPendingByIx(self, ix ):
+        '''
+        return signed pending amount
+        '''
+        return self._pending_long[ ix ]
+
+    def getShortPendingByIx(self, ix ):
+        '''
+        return signed pending amount
+        '''
+        return self._pending_short[ ix ]
+
     def getCurrentState(self, where='all', which='pending', how='pandas'):
         '''
         return signed pending amount
@@ -229,6 +241,16 @@ class OrderState( object ):
 
     def getRealizedByIx(self, ix ):
         '''return signed realized amount '''
+        return self._realized[ ix ]
+
+    def getRealizedByTag(self, tag, shouldExist=True ):
+        '''return signed realized amount '''
+
+        if not shouldExist:
+            if not self.checkExistTag(tag=tag):
+                return 0
+
+        ix = self.getIxByTag(tag=tag)
         return self._realized[ ix ]
 
     def _validLenIx(self, ix, vals, verbose=True ):

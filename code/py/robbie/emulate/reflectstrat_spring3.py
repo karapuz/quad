@@ -27,7 +27,6 @@ def run():
     s.srcUpdate(action=action, data=data)
     s.srcPostUpdate(action=action, data=data)
 
-    logger.debug( '0: %s' % s.getActionData() )
     logger.debug( '1: SRC pending\n%s' % s.getCurrentState( target='SRC', where='all', which='pending', how='pandas'))
 
     action=STRATSTATE.ORDERTYPE_FILL
@@ -37,31 +36,39 @@ def run():
 
     logger.debug( '2: SRC pending\n%s' % s.getCurrentState( target='SRC', where='all', which='pending', how='pandas'))
     logger.debug( '3: SRC realized\n%s' % s.getCurrentState( target='SRC', where='all', which='realized', how='pandas'))
-    logger.debug( '4: %s' % s.getActionData() )
+
+    symbol = data['symbol']
+    #orders = s.getOrdersForSymbol(symbol)
+    msgs = s.getActionData()
+    logger.debug( '4: %s' % msgs )
 
     ##
-    action=STRATSTATE.ORDERTYPE_NEW
-    target='SNK'
-    s.snkPreUpdate(action=action, data=data)
-    s.snkUpdate(action=action, data=data)
-    s.snkPostUpdate(action=action, data=data)
+    for actionData in msgs:
+        authAction = actionData['action']
+        data       = actionData['data']
 
-    logger.debug( '5: %s' % s.getActionData() )
-    logger.debug( '6: SRC pending\n%s' % s.getCurrentState( target=target, where='all', which='pending', how='pandas'))
+        action  = STRATSTATE.ORDERTYPE_NEW
+        target  = 'SNK'
 
-    action=STRATSTATE.ORDERTYPE_FILL
-    s.snkPreUpdate(action=action, data=data)
-    s.snkUpdate(action=action, data=data)
-    s.snkPostUpdate(action=action, data=data)
+        s.snkPreUpdate(action=action, data=data)
+        s.snkUpdate(action=action, data=data)
+        s.snkPostUpdate(action=action, data=data)
 
-    logger.debug( '7: SNK pending\n%s' % s.getCurrentState( target=target, where='all', which='pending', how='pandas'))
-    logger.debug( '8: SNK realized\n%s' % s.getCurrentState( target=target, where='all', which='realized', how='pandas'))
-    logger.debug( '9: %s' % s.getActionData() )
+        logger.debug( '6: SRC pending\n%s' % s.getCurrentState( target=target, where='all', which='pending', how='pandas'))
+
+        action=STRATSTATE.ORDERTYPE_FILL
+        s.snkPreUpdate(action=action, data=data)
+        s.snkUpdate(action=action, data=data)
+        s.snkPostUpdate(action=action, data=data)
+
+        logger.debug( '7: SNK pending\n%s' % s.getCurrentState( target=target, where='all', which='pending', how='pandas'))
+        logger.debug( '8: SNK realized\n%s' % s.getCurrentState( target=target, where='all', which='realized', how='pandas'))
+        logger.debug( '9: %s' % s.getActionData() )
 
 if __name__ == '__main__':
     run()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\python27\python.exe robbie\emulate\reflectstrat_spring1.py
+c:\python27\python.exe robbie\emulate\reflectstrat_spring3.py
 '''

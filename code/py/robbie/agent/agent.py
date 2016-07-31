@@ -34,13 +34,16 @@ def run_agent():
     port_sigCon      = agt_comm['agent_sigCon']
     agent_execSnkIn  = agt_comm['agent_execSnkIn']
     agent_execSnkOut = agt_comm['agent_execSnkOut']
+    # agent_orderCmd   = agt_comm['agent_orderCmd']
+    agent_orderCmd   = "ORDER_CMD"
 
-    context          = zmq.Context()
+    #context          = zmq.Context()
+    context           = zmq.Context.instance()
 
-    snkRegPort       = turfutil.get(turf=turf, component='communication', sub='SNK_REG')['port_reg']
+    snkRegPort        = turfutil.get(turf=turf, component='communication', sub='SNK_REG')['port_reg']
     register(context, regPort=snkRegPort, agent=agent, logName='SNK')
 
-    srcRegPort       = turfutil.get(turf=turf, component='communication', sub='SRC_REG')['port_reg']
+    srcRegPort        = turfutil.get(turf=turf, component='communication', sub='SRC_REG')['port_reg']
     register(context, regPort=srcRegPort, agent=agent, logName='SRC')
 
     agentSrcInCon       = context.socket(zmq.SUB)
@@ -50,6 +53,9 @@ def run_agent():
     sigCon = context.socket(zmq.SUB)
     sigCon.setsockopt(zmq.SUBSCRIBE, b'')
     sigCon.connect('tcp://localhost:%s' % port_sigCon)
+
+    agentOrderCon        = context.socket(zmq.PAIR)
+    agentOrderCon.bind("inproc://%s" % agent_orderCmd)
 
     agentSinkOutCon      = context.socket(zmq.PAIR) # PUB
     agentSinkOutCon.bind('tcp://*:%s' % agent_execSnkOut)
@@ -62,6 +68,7 @@ def run_agent():
     poller.register(sigCon,         zmq.POLLIN)
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
+    poller.register(agentOrderCon,  zmq.POLLIN)
 
     if signalMode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
         import robbie.echo.reflectstrat as reflectstrat
@@ -90,11 +97,6 @@ def run_agent():
             echoStrat.srcUpdate(action=action, data=data)
             echoStrat.srcPostUpdate(action=action, data=data)
 
-            for cmd in echoStrat.newMsg():
-                logger.debug('AGENT: SNKOUT = %s', cmd)
-                msg = json.dumps(cmd)
-                agentSinkOutCon.send(msg)
-
         if agentSinkInCon in socks:
             msg     = agentSinkInCon.recv() # process task
             cmd     = json.loads(msg)
@@ -105,6 +107,20 @@ def run_agent():
             echoStrat.snkPreUpdate(action=action, data=data)
             echoStrat.snkUpdate(action=action, data=data)
             echoStrat.snkPostUpdate(action=action, data=data)
+
+        if agentOrderCon in socks:
+            msg     = agentOrderCon.recv() # process order
+            cmd     = json.loads(msg)
+            logger.debug('AGENT: ORDER = %s', msg)
+
+            cmds    = echoStrat.orderUpdate(cmd)
+            echoStrat.addActionData( cmds )
+            logger.debug('AGENT: COMMANDS = %s', cmds)
+
+        for cmd in echoStrat.newMsg():
+            logger.debug('AGENT: SNKOUT = %s', cmd)
+            msg = json.dumps(cmd)
+            agentSinkOutCon.send(msg)
 
         if sigCon in socks:
             msg = sigCon.recv() # process signal

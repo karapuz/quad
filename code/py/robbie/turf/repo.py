@@ -20,6 +20,7 @@ def newAgent():
         'agent_sigCon'       : nextport(),
         'agent_execSnkIn'    : nextport(),
         'agent_execSnkOut'   : nextport(),
+        #'agent_orderCmd'     : nextport(),
     }
 
 def newSrcCmd():
