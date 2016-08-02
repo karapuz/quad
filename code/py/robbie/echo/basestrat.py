@@ -271,14 +271,14 @@ class BaseStrat(object):
         logger.debug('transferOrders-> %s', str(actions))
         sender.send(msg)
 
-    def orderUpdate(self, actions):
+    def orderUpdate(self, actionOrder):
         # dict(delay=delay, order=order, orderType='CANCEL')
         # dict(delay=delay, order=order, orderType='LIQUIDATE')
         data = []
-        for action in actions:
-            orderType       = action['orderType']
+        for actionOrder in actionOrder:
+            orderType       = actionOrder['orderType']
 
-            order           = action['order']
+            order           = actionOrder['order']
 
             openOrder       = order.getOpenOrder()
             closeOrder      = order.getCloseOrder()
@@ -303,6 +303,7 @@ class BaseStrat(object):
                         'execTime'      : 'NOW',
                     } )
                 if closeOrder:
+                    closeOrderId    = closeOrder[ 'orderId' ]
                     closePend       = self.getPendingByOrderId(target='SNK', tag=closeOrderId)
                 else:
                     closePend       = 0
@@ -353,3 +354,5 @@ class BaseStrat(object):
             q[ symbol ] = []
         return q[ symbol ]
 
+    def isSrcClosingOrder(self, action):
+        pass

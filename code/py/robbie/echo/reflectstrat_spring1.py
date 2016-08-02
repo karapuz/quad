@@ -43,10 +43,11 @@ class Strategy(basestrat.BaseStrat):
         # FILL dictates what to do with ECHO trades. It is always against SNK
         elif action  == STRATSTATE.ORDERTYPE_FILL:
             symbol  = data[ 'symbol']
-            for order in self.getOrdersForSymbol(symbol):
-                self.addCancelOrder( delay=1, order=order )
-                if self.snkHasRealizedOpen(order):
-                    self.addLiquidateOrder( delay=5, order=order )
+            if self.isSrcCloseSignal( action=action, data=data ):
+                for order in self.getOrdersForSymbol(symbol):
+                    self.addCancelOrder( delay=1, order=order )
+                    if self.snkHasRealizedOpen(order):
+                        self.addLiquidateOrder( delay=5, order=order )
 
         # CX dictates what to do with ECHO trades. It is always against SNK
         elif action  == STRATSTATE.ORDERTYPE_CXRX:
@@ -87,19 +88,25 @@ class Strategy(basestrat.BaseStrat):
         qty         = echoData[ 'qty' ]
 
         for ix in xrange( len(qq) ):
-            if closeQty >= qty:
+            if abs(closeQty) >= abs(qty):
                 break
+
             order       = q[ symbol ][ix]
             if order.getCloseOrder():
                 continue
-            openOrder   = order.getOpenOrder()
-            closeOrder  = copy.deepcopy( echoData )
-            closeOrder[ 'qty' ] = openOrder[ 'qty' ]
+
+            orderId             = stratutil.newOrderId('ECHO')
+            openOrder           = order.getOpenOrder()
+            closeOrder          = copy.deepcopy( echoData )
+            closeOrder[ 'qty' ] = -1*openOrder[ 'qty' ]
+            closeOrder[ 'orderId' ] = orderId
             order.addCloseOrder(closeOrder=closeOrder)
+
             logger.debug('closeQty(%d) for qty(%d) for symbol=%s', closeQty, qty, symbol)
             logger.debug('snkAddCloseLegToOrder: order=%s', str(order))
             self.addActionData( {'action':action, 'data':closeOrder} )
-            closeQty += openOrder[ 'qty' ]
+
+            closeQty += closeOrder[ 'qty' ]
 
         if closeQty < qty:
             logger.error('closeQty(%d) for qty(%d) for symbol=%s', closeQty, qty, symbol)

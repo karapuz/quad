@@ -12,19 +12,19 @@ class STRATSTATE(object):
     '''  state, action, and order type   '''
 
     ''' state '''
-    CLOSING         = 'CLOSING STATE'
-    OPENING         = 'OPENING STATE'
-    EMPTY           = 'EMPTY STATE'
+    CLOSING         = 'CLOSING_STATE'
+    OPENING         = 'OPENING_STATE'
+    EMPTY           = 'EMPTY_STATE'
 
     ''' action '''
-    ISSUEOPENORDER  = 'ISSUE OPEN ORDER'
-    ISSUECLOSEORDER = 'ISSUE CLOSE ORDER'
-    ISSUECXORDER    = 'ISSUE CX ORDER'
+    ISSUEOPENORDER  = 'ISSUE_OPEN_ORDER'
+    ISSUECLOSEORDER = 'ISSUE_CLOSE_ORDER'
+    ISSUECXORDER    = 'ISSUE_CX_ORDER'
 
     ''' order type '''
-    ORDERTYPE_NEW   = 'ORDER TYPE NEW'
-    ORDERTYPE_CXRX  = 'ORDER TYPE CXRX'
-    ORDERTYPE_FILL  = 'ORDER TYPE FILL'
+    ORDERTYPE_NEW   = 'ORDER_TYPE_NEW'
+    ORDERTYPE_CXRX  = 'ORDER_TYPE_CXRX'
+    ORDERTYPE_FILL  = 'ORDER_TYPE_FILL'
 
 class EXECUTION_MODE(object):
     NEW_FILL_CX = 'NEW_FILL_CX'

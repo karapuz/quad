@@ -11,6 +11,7 @@ import argparse
 import robbie.fix.util as fut
 import robbie.echo.core as echocore
 import robbie.echo.stratutil as stratutil
+from   robbie.echo.stratutil import STRATSTATE
 
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
@@ -21,6 +22,16 @@ import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
 
 import robbie.util.pricestriputil as pricestriputil
+
+def getMarketPrices(priceStrip, symbol):
+    ''' get Market Prices  '''
+    if priceStrip is None:
+        return {}
+
+    trade   = priceStrip.getInstantPriceByName(priceType='TRADE', symbol=symbol)
+    bid     = priceStrip.getInstantPriceByName(priceType='BID', symbol=symbol)
+    ask     = priceStrip.getInstantPriceByName(priceType='ASK', symbol=symbol)
+    return {'TRADE': trade, 'bid': bid, 'ask': ask}
 
 def run_execsrc():
     # prepare fix
@@ -43,6 +54,11 @@ def run_execsrc():
     regConn     = context.socket(zmq.REP)
     regConn.bind("tcp://*:%s" % reg_port)
     poller.register(regConn, zmq.POLLIN)
+
+    rediPort     = agt_comms['REDI']['port_cmd']
+    rediCon      = context.socket(zmq.PAIR)
+    rediCon.bind('tcp://*:%s' % rediPort)
+    poller.register(rediCon, zmq.POLLIN)
 
     conns   = {}
     sigs    = []
@@ -81,6 +97,38 @@ def run_execsrc():
             socks = dict(poller.poll())
         except KeyboardInterrupt:
             break
+
+        if rediCon in socks:
+            msgs    = rediCon.recv()
+            data    = json.loads(msgs)
+            logger.debug('EXECSRCAPP: REDI = %s', data)
+
+            action      = str(data['action'])
+            orderType   = str(data['orderType'])
+            signalName  = str(data['signalName'])
+            execTime    = str(data['execTime'])
+            orderId     = str(data['orderId'])
+            symbol      = str(data['symbol'])
+            qty         = int(data['qty'])
+            mrkPrice    = getMarketPrices(bbg, symbol=symbol)
+
+            if action == STRATSTATE.ORDERTYPE_NEW:
+                price   = data['price']
+                signalStrat.onNew(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, orderType=orderType, mrkPrice=mrkPrice)
+
+            elif action == STRATSTATE.ORDERTYPE_NEW:
+                price   = data['price']
+                signalStrat.onFill(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, mrkPrice=mrkPrice)
+
+            elif action == STRATSTATE.ORDERTYPE_CXRX:
+                origOrderId = data['origOrderId']
+                signalStrat.onCxRx(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, origOrderId=origOrderId, mrkPrice=mrkPrice)
+
+            else:
+                raise ValueError('Unknown action=%s' % action)
+
+            rediCon.send(orderId)
+            continue
 
         if regConn in socks:
             msg = regConn.recv()

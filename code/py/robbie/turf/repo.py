@@ -44,6 +44,7 @@ _conf = {
             'ECHO2'
         ],
         'communication' : {
+            'REDI'          : newSrcCmd(),
             'SNK_REG'       : newSinkReg(),
             'SRC_REG'       : newSinkReg(),
             'SNK_CMD'       : newSrcCmd(),
