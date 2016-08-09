@@ -8,7 +8,7 @@ import zmq
 import json
 import time
 import argparse
-import robbie.echo.core as echocore
+import robbie.echo.sourcecore as sourcecore
 import robbie.echo.sinkproc as sinkproc
 from   robbie.echo.stratutil import EXECUTION_MODE
 
@@ -61,13 +61,14 @@ def run_execSink():
         agentIn [ agent ] = agentSinkIntCon
         agentOut[ agent ] = agentSinkOutCon
 
-    signalStrat = echocore.SignalStrat(agentIn, mode=signalMode)
+    signalStrat = sourcecore.SourceStrat(agentIn, mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
     tweakName   = 'fix_SinkConnConfig'
     appThread, thread = execsrclink.init(
                             tweakName   = tweakName,
                             signalStrat = signalStrat,
                             mode        = signalMode,
+                            pricestrip  = None,
                             msgAdapter  = msgAdapter)
 
     app          = appThread.getApplication()
@@ -122,12 +123,16 @@ if __name__ == '__main__':
     '''
     -T turf
     '''
-    parser = argparse.ArgumentParser()
+    parser      = argparse.ArgumentParser()
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
-    args    = parser.parse_args()
+    args        = parser.parse_args()
+
+    turf        = args.turf
+    fix_SinkConnConfig   = turfutil.get(turf=turf, component='fix_SinkConnConfig')
     tweaks  = {
         'run_turf'  : args.turf,
         'run_domain': 'echo_sink',
+        'fix_SinkConnConfig' : fix_SinkConnConfig,
     }
     logger.debug( 'EXECSINKAPP: turf=%s', args.turf)
     with twkcx.Tweaks( **tweaks ):

@@ -25,7 +25,8 @@ def run_agent():
     agent            = twkval.getenv('agt_strat')
     turf             = twkval.getenv('run_turf')
 
-    policy           = stratpolicy.ScaleVenuePolicy( scale=.5, venue='GREY')
+    # policy           = stratpolicy.ScaleVenuePolicy( scale=.5, venue='GREY')
+    policy           = stratpolicy.ScaleVenueSpring1Policy( scale=.5, venue='GREY')
 
     signalMode       = turfutil.get(turf=turf, component='signal')
     agt_comm         = turfutil.get(turf=turf, component='communication', sub=agent)
@@ -71,7 +72,7 @@ def run_agent():
     poller.register(agentOrderCon,  zmq.POLLIN)
 
     if signalMode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
-        import robbie.echo.reflectstrat as reflectstrat
+        import robbie.echo.reflectstrat_spring1 as reflectstrat
         echoStrat = reflectstrat.Strategy(agent=agent, policy=policy)
     elif signalMode == stratutil.EXECUTION_MODE.FILL_ONLY:
         import robbie.echo.reflectstrat2 as reflectstrat2
@@ -90,12 +91,12 @@ def run_agent():
             cmd     = json.loads(msg)
             action  = cmd[ 'action'   ]
             data    = cmd[ 'data'     ]
-            mrkPrice= cmd[ 'mrkPrice' ]
-            logger.debug('AGENT: SRCIN  = %s mrkPrice = %s', msg, mrkPrice)
+            mktPrice= cmd[ 'mktPrice' ]
+            logger.debug('AGENT: SRCIN  = %s mktPrice = %s', msg, mktPrice)
 
-            echoStrat.srcPreUpdate(action=action, data=data)
-            echoStrat.srcUpdate(action=action, data=data)
-            echoStrat.srcPostUpdate(action=action, data=data)
+            echoStrat.srcPreUpdate(action=action, data=data, mktPrice=mktPrice)
+            echoStrat.srcUpdate(action=action, data=data, mktPrice=mktPrice)
+            echoStrat.srcPostUpdate(action=action, data=data, mktPrice=mktPrice)
 
         if agentSinkInCon in socks:
             msg     = agentSinkInCon.recv() # process task
@@ -147,29 +148,8 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=dev
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=dev_full
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=dev
-'''
-
-'''
-form sink =  {
-    "orderId"    : "20160621_182343",
-    "action"     : "new",
-    "execTime"   : "20160621-22:23:43.556",
-    "price"      : 0,
-    "signalName" : "ECHO1",
-    "symbol"     : "IBM",
-    "qty"        : 1000}
-
-from src  =  {
-    "orderId"    : "20160621_182343",
-    "action"     : "fill",
-    "execTime"   : "TIME",
-    "price"      : 200.0,
-    "signalName" : "ECHO1",
-    "symbol"     : "IBM",
-    "qty"        : 200}
-
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=dev_full
 '''

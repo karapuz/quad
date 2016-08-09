@@ -8,7 +8,7 @@ DESCRIPTION : this module contains strategies
 import zmq
 import json
 from   threading import Timer
-import robbie.echo.core as echocore
+import robbie.echo.echoorderstate as echoorderstate
 from   robbie.util.logging import logger
 import robbie.echo.stratutil as stratutil
 from   robbie.echo.stratutil import STRATSTATE
@@ -17,8 +17,8 @@ class BaseStrat(object):
 
     def __init__(self, agent, policy, mode):
         self._agent     = agent
-        self._srcOrders = echocore.EchoOrderState('%s-src' % agent, mode=mode)
-        self._snkOrders = echocore.EchoOrderState('%s-snk' % agent, mode=mode)
+        self._srcOrders = echoorderstate.EchoOrderState('%s-src' % agent, mode=mode)
+        self._snkOrders = echoorderstate.EchoOrderState('%s-snk' % agent, mode=mode)
         self._policy    = policy
 
         self._snkAction2proc = {
@@ -115,13 +115,13 @@ class BaseStrat(object):
     def snkUpdate(self, action, data):
         self._snkAction2proc[action](action=action, data=data)
 
-    def srcUpdate(self, action, data):
+    def srcUpdate(self, action, data, mktPrice):
         self._srcAction2proc[action](action=action, data=data)
 
-    def srcPreUpdate(self, action, data):
+    def srcPreUpdate(self, action, data, mktPrice):
         pass
 
-    def srcPostUpdate(self, action, data):
+    def srcPostUpdate(self, action, data, mktPrice):
         pass
 
     def _getTargetOrderState(self, target):

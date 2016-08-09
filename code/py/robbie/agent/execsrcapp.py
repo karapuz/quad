@@ -9,8 +9,8 @@ import json
 import time
 import argparse
 import robbie.fix.util as fut
-import robbie.echo.core as echocore
 import robbie.echo.stratutil as stratutil
+import robbie.echo.sourcecore as sourcecore
 from   robbie.echo.stratutil import STRATSTATE
 
 import robbie.turf.util as turfutil
@@ -31,7 +31,7 @@ def getMarketPrices(priceStrip, symbol):
     trade   = priceStrip.getInstantPriceByName(priceType='TRADE', symbol=symbol)
     bid     = priceStrip.getInstantPriceByName(priceType='BID', symbol=symbol)
     ask     = priceStrip.getInstantPriceByName(priceType='ASK', symbol=symbol)
-    return {'TRADE': trade, 'bid': bid, 'ask': ask}
+    return {symbol: {'TRADE': trade, 'BID': bid, 'ASK': ask}}
 
 def run_execsrc():
     # prepare fix
@@ -78,10 +78,10 @@ def run_execsrc():
         c.bind('tcp://*:%s' % port_sigCon)
         sigs.append( c )
 
-    # bbg = pricestriputil.createPriceStrip(turf=turf, readOnly=True)
-    bbg = None
+    bbg = pricestriputil.createPriceStrip(turf=turf, readOnly=True)
+    #bbg = None
 
-    signalStrat = echocore.SignalStrat(conns,mode=signalMode)
+    signalStrat = sourcecore.SourceStrat(conns,mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
     appShell, _ = execsrclink.init(
                     tweakName   = 'fix_SrcConnConfig',
@@ -110,19 +110,19 @@ def run_execsrc():
             orderId     = str(data['orderId'])
             symbol      = str(data['symbol'])
             qty         = int(data['qty'])
-            mrkPrice    = getMarketPrices(bbg, symbol=symbol)
+            mktPrice    = getMarketPrices(bbg, symbol=symbol)
 
             if action == STRATSTATE.ORDERTYPE_NEW:
                 price   = data['price']
-                signalStrat.onNew(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, orderType=orderType, mrkPrice=mrkPrice)
+                signalStrat.onNew(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, orderType=orderType, mktPrice=mktPrice)
 
             elif action == STRATSTATE.ORDERTYPE_NEW:
                 price   = data['price']
-                signalStrat.onFill(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, mrkPrice=mrkPrice)
+                signalStrat.onFill(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, mktPrice=mktPrice)
 
             elif action == STRATSTATE.ORDERTYPE_CXRX:
                 origOrderId = data['origOrderId']
-                signalStrat.onCxRx(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, origOrderId=origOrderId, mrkPrice=mrkPrice)
+                signalStrat.onCxRx(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, origOrderId=origOrderId, mktPrice=mktPrice)
 
             else:
                 raise ValueError('Unknown action=%s' % action)
@@ -152,8 +152,9 @@ def run_execsrc():
 
             elif cmd == 'SEND':
                 agent   = msg['agent']
+                symbol  = msg.get('symbol', 'IBM')
+                price   = float(msg.get('price','200'))
                 qty     = int(msg.get('qty','1000'))
-                symbol  = msg.get('sybol', 'IBM')
                 app.sendOrder(
                     senderCompID = 'BANZAI',
                     targetCompID = 'FIXIMULATOR',
@@ -161,7 +162,7 @@ def run_execsrc():
                     orderId      = stratutil.newOrderId('SRC'),
                     symbol       = symbol,
                     qty          = qty,
-                    price        = 200,
+                    price        = price,
                     timeInForce  = fut.Val_TimeInForce_DAY,
                     tagVal       = None )
 
@@ -197,8 +198,8 @@ if __name__ == '__main__':
     turf    = args.turf
     logger.debug( 'agent: turf=%s', turf)
 
-    fix_SrcConnConfig = turfutil.get(turf=turf, component='fix_SrcConnConfig')
-    fix_SinkConnConfig = turfutil.get(turf=turf, component='fix_SinkConnConfig')
+    fix_SrcConnConfig   = turfutil.get(turf=turf, component='fix_SrcConnConfig')
+    fix_SinkConnConfig  = turfutil.get(turf=turf, component='fix_SinkConnConfig')
 
     tweaks  = {
         'run_turf'          : turf,

@@ -6,13 +6,24 @@ DESCRIPTION : this module contains strategies
 '''
 
 import copy
+import robbie.fix.util as fut
 import robbie.echo.order as echoorder
 from   robbie.util.logging import logger
 import robbie.echo.basestrat as basestrat
 import robbie.echo.stratutil as stratutil
 from   robbie.echo.stratutil import STRATSTATE
 
+'''
+mktPrice: {
+            symbol:
+                {
+                    'TRADE': trade,
+                    'BID': bid,
+                    'ASK': ask
+                }
+            }
 
+'''
 class Strategy(basestrat.BaseStrat):
 
     def __init__(self, agent, policy):
@@ -20,12 +31,56 @@ class Strategy(basestrat.BaseStrat):
     ##
     ##
     ##
-    def srcPreUpdate(self, action, data):
+    def getEchoOrder( self, data, mktPrice ):
+        symbol      = data['symbol']
+        orderType   = data['orderType']
+        timeInForce = data['timeInForce']
+
+        if orderType == fut.Val_OrdType_Market:
+            if timeInForce == fut.Val_TimeInForce_OPG:
+                # market on open - no change
+                pass
+            else:
+                orderType = fut.Val_OrdType_Limit
+                # move to Limit
+                data['price']       = mktPrice[symbol]['TRADE']
+
+        data['orderType']       = orderType
+        data['timeInForce']     = timeInForce
+
+        echoAction  = STRATSTATE.ORDERTYPE_NEW
+        orderId     = stratutil.newOrderId('ECHO')
+        echoData    = self._policy.newOrder(
+                            orderId = orderId,
+                            data    = data )
+        return echoAction, echoData
+
+    def getEchoCancelOrder( self, origOrderId, data ):
+        echoAction       = STRATSTATE.ORDERTYPE_CXRX
+
+        echoQty          = self.getCurrentPending( target='SNK', orderId=origOrderId )
+        orderId          = stratutil.newOrderId('ECHO')
+        origData         = {
+                            'origOrderId'   : origOrderId,
+                            'orderId'       : orderId,
+                            'venue'         : data.get('venue'),
+                            'symbol'        : data['symbol'],
+                            'qty'           : echoQty,
+                            'execTime'      : 'NOW',
+        }
+        echoData    = self._policy.newCxOrder(
+                            orderId     = orderId,
+                            origOrderId = origOrderId,
+                            origData    = origData)
+
+        return echoAction, echoData
+
+    def srcPreUpdate(self, action, data, mktPrice ):
         orderId     = data[ 'orderId']
 
         # NEW dictates what to do wtih SIGNAL. Signal is always against SRC
         if action  == STRATSTATE.ORDERTYPE_NEW:
-            echoAction, echoData = self.getEchoOrder( data )
+            echoAction, echoData = self.getEchoOrder( data=data, mktPrice=mktPrice )
             echoOrderId = echoData['orderId']
 
             if self.isSrcOpenSignal( action=action, data=data ):
@@ -132,7 +187,7 @@ class Strategy(basestrat.BaseStrat):
     def snkPostUpdate(self, action, data):
         pass
 
-    def srcPostUpdate(self, action, data):
+    def srcPostUpdate(self, action, data, mktPrice):
         pass
 
     # def isSnkOpenOrder( self, action, data ):

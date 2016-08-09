@@ -17,7 +17,7 @@ class Strategy(basestrat.BaseStrat):
     ##
     ##
     ##
-    def srcPreUpdate(self, action, data):
+    def srcPreUpdate(self, action, data, mktPrice):
         orderId     = data[ 'orderId']
 
         if action  == STRATSTATE.ORDERTYPE_NEW:
@@ -49,6 +49,6 @@ class Strategy(basestrat.BaseStrat):
     def snkPostUpdate(self, action, data):
         pass
 
-    def srcPostUpdate(self, action, data):
+    def srcPostUpdate(self, action, data, mktPrice):
         pass
 

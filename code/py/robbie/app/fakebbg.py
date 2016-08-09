@@ -1,7 +1,7 @@
 '''
 AUTHOR      : ilya presman, 2016
 TYPE:       : lib
-DESCRIPTION : agent.agent module
+DESCRIPTION : app.fakebbg module
 '''
 
 import time
@@ -22,8 +22,8 @@ def run():
         time.sleep(1)
         y = []
         for symbol in symbols:
-            price = random.randint(10,20)
-            x = bbg.getInstantPriceByName(priceType='TRADE', symbol=symbol, val=price )
+            price   = random.randint(10,20)
+            x       = bbg.getInstantPriceByName(priceType='TRADE', symbol=symbol, val=price )
             y.append(x)
         logger.debug(str(y))
 
@@ -47,5 +47,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\app\fakebbg.py --turf=dev
+c:\Python27\python2.7.exe robbie\app\fakebbg.py --turf=dev_full
 '''

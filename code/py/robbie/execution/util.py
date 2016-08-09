@@ -26,6 +26,7 @@ def initFixConfig( fixTweakName ):
     '''
     #comm    = twval.getenv( 'fix_SrcConnConfig' )
     comm    = twval.getenv( fixTweakName )
+    print 'comm =', comm, 'fixTweakName =', fixTweakName
     host, port, sender, target = comm[ 'host' ], comm[ 'port' ], comm[ 'sender' ], comm[ 'target' ]
 
     fixDictPath = os.path.join( margot.getConfigRoot('fix'), 'FIX42.xml')

@@ -79,8 +79,10 @@ class PriceStrip( object ):
         arr      = self._strip[ activity ]
         ix       = self.getIxByTag( symbol )
         if val is not None:
-            arr[ ix ] = val
-        return arr[ ix ]
+            arr[ ix ] = float(val)
+        else:
+            val = float(arr[ ix ])
+        return val
 
     # def asTable(self, header=None):
     #     mat = []

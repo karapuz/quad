@@ -39,7 +39,7 @@ class OrderStatus(object):
     def asTable(self, header):
         return self._orderstate.asTable(header)
 
-def run_agent():
+def run_status():
     agent     = twkval.getenv('agt_strat')
     srcOrders = OrderStatus('%s-src' % agent)
     snkOrders = OrderStatus('%s-snk' % agent)
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     }
     logger.debug( 'status: turf=%s strat=%s', args.turf, args.strat)
     with twkcx.Tweaks( **tweaks ):
-        run_agent()
+        run_status()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py

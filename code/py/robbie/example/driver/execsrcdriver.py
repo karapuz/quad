@@ -1,6 +1,6 @@
 import time
 import robbie.fix.util as fut
-import robbie.echo.core as echocore
+import robbie.echo.sourcecore as sourcecore
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 import robbie.execution.execsrclink as execsrclink
@@ -27,7 +27,7 @@ def sendOrder( app, account, orderId, symbol, qty, price, timeInForce = fut.Val_
 if __name__ == '__main__':
     with twkcx.Tweaks(run_turf='dev'):
         sig2comm    = { 'PRESMAN': messageadapt.Communication() }
-        signalStrat = echocore.SignalStrat(sig2comm)
+        signalStrat = sourcecore.SourceStrat(sig2comm)
         msgAdapter  = messageadapt.Message(['A','B'], 'TIME')
         thread, application = execsrclink.init(signalStrat, msgAdapter)
     # print application

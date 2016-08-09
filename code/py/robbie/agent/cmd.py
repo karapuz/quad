@@ -29,8 +29,19 @@ def run_cmd(cmd, agent, data):
     snkCmd      = context.socket(zmq.REQ)
     snkCmd.connect ("tcp://localhost:%s" % snkPort)
 
+    # if cmd == 'SEND_':
+    #     msg     = json.dumps( {'cmd': cmd, 'agent': agent} )
+    #     logger.debug("CMD: Sending %s [%s]" % (srcPort, msg))
+    #     srcCmd.send(msg)
+    #     msg = srcCmd.recv()
+    #     logger.debug("CMD: Received reply %s [%s]" % (srcPort, msg))
+
     if cmd == 'SEND':
-        msg     = json.dumps( {'cmd': cmd, 'agent': agent} )
+        d     = {'cmd': cmd}
+        d.update(eval(data))
+        for x in ('agent', 'action', 'qty', 'symbol', 'price', 'qty'):
+            assert x in d
+        msg     = json.dumps( d )
         logger.debug("CMD: Sending %s [%s]" % (srcPort, msg))
         srcCmd.send(msg)
         msg = srcCmd.recv()
@@ -101,13 +112,7 @@ cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=KILL --turf=dev --data="('SRC',)"
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO1
-
-cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev --agent=ECHO2
-
-cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev_full --agent=ECHO2
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev_full --agent=ECHO1
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=CX --turf=dev --agent=ECHO1 --data="{'origOrderId':'SRC_20160714_205230_1','qty':'100'}"
@@ -117,6 +122,9 @@ c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=KILL --turf=dev --data="('SR
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=REDI --turf=dev --data="{'action':'ORDER_TYPE_NEW','orderType':'ORDER_TYPE_NEW','signalName':'ECHO1','execTime':'NOW','orderId':'ORDER_CMD_1','symbol':'IBM','qty':'100','price':100}"
 
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev_full --data="{'action':'ORDER_TYPE_NEW','orderType':'ORDER_TYPE_NEW','qty':'-100','agent':'ECHO1','execTime':'NOW','symbol':'IBM','price':100}"
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev_full --data="{'action':'ORDER_TYPE_NEW','orderType':'ORDER_TYPE_NEW','qty':'100','agent':'ECHO1','execTime':'NOW','symbol':'IBM','price':100}"
 
     'OrderType' : {
         '1': 'Market',

@@ -12,12 +12,12 @@ from   robbie.echo.stratutil import STRATSTATE
 
 class Strategy(basestrat.BaseStrat):
 
-    def __init__(self, agent, policy):
+    def __init__(self, agent, policy, mktprice):
         super(Strategy, self).__init__(agent=agent, policy=policy, mode=stratutil.EXECUTION_MODE.FILL_ONLY)
     ##
     ##
     ##
-    def srcPreUpdate(self, action, data):
+    def srcPreUpdate(self, action, data, mktPrice):
         orderId     = data[ 'orderId']
 
         if action  == STRATSTATE.ORDERTYPE_NEW:
@@ -44,6 +44,6 @@ class Strategy(basestrat.BaseStrat):
     def snkPostUpdate(self, action, data):
         pass
 
-    def srcPostUpdate(self, action, data):
+    def srcPostUpdate(self, action, data, mktPrice):
         pass
 

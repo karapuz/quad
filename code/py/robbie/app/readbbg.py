@@ -15,15 +15,14 @@ import robbie.util.pricestriputil as pricestriputil
 
 def run():
     turf    = twkval.getenv('run_turf')
-    bbg     = pricestriputil.createPriceStrip(turf=turf, readOnly=False)
+    bbg     = pricestriputil.createPriceStrip(turf=turf, readOnly=True)
     symbols = symboldb.currentSymbols()
 
     while 1:
         time.sleep(1)
         y = []
         for symbol in symbols:
-            price = random.randint(10,20)
-            x = bbg.getInstantPriceByName(priceType='TRADE', symbol=symbol, val=price )
+            x = bbg.getInstantPriceByName(priceType='TRADE', symbol=symbol)
             y.append(x)
         logger.debug(str(y))
 
@@ -47,5 +46,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\app\fakebbg.py --turf=dev
+c:\Python27\python2.7.exe robbie\app\readbbg.py --turf=dev
 '''

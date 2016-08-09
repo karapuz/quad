@@ -100,8 +100,12 @@ Val_OrderStatus_Pnd_Cx      = fix.OrdStatus_PENDING_CANCEL
 Val_OrderStatus_Stopped     = fix.OrdStatus_STOPPED
 Val_OrderStatus_Suspended   = fix.OrdStatus_SUSPENDED
 
-Val_TimeInForce_DAY =  mapTimeInForce( 'DAY' )
 
+Val_OrdType_Market  = '1'
+Val_OrdType_Limit   = '2'
+
+Val_TimeInForce_OPG = mapTimeInForce( 'OPG' )
+Val_TimeInForce_DAY = mapTimeInForce( 'DAY' )
 
 empty = {}
 def tag2val( t,v ):
