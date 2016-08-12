@@ -6,8 +6,6 @@ DESCRIPTION : execution.util - utils for the exec
 
 import os
 import traceback
-#import threading
-
 import quickfix as fix
 import robbie.fix.util as fut
 import robbie.tweak.value as twval
@@ -17,14 +15,11 @@ import robbie.tweak.context as twkcx
 import robbie.fix.seqnum as seqnumutil
 from   robbie.util.logging import logger
 
-#import robbie.lib.report as libreport
-#import robbie.lib.environment as environment
-
 def initFixConfig( fixTweakName ):
     '''
     needs tweak: fix_connConfig
+    fixTweakName = fix_SrcConnConfig
     '''
-    #comm    = twval.getenv( 'fix_SrcConnConfig' )
     comm    = twval.getenv( fixTweakName )
     print 'comm =', comm, 'fixTweakName =', fixTweakName
     host, port, sender, target = comm[ 'host' ], comm[ 'port' ], comm[ 'sender' ], comm[ 'target' ]

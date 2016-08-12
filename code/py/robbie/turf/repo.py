@@ -34,7 +34,7 @@ def newSinkReg():
     }
 
 _conf = {
-    'dev': {
+    'ivp_redi_fix': {
         'signal': EXECUTION_MODE.FILL_ONLY,
         'cmd': [
             'CMD'
@@ -79,8 +79,8 @@ _conf = {
     }
 }
 
-_conf[ 'dev_full' ] = copy.deepcopy(_conf[ 'dev' ])
-_conf[ 'dev_full' ]['signal'] = EXECUTION_MODE.NEW_FILL_CX
+_conf[ 'ivp_fix' ] = copy.deepcopy(_conf[ 'ivp_redi_fix' ])
+_conf[ 'ivp_fix' ]['signal'] = EXECUTION_MODE.NEW_FILL_CX
 
 ###
 # QUAD drop copy

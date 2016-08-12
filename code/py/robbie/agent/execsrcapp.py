@@ -114,15 +114,37 @@ def run_execsrc():
 
             if action == STRATSTATE.ORDERTYPE_NEW:
                 price   = data['price']
-                signalStrat.onNew(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, orderType=orderType, mktPrice=mktPrice)
+                signalStrat.onNew(
+                    signalName  = signalName,
+                    execTime    = execTime,
+                    orderId     = orderId,
+                    symbol      = symbol,
+                    qty         = qty,
+                    price       = price,
+                    orderType   = orderType,
+                    mktPrice    = mktPrice)
 
-            elif action == STRATSTATE.ORDERTYPE_NEW:
+            elif action == STRATSTATE.ORDERTYPE_FILL:
                 price   = data['price']
-                signalStrat.onFill(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, price=price, mktPrice=mktPrice)
+                signalStrat.onFill(
+                    signalName  = signalName,
+                    execTime    = execTime,
+                    orderId     = orderId,
+                    symbol      = symbol,
+                    qty         = qty,
+                    price       = price,
+                    mktPrice    = mktPrice)
 
             elif action == STRATSTATE.ORDERTYPE_CXRX:
                 origOrderId = data['origOrderId']
-                signalStrat.onCxRx(signalName=signalName, execTime=execTime, orderId=orderId, symbol=symbol, qty=qty, origOrderId=origOrderId, mktPrice=mktPrice)
+                signalStrat.onCxRx(
+                    signalName  = signalName,
+                    execTime    = execTime,
+                    orderId     = orderId,
+                    symbol      = symbol,
+                    qty         = qty,
+                    origOrderId = origOrderId,
+                    mktPrice    = mktPrice)
 
             else:
                 raise ValueError('Unknown action=%s' % action)
