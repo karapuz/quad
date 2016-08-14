@@ -58,7 +58,7 @@ class PriceStrip( object ):
 
         for c in center:
             for i in xrange(3):
-                activity = '%s-%d.mmap' % (c,i)
+                activity = '%s-%d' % (c,i)
                 self._strip[ activity ] = mmapFunc( activity=activity, **vars )
                 # logger.debug('pricestrip: init activity=%s', activity)
 
@@ -75,7 +75,7 @@ class PriceStrip( object ):
     def getInstantPriceByName(self, priceType, symbol, val=None ):
         ''' get a slice of all data for the type '''
         instant  = 1
-        activity = '%s-%d.mmap' % (priceType, instant)
+        activity = '%s-%d' % (priceType, instant)
         arr      = self._strip[ activity ]
         ix       = self.getIxByTag( symbol )
         if val is not None:

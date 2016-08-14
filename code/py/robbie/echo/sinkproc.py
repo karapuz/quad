@@ -17,10 +17,12 @@ def newOrderId():
 def signal2order(app, action, data, senderCompID, targetCompID ):
 
     if action  == STRATSTATE.ORDERTYPE_NEW:
-        account = data['signalName']
-        symbol  = data['symbol']
-        qty     = int(data['qty'])
-        price   = float(data['price'])
+        account         = data['signalName']
+        symbol          = data['symbol']
+        qty             = int(data['qty'])
+        price           = float(data['price'])
+        timeInForce     = data['timeInForce']
+        # timeInForce  = fut.Val_TimeInForce_DAY
 
         app.sendOrder(
             senderCompID = senderCompID,
@@ -30,7 +32,7 @@ def signal2order(app, action, data, senderCompID, targetCompID ):
             symbol       = symbol,
             qty          = qty,
             price        = price,
-            timeInForce  = fut.Val_TimeInForce_DAY,
+            timeInForce  = timeInForce,
             tagVal       = None )
 
     elif action  == STRATSTATE.ORDERTYPE_CXRX:

@@ -118,6 +118,7 @@ class Strategy(basestrat.BaseStrat):
             msg = 'Unknown action=%s for data=%s' % (str(action), str(data))
             logger.error(msg)
 
+
     def isSrcOpenSignal( self, action, data):
         ''' check if this can be qualified as an open order '''
         symbol  = data[ 'symbol' ]
@@ -189,36 +190,6 @@ class Strategy(basestrat.BaseStrat):
 
     def srcPostUpdate(self, action, data, mktPrice):
         pass
-
-    # def isSnkOpenOrder( self, action, data ):
-    #     ''' '''
-    #     symbol  = data[ 'symbol' ]
-    #     qty     = data[ 'qty'    ]
-    #     rlzd    = self.getRealizedBySymbol(target='SNK', symbol=symbol )
-    #     return rlzd * qty >= 0
-    #
-    # def isSnkCloseOrder( self, action, data):
-    #     ''' '''
-    #     return not self.isSnkOpenOrder( action=action, data=data )
-
-    # def snkHasPendingOpen( self, action, data):
-    #     ''' '''
-    #     symbol  = data[ 'symbol' ]
-    #     qty     = data[ 'qty'    ]
-    #     if qty > 0:
-    #         pnd     = self.getPendingBySymbol(target='SNK', symbol=symbol, side='short' )
-    #         return True
-    #     elif qty < 0:
-    #         pnd     = self.getPendingBySymbol(target='SNK', symbol=symbol, side='long' )
-    #         return True
-    #     else:
-    #         return False
-
-    # def snkHasPendingClose( self, action, data):
-    #     symbol  = data[ 'symbol' ]
-    #     qty     = data[ 'qty'    ]
-    #     pnd     = self.getPendingBySymbol(target='SNK', symbol=symbol )
-    #     return pnd * qty < 0
 
 
     def snkHasRealizedOpen(self, order):

@@ -23,7 +23,7 @@ class OrderState( object ):
         Session      = 20160504     # tied to a day
         Activity     = mirror       # is related to echo; mirror, trade, market
     '''
-    def __init__(self, readOnly, maxNum, symbols, seePending,debug=True ):
+    def __init__(self, readOnly, maxNum, symbols, seePending, debug=True ):
         ''' the constructor '''
         return self.init( readOnly=readOnly, maxNum=maxNum, symbols=symbols, seePending=seePending, debug=debug )
 
@@ -77,6 +77,12 @@ class OrderState( object ):
         self._addTagLock    = threading.Lock()
         self._pending_Lock  = threading.Lock()
         self.addTags( symbols, readOnly=readOnly )
+
+        # import robbie.util.filelogging as filelogging
+        # logVars     = vars.copy()
+        # attrs       = ( 'orderType', 'timeInForce', 'orderId', 'symbol', 'price', 'execTime', 'qty')
+        # logVars.update( dict(name='ORDERSTATE', attrs=attrs))
+        # self._logger  = filelogging.getFileLogger(**logVars)
 
     def getFullByType(self, posType, maxLen ):
         ''' get a slice of all data for the type '''

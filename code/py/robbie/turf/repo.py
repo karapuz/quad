@@ -35,7 +35,7 @@ def newSinkReg():
 
 _conf = {
     'ivp_redi_fix': {
-        'signal': EXECUTION_MODE.FILL_ONLY,
+        'signal': EXECUTION_MODE.NEW_FILL_CX,
         'cmd': [
             'CMD'
         ],
@@ -85,7 +85,7 @@ _conf[ 'ivp_fix' ]['signal'] = EXECUTION_MODE.NEW_FILL_CX
 ###
 # QUAD drop copy
 #
-_conf[ 'dev_quad' ] = copy.deepcopy(_conf[ 'dev_full' ])
+_conf[ 'dev_quad' ] = copy.deepcopy(_conf[ 'ivp_redi_fix' ])
 _conf[ 'dev_quad' ][ 'fix_SrcConnConfig' ] = {
             'host'  : '207.17.44.100',
             'port'  : 40000,

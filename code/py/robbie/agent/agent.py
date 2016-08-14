@@ -98,6 +98,10 @@ def run_agent():
             echoStrat.srcUpdate(action=action, data=data, mktPrice=mktPrice)
             echoStrat.srcPostUpdate(action=action, data=data, mktPrice=mktPrice)
 
+            # we can create signal orders only as a result to signal.
+            # so, once done with processing a signal, process resulting orders
+            echoStrat.startOrdersToAction()
+
         if agentSinkInCon in socks:
             msg     = agentSinkInCon.recv() # process task
             cmd     = json.loads(msg)
@@ -118,7 +122,7 @@ def run_agent():
             echoStrat.addActionData( cmds )
             logger.debug('AGENT: COMMANDS = %s', cmds)
 
-        for cmd in echoStrat.newMsg():
+        for cmd in echoStrat.getActionData():
             logger.debug('AGENT: SNKOUT = %s', cmd)
             msg = json.dumps(cmd)
             agentSinkOutCon.send(msg)
@@ -148,8 +152,8 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=dev_full
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=ivp_redi_fix
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=dev_full
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=ivp_redi_fix
 '''

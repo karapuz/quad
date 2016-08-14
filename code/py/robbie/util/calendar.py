@@ -41,7 +41,7 @@ def getdate( name, typ='int' ):
     dt = datetime.datetime.now()
 
     if name == 'today':
-        if typ == 'str':
+        if typ in (str, 'str'):
             return dt.strftime( '%Y%m%d' )
         elif typ == 'int':
             return int( dt.strftime( '%Y%m%d' ) )

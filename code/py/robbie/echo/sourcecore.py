@@ -5,9 +5,11 @@ DESCRIPTION : echo.core module
 '''
 
 import json
+import robbie.tweak.value as twkval
 import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
 import robbie.echo.orderstate as orderstate
+import robbie.util.filelogging as filelogging
 from   robbie.echo.stratutil import STRATSTATE, EXECUTION_MODE
 
 class SourceStrat(object):
@@ -31,6 +33,15 @@ class SourceStrat(object):
         else:
             raise ValueError('Unknown mode=%s' % mode)
 
+        #turf        = twkval.getenv('run_turf')
+        domain      = twkval.getenv('run_domain')
+        user        = twkval.getenv('env_userName')
+        session     = twkval.getenv('run_session')
+        #activity    = 'echo'
+        attrs       = ( 'signalName', 'orderType', 'timeInForce', 'orderId', 'symbol', 'price', 'execTime', 'qty')
+        vars        = dict( domain=domain, user=user, session=session, name='SOURCESTRAT', attrs=attrs )
+        self._logger  = filelogging.getFileLogger(**vars)
+
         self._orderstate = orderstate.OrderState(
                 readOnly    = False,
                 maxNum      = self._maxNum,
@@ -53,21 +64,23 @@ class SourceStrat(object):
 
         comm    = self._sig2comm[ signalName ]
         action  = STRATSTATE.ORDERTYPE_NEW
+        orderData   = dict(
+                        signalName  = signalName,
+                        execTime    = execTime,
+                        orderId     = orderId,
+                        symbol      = symbol,
+                        qty         = qty,
+                        price       = price,
+                        orderType   = orderType,
+                        timeInForce = timeInForce)
         msgd    = dict(
-                    action = action,
-                    data   = dict(
-                                    signalName  = signalName,
-                                    execTime    = execTime,
-                                    orderId     = orderId,
-                                    symbol      = symbol,
-                                    qty         = qty,
-                                    price       = price,
-                                    orderType   = orderType,
-                                    timeInForce = timeInForce),
+                    action  = action,
+                    data    = orderData,
                     mktPrice = mktPrice,
                     )
         msg  = json.dumps(msgd)
         logger.debug('comm.send onNew:%s' % str(msgd))
+        self._logger.debug(label='onNew', args=orderData)
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addPendingByIx(ix=ixs,vals=(qty,qty))
@@ -75,19 +88,21 @@ class SourceStrat(object):
     def onFill(self, signalName, execTime, orderId, symbol, qty, price, mktPrice):
         comm    = self._sig2comm[ signalName ]
         action  = STRATSTATE.ORDERTYPE_FILL
+        orderData = dict(
+                        signalName  = signalName,
+                        execTime    = execTime,
+                        orderId     = orderId,
+                        symbol      = symbol,
+                        qty         = qty,
+                        price       = price)
         msgd    = dict(
                     action  = action ,
-                    data    = dict(
-                                    signalName  = signalName,
-                                    execTime    = execTime,
-                                    orderId     = orderId,
-                                    symbol      = symbol,
-                                    qty         = qty,
-                                    price       = price),
+                    data    = orderData,
                     mktPrice = mktPrice,
                     )
         msg     = json.dumps(msgd)
         logger.debug('comm.send onFill:%s' % str(msgd))
+        self._logger.debug(label='onFill', args=orderData)
         comm.send( msg )
         ixs     = self._orderstate.addTags((symbol, orderId))
         self._orderstate.addRealizedByIx(ix=ixs,vals=(qty,qty))
@@ -95,19 +110,21 @@ class SourceStrat(object):
     def onCxRx(self, signalName, execTime, orderId, symbol, qty, origOrderId, mktPrice):
         comm    = self._sig2comm[ signalName ]
         action  = STRATSTATE.ORDERTYPE_CXRX
+        orderData = dict(
+                        signalName  = signalName,
+                        execTime    = execTime,
+                        orderId     = orderId,
+                        symbol      = symbol,
+                        qty         = qty,
+                        origOrderId = origOrderId)
         msgd    = dict(
                     action  = action,
-                    data    = dict(
-                                    signalName  = signalName,
-                                    execTime    = execTime,
-                                    orderId     = orderId,
-                                    symbol      = symbol,
-                                    qty         = qty,
-                                    origOrderId = origOrderId),
+                    data    = orderData,
                     mktPrice = mktPrice,
                     )
         msg     = json.dumps(msgd)
         logger.debug('comm.send onCxRx:%s' % str(msgd))
+        self._logger.debug(label='onCxRx', args=orderData)
         comm.send( msg )
         ixs = self._orderstate.addTags((symbol, origOrderId))
         self._orderstate.addCanceledByIx(ix=ixs,vals=(qty,qty))

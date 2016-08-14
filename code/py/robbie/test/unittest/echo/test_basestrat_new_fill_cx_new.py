@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
             echoStrat.srcPreUpdate(action=action, data=data)
             echoStrat.srcUpdate(action=action, data=data)
             echoStrat.srcPostUpdate(action=action, data=data)
-            return echoStrat.newMsg()
+            return echoStrat.getActionData()
 
         def procSnkMsgs(msgs):
             for msg in msgs:

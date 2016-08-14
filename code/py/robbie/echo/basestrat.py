@@ -8,10 +8,12 @@ DESCRIPTION : this module contains strategies
 import zmq
 import json
 from   threading import Timer
-import robbie.echo.echoorderstate as echoorderstate
+import robbie.tweak.value as twkval
 from   robbie.util.logging import logger
 import robbie.echo.stratutil as stratutil
+import robbie.util.filelogging as filelogging
 from   robbie.echo.stratutil import STRATSTATE
+import robbie.echo.echoorderstate as echoorderstate
 
 class BaseStrat(object):
 
@@ -48,61 +50,82 @@ class BaseStrat(object):
         #
         # order cmd
         #
-        self._agent_orderCmd  = None
-        self._context         = None
-        self._sender          = None
+        self._agent_orderCmd= None
+        self._context       = None
+        self._sender        = None
+
+        name                = agent
+        domain              = twkval.getenv('run_domain')
+        user                = twkval.getenv('env_userName')
+        session             = twkval.getenv('run_session')
+        attrs               = ( 'signalName', 'orderType', 'orderId', 'origOrderId', 'symbol', 'qty', 'price', 'timeInForce', 'execTime', 'venue' )
+
+        vars                = dict( domain=domain, user=user, session=session, name=name, attrs=attrs )
+        self._logger        = filelogging.getFileLogger(**vars)
 
     def _onSnkNew(self, action, data):
-        self._snkOrders.onNew(
+        data = dict(
             execTime    = data['execTime'],
             orderId     = data['orderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
             price       = float(data['price'])
-        )
+            )
+        self._snkOrders.onNew( **data )
+        self._logger.debug(label='onSnkNew', args=data)
 
     def _onSnkFill(self, action, data):
-        self._snkOrders.onFill(
+        data = dict(
             execTime    = data['execTime'],
             orderId     = data['orderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
             price       = float(data['price'])
         )
+        self._logger.debug(label='onSnkFill', args=data)
+        self._snkOrders.onFill( **data )
 
     def _onSnkCxRx(self, action, data):
-        self._snkOrders.onCxRx(
+        data = dict(
             execTime    = data['execTime'],
             orderId     = data['origOrderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
-        )
+            )
+        self._logger.debug(label='onSnkCxRx', args=data)
+        self._snkOrders.onCxRx( **data )
 
     def _onSrcNew(self, action, data):
-        self._srcOrders.onNew(
+        data = dict(
             execTime    = data['execTime'],
             orderId     = data['orderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
             price       = float(data['price'])
         )
+        self._logger.debug(label='onSrcNew', args=data)
+        self._srcOrders.onNew( **data)
 
     def _onSrcFill(self, action, data):
-        self._srcOrders.onFill(
+        data = dict(
             execTime    = data['execTime'],
             orderId     = data['orderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
             price       = float(data['price'])
         )
+        self._logger.debug(label='onSrcFill', args=data)
+        self._srcOrders.onFill(**data)
 
     def _onSrcCxRx(self, action, data):
-        self._srcOrders.onCxRx(
+        data = dict(
             execTime    = data['execTime'],
             orderId     = data['origOrderId'],
             symbol      = data['symbol'],
             qty         = int(data['qty']),
         )
+        self._logger.debug(label='onSrcCxRx', args=data)
+        self._srcOrders.onCxRx( **data )
     ##
     ##
     ##
@@ -133,33 +156,33 @@ class BaseStrat(object):
             logger.error('Uknown target=%s', target)
         return orderstat
 
-    def getEchoOrder( self, data ):
-        echoAction  = STRATSTATE.ORDERTYPE_NEW
-        orderId     = stratutil.newOrderId('ECHO')
-        echoData    = self._policy.newOrder(
-                            orderId = orderId,
-                            data    = data )
-        return echoAction, echoData
-
-    def getEchoCancelOrder( self, origOrderId, data ):
-        echoAction       = STRATSTATE.ORDERTYPE_CXRX
-
-        echoQty          = self.getCurrentPending( target='SNK', orderId=origOrderId )
-        orderId          = stratutil.newOrderId('ECHO')
-        origData         = {
-                            'origOrderId'   : origOrderId,
-                            'orderId'       : orderId,
-                            'venue'         : data.get('venue'),
-                            'symbol'        : data['symbol'],
-                            'qty'           : echoQty,
-                            'execTime'      : 'NOW',
-        }
-        echoData    = self._policy.newCxOrder(
-                            orderId     = orderId,
-                            origOrderId = origOrderId,
-                            origData    = origData)
-
-        return echoAction, echoData
+    # def getEchoOrder( self, data ):
+    #     echoAction  = STRATSTATE.ORDERTYPE_NEW
+    #     orderId     = stratutil.newOrderId('ECHO')
+    #     echoData    = self._policy.newOrder(
+    #                         orderId = orderId,
+    #                         data    = data )
+    #     return echoAction, echoData
+    #
+    # def getEchoCancelOrder( self, origOrderId, data ):
+    #     echoAction       = STRATSTATE.ORDERTYPE_CXRX
+    #
+    #     echoQty          = self.getCurrentPending( target='SNK', orderId=origOrderId )
+    #     orderId          = stratutil.newOrderId('ECHO')
+    #     origData         = {
+    #                         'origOrderId'   : origOrderId,
+    #                         'orderId'       : orderId,
+    #                         'venue'         : data.get('venue'),
+    #                         'symbol'        : data['symbol'],
+    #                         'qty'           : echoQty,
+    #                         'execTime'      : 'NOW',
+    #     }
+    #     echoData    = self._policy.newCxOrder(
+    #                         orderId     = orderId,
+    #                         origOrderId = origOrderId,
+    #                         origData    = origData)
+    #
+    #     return echoAction, echoData
 
     def linkSignalEchoOrders(self, signalOrderId, echoOrderId):
         ''' '''
@@ -236,7 +259,7 @@ class BaseStrat(object):
         self._actionData = []
         return q
 
-    newMsg = getActionData
+    #newMsg = getActionData
 
     def getActionOrders(self):
         ''' '''
@@ -244,9 +267,17 @@ class BaseStrat(object):
         self._actionOrders = []
         return q
 
+    def getOrderCmdCon(self):
+        if self._context is None:
+            self._agent_orderCmd  = "ORDER_CMD"
+            self._context         = zmq.Context.instance()
+            self._sender          = self._context.socket(zmq.PAIR)
+            self._sender.connect("inproc://%s" % self._agent_orderCmd)
+        return self._sender
+
     def startOrdersToAction(self):
         byTime = {}
-        for orderAction in self._actionOrders:
+        for orderAction in self.getActionOrders():
             # dict(delay=delay, order=order, orderType='CANCEL')
             # dict(delay=delay, order=order, orderType='LIQUIDATE')
             delay = orderAction['delay']
@@ -256,14 +287,6 @@ class BaseStrat(object):
 
         for delay, actions in byTime.iteritems():
             Timer(delay, self.transferOrders, (actions,)).start()
-
-    def getOrderCmdCon(self):
-        if self._context is None:
-            self._agent_orderCmd  = "ORDER_CMD"
-            self._context         = zmq.Context.instance()
-            self._sender          = self._context.socket(zmq.PAIR)
-            self._sender.connect("inproc://%s" % self._agent_orderCmd)
-        return self._sender
 
     def transferOrders(self, actions):
         sender          = self.getOrderCmdCon()
@@ -277,9 +300,7 @@ class BaseStrat(object):
         data = []
         for actionOrder in actionOrder:
             orderType       = actionOrder['orderType']
-
             order           = actionOrder['order']
-
             openOrder       = order.getOpenOrder()
             closeOrder      = order.getCloseOrder()
 
@@ -293,7 +314,7 @@ class BaseStrat(object):
                 openPend        = self.getPendingByOrderId(target='SNK', tag=openOrderId)
                 venue           = 'NYSE'
                 if openPend:
-                    data.append({
+                    orderData = {
                         'orderType'     : 'CANCEL',
                         'orderId'       : stratutil.newOrderId('EO-CX'),
                         'origOrderId'   : openOrderId,
@@ -301,7 +322,10 @@ class BaseStrat(object):
                         'symbol'        : symbol,
                         'qty'           : openPend,
                         'execTime'      : 'NOW',
-                    } )
+                    }
+                    data.append(orderData)
+                    self._logger.debug(label='OPENPEND-%s' % orderType, args=orderData)
+
                 if closeOrder:
                     closeOrderId    = closeOrder[ 'orderId' ]
                     closePend       = self.getPendingByOrderId(target='SNK', tag=closeOrderId)
@@ -310,7 +334,7 @@ class BaseStrat(object):
 
                 if closePend:
                     closeOrderId    = closeOrder[ 'orderId' ]
-                    data.append({
+                    orderData = {
                         'orderType'     : 'CANCEL',
                         'orderId'       : stratutil.newOrderId('EC-CX'),
                         'origOrderId'   : closeOrderId,
@@ -318,7 +342,9 @@ class BaseStrat(object):
                         'symbol'        : symbol,
                         'qty'           : openPend,
                         'execTime'      : 'NOW',
-                    } )
+                    }
+                    data.append( orderData )
+                    self._logger.debug(label='CLOSEPEND-%s' % orderType, args=orderData)
 
             if orderType == 'LIQUIDATE':
                 # liquidate all realized exposure
@@ -333,7 +359,7 @@ class BaseStrat(object):
 
                 venue           = 'NYSE'
                 if openRlzd + closeRlzd:
-                    data.append({
+                    orderData = {
                         'orderType'     : 'MARKET',
                         'orderId'       : stratutil.newOrderId('EOC-LQ'),
                         'origOrderId'   : openOrderId,
@@ -341,7 +367,9 @@ class BaseStrat(object):
                         'symbol'        : symbol,
                         'qty'           : -(closeRlzd + openPend),
                         'execTime'      : 'NOW',
-                    } )
+                    }
+                    data.append( orderData )
+                    self._logger.debug(label='REALIZED-%s' % orderType, args=orderData)
 
             if orderType not in ('LIQUIDATE', 'CANCEL'):
                 raise ValueError('Unknown orderType=%s' % orderType)
