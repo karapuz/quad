@@ -83,7 +83,7 @@ class Strategy(basestrat.BaseStrat):
             echoAction, echoData = self.getEchoOrder( data=data, mktPrice=mktPrice )
             echoOrderId = echoData['orderId']
 
-            if self.isSrcOpenSignal( action=action, data=data ):
+            if self.isSrcOpenSignal( action=action, data=echoData ):
                 self.snkAddOpenLegToOrder( echoData=echoData )
                 self.addActionData( {'action':echoAction, 'data':echoData} )
 
@@ -97,22 +97,17 @@ class Strategy(basestrat.BaseStrat):
 
         # FILL dictates what to do with ECHO trades. It is always against SNK
         elif action  == STRATSTATE.ORDERTYPE_FILL:
-            symbol  = data[ 'symbol']
-            if self.isSrcCloseSignal( action=action, data=data ):
+            echoAction, echoData = self.getEchoOrder( data=data, mktPrice=mktPrice )
+            symbol  = echoData[ 'symbol']
+            if self.isSrcCloseSignal( action=action, data=echoData ):
                 for order in self.getOrdersForSymbol(symbol):
-                    self.addCancelOrder( delay=1, order=order )
-                    if self.snkHasRealizedOpen(order):
-                        self.addLiquidateOrder( delay=5, order=order )
+                    self.addLiquidateOrder( delay=5, order=order )
 
         # CX dictates what to do with ECHO trades. It is always against SNK
         elif action  == STRATSTATE.ORDERTYPE_CXRX:
-            origOrderId = data['origOrderId' ]
-
-            self.linkOrigOrderCx(orderId=orderId, origOrderId=origOrderId)
-            echoOrderId = self._src2snk[ origOrderId ]
-
-            echoAction, echoData = self.getEchoCancelOrder( origOrderId=echoOrderId, data=data )
-            self.addActionData( {'action':echoAction, 'data':echoData} )
+            symbol  = data[ 'symbol']
+            for order in self.getOrdersForSymbol(symbol):
+                self.addLiquidateOrder( delay=5, order=order )
 
         else:
             msg = 'Unknown action=%s for data=%s' % (str(action), str(data))
