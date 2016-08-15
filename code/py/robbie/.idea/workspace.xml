@@ -58,6 +58,18 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="reflectstrat_spring10.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/emulate/reflectstrat_spring10.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="1567" max-vertical-offset="2040">
+              <caret line="104" column="0" selection-start-line="104" selection-start-column="0" selection-end-line="104" selection-end-column="0" />
+              <folding>
+                <element signature="e#142#171#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="sinkproc.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/echo/sinkproc.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -80,38 +92,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="filelogging.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/util/filelogging.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="547" max-vertical-offset="1020">
-              <caret line="52" column="17" selection-start-line="52" selection-start-column="4" selection-end-line="52" selection-end-column="17" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sourcecore.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/echo/sourcecore.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1040" max-vertical-offset="2363">
-              <caret line="65" column="28" selection-start-line="65" selection-start-column="18" selection-end-line="65" selection-end-column="28" />
-              <folding>
-                <element signature="e#91#102#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="stratutil.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/echo/stratutil.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1700">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="reflectstrat_spring1.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/echo/reflectstrat_spring1.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -127,7 +107,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/util/pricestriputil.py" />
         <option value="$PROJECT_DIR$/util/rsrchstats2.py" />
         <option value="$PROJECT_DIR$/tweak/value.py" />
         <option value="$PROJECT_DIR$/emulate/reflectstrat_spring1.py" />
@@ -178,6 +157,7 @@
         <option value="$PROJECT_DIR$/agent/agent.py" />
         <option value="$PROJECT_DIR$/echo/basestrat.py" />
         <option value="$PROJECT_DIR$/emulate/reflectstrat_spring9.py" />
+        <option value="$PROJECT_DIR$/emulate/reflectstrat_spring10.py" />
       </list>
     </option>
   </component>
@@ -238,20 +218,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="util" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="robbie" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="robbie" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="emulate" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -273,8 +239,8 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\ilya\GenericDocs\dev\quad\code\py\robbie\util" />
       <recent name="C:\Users\ilya\GenericDocs\dev\quad\code\py\robbie\emulate" />
+      <recent name="C:\Users\ilya\GenericDocs\dev\quad\code\py\robbie\util" />
       <recent name="C:\Users\ilya\GenericDocs\dev\quad\code\py\robbie\echo" />
       <recent name="C:\Users\ilya\GenericDocs\dev\quad\code\py\robbie\app" />
       <recent name="C:\Users\ilya\GenericDocs\dev\quad\code\py\robbie\example\zmq\example_212" />
@@ -611,14 +577,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/emulate/reflectstrat_spring4.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="699" max-vertical-offset="1122">
-          <caret line="53" column="0" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/emulate/reflectstrat_spring5.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="102" max-vertical-offset="1173">
@@ -1003,6 +961,16 @@
           <caret line="63" column="0" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
           <folding>
             <element signature="e#138#148#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/emulate/reflectstrat_spring10.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="1567" max-vertical-offset="2040">
+          <caret line="104" column="0" selection-start-line="104" selection-start-column="0" selection-end-line="104" selection-end-column="0" />
+          <folding>
+            <element signature="e#142#171#0" expanded="true" />
           </folding>
         </state>
       </provider>
