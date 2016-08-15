@@ -191,7 +191,6 @@ class Strategy(basestrat.BaseStrat):
     def srcPostUpdate(self, action, data, mktPrice):
         pass
 
-
     def snkHasRealizedOpen(self, order):
         openOrderId = order.getOpenOrder()[ 'orderId' ]
         openRlzd    = self.getRealizedByOrderId(target='SNK', tag=openOrderId, shouldExist=False)

@@ -38,7 +38,6 @@ def run_agent():
     # agent_orderCmd   = agt_comm['agent_orderCmd']
     agent_orderCmd   = "ORDER_CMD"
 
-    #context          = zmq.Context()
     context           = zmq.Context.instance()
 
     snkRegPort        = turfutil.get(turf=turf, component='communication', sub='SNK_REG')['port_reg']

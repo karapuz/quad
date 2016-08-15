@@ -37,7 +37,6 @@ def newOrderId(base):
     now         = datetime.datetime.now()
     return '%s_%s_%s' % ( base, now.strftime('%Y%m%d_%H%M%S' ), _newOrderIx)
 
-
 def _sign(x):
     if x == 0:
         return None

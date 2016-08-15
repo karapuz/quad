@@ -156,34 +156,6 @@ class BaseStrat(object):
             logger.error('Uknown target=%s', target)
         return orderstat
 
-    # def getEchoOrder( self, data ):
-    #     echoAction  = STRATSTATE.ORDERTYPE_NEW
-    #     orderId     = stratutil.newOrderId('ECHO')
-    #     echoData    = self._policy.newOrder(
-    #                         orderId = orderId,
-    #                         data    = data )
-    #     return echoAction, echoData
-    #
-    # def getEchoCancelOrder( self, origOrderId, data ):
-    #     echoAction       = STRATSTATE.ORDERTYPE_CXRX
-    #
-    #     echoQty          = self.getCurrentPending( target='SNK', orderId=origOrderId )
-    #     orderId          = stratutil.newOrderId('ECHO')
-    #     origData         = {
-    #                         'origOrderId'   : origOrderId,
-    #                         'orderId'       : orderId,
-    #                         'venue'         : data.get('venue'),
-    #                         'symbol'        : data['symbol'],
-    #                         'qty'           : echoQty,
-    #                         'execTime'      : 'NOW',
-    #     }
-    #     echoData    = self._policy.newCxOrder(
-    #                         orderId     = orderId,
-    #                         origOrderId = origOrderId,
-    #                         origData    = origData)
-    #
-    #     return echoAction, echoData
-
     def linkSignalEchoOrders(self, signalOrderId, echoOrderId):
         ''' '''
         self._snk2src[ echoOrderId   ] = signalOrderId
@@ -380,7 +352,9 @@ class BaseStrat(object):
         q = self._orderQueueBySymbol
         if symbol not in q:
             q[ symbol ] = []
-        return q[ symbol ]
+        qq = q[ symbol ]
+        q[ symbol ] = []
+        return qq
 
     def isSrcClosingOrder(self, action):
         pass
