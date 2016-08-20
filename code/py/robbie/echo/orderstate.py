@@ -241,6 +241,26 @@ class OrderState( object ):
         else:
             raise ValueError('Unknown how=%s' % how )
 
+
+    def getSymbolSlice(self, which='pending' ):
+        '''
+        return signed pending amount
+        '''
+
+        bx      = 0
+        ex      = len( self._symbols)
+
+        if which == 'pending':
+            qty     = self._pending_long[ bx:ex ] + self._pending_short[ bx:ex ]
+        elif which == 'canceled':
+            qty     = self._canceled[ bx:ex ]
+        elif which == 'realized':
+            qty     = self._realized[ bx:ex ]
+        else:
+            raise ValueError('Unknown which=%s' % which )
+
+        return qty
+
     def getCanceledByIx(self, ix ):
         '''return signed cancelled amount '''
         return self._canceled[ ix ]

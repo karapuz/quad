@@ -18,7 +18,13 @@ import argparse
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
+import robbie.util.symboldb as symboldb
 from   robbie.util.logging import logger
+
+import robbie.echo.basestrat as basestrat
+import robbie.echo.orderstate as orderstate
+from   robbie.echo.stratutil import STRATSTATE, EXECUTION_MODE
+
 
 app = QApplication(sys.argv)
 dw  = QDesktopWidget()
@@ -148,28 +154,32 @@ class MyTableModel(QAbstractTableModel):
 
 _cycle_ix = 0
 _continue = True
-def cycle( table, text, delay=5):
+def cycle( turf, tweaks, orderStates, agents, table, text, delay=5):
     global _cycle_ix, _continue
-    if not _continue:
-        return
-    msg = 'cycle( table=%s, delay=%s) _cycle_ix=%s' % ( table, delay, _cycle_ix )
-    text.append(msg)
+    with twkcx.Tweaks( **tweaks ):
+        if not _continue:
+            return
+        agt_list    = turfutil.get(turf=turf, component='agents')
+        symbols     = symboldb.currentSymbols()
+        msg = 'cycle( table=%s, delay=%s) _cycle_ix=%s' % ( table, delay, _cycle_ix )
+        text.append(msg)
 
-    data = []
-    for i in xrange(100):
-        r = [ str(j*_cycle_ix) for j in xrange(100) ]
-        data.append(r)
+        # data = []
+        # for i in xrange(100):
+        #     r = [ str(j*_cycle_ix) for j in xrange(100) ]
+        #     data.append(r)
+        data = getData(orderStates=orderStates, agents=agents, symbols=symbols, debug=True)
 
-    table.tableModel().setData(data)
-    model   = table.tableModel()
-    beg     = 0, 0
-    end     = model.rowCount(0), model.columnCount(0)
-    model.dataChanged.emit( model.createIndex( *beg ), model.createIndex( *end ))
+        table.tableModel().setData(data)
+        model   = table.tableModel()
+        beg     = 0, 0
+        end     = model.rowCount(0), model.columnCount(0)
+        model.dataChanged.emit( model.createIndex( *beg ), model.createIndex( *end ))
 
-    _cycle_ix += 1
-    time.sleep(delay)
-    timer = Timer(delay, cycle, (table, text, delay))
-    timer.start()
+        _cycle_ix += 1
+        time.sleep(delay)
+        timer = Timer(delay, cycle, (turf, tweaks, orderStates, agents, table, text, delay))
+        timer.start()
 
 def _exit(*args):
     global _continue
@@ -220,13 +230,53 @@ def createGUI(data, signalNames, symbols):
     text    = top.getTextWidget()
     return top, table, text
 
-data = []
-for i in xrange(100):
-    r = [ str(j) for j in xrange(100) ]
-    data.append(r)
+# data = []
+# for i in xrange(100):
+#     r = [ str(j) for j in xrange(100) ]
+#     data.append(r)
+# signalNames = ['A' + str(x) for x in xrange(100)]
+# symbols     = ['B' + str(x) for x in xrange(100)]
 
-signalNames = ['A' + str(x) for x in xrange(100)]
-symbols     = ['B' + str(x) for x in xrange(100)]
+def prepareOrderStates(agents, mode):
+    symbols    = symboldb.currentSymbols()
+    maxNum     = symboldb._maxNum
+    orderStates = {}
+    for agent in agents:
+        for target in ('SRC', 'SNK'):
+            domain = basestrat.getOrderStateDomain(target=target, agent=agent)
+            with twkcx.Tweaks(run_domain=domain):
+                if mode == EXECUTION_MODE.NEW_FILL_CX:
+                    seePending = True
+                elif mode == EXECUTION_MODE.FILL_ONLY:
+                    seePending = False
+                else:
+                    raise ValueError('Unknown signalMode=%s' % mode)
+
+                orderState = orderstate.OrderState(
+                        readOnly    = True,
+                        maxNum      = maxNum,
+                        symbols     = symbols,
+                        seePending  = seePending,
+                        debug       = True )
+                orderStates[ domain ] = orderState
+    return orderStates
+
+import numpy
+def getData(orderStates, agents, symbols, debug=True):
+    mat = []
+    for agent in agents:
+        for target in ('SRC', 'SNK'):
+            domain = basestrat.getOrderStateDomain(target=target, agent=agent)
+            #    for domain, ordState in orderStates.iteritems():
+            ordState = orderStates[domain]
+            for sliceType in ['pending', 'realized', ]:
+                symbolSlice = ordState.getSymbolSlice(which=sliceType)
+                if debug:
+                    logger.debug('getData: domain=%s data=%s', domain, symbolSlice)
+                mat.append( symbolSlice.tolist() )
+    if debug:
+        logger.debug('getData: -------------')
+    return numpy.array( mat ).T.tolist()
 
 if __name__ == '__main__':
     '''
@@ -235,12 +285,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
     args    = parser.parse_args()
+    turf    = args.turf
     tweaks  = {
-        'run_turf'  : args.turf,
+        'run_turf'  : turf,
     }
     with twkcx.Tweaks( **tweaks ):
-        top, table, text = createGUI(signalNames=signalNames, data=data, symbols=symbols)
-        cycle( table=table, text=text, delay=1)
+        agents      = turfutil.get(turf=turf, component='agents')
+        symbols     = symboldb.currentSymbols()
+        mode        = EXECUTION_MODE.NEW_FILL_CX
+        orderStates = prepareOrderStates(agents=agents, mode=mode)
+        data        = getData(orderStates=orderStates, agents=agents, symbols=symbols)
+        top, table, text = createGUI(signalNames=agents, data=data, symbols=symbols)
+        cycle( turf=turf, tweaks=tweaks, orderStates=orderStates, agents=agents, table=table, text=text, delay=1)
         top.show()
         table.show()
         sys.exit(app.exec_())

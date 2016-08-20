@@ -15,12 +15,24 @@ import robbie.util.filelogging as filelogging
 from   robbie.echo.stratutil import STRATSTATE
 import robbie.echo.echoorderstate as echoorderstate
 
+def getOrderStateDomain(target, agent):
+    if target == 'SRC':
+        return '%s-src' % agent
+    elif target == 'SNK':
+        return '%s-snk' % agent
+    else:
+        raise ValueError('Uknown target=%s' % target)
+
 class BaseStrat(object):
 
     def __init__(self, agent, policy, mode):
         self._agent     = agent
-        self._srcOrders = echoorderstate.EchoOrderState('%s-src' % agent, mode=mode)
-        self._snkOrders = echoorderstate.EchoOrderState('%s-snk' % agent, mode=mode)
+        self._srcOrders = echoorderstate.EchoOrderState(
+                                            getOrderStateDomain(target='SRC', agent=agent),
+                                            mode=mode)
+        self._snkOrders = echoorderstate.EchoOrderState(
+                                            getOrderStateDomain(target='SNK', agent=agent),
+                                            mode=mode)
         self._policy    = policy
 
         self._snkAction2proc = {

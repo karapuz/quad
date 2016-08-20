@@ -35,7 +35,6 @@ def run_agent():
     port_sigCon      = agt_comm['agent_sigCon']
     agent_execSnkIn  = agt_comm['agent_execSnkIn']
     agent_execSnkOut = agt_comm['agent_execSnkOut']
-    # agent_orderCmd   = agt_comm['agent_orderCmd']
     agent_orderCmd   = "ORDER_CMD"
 
     context           = zmq.Context.instance()
@@ -71,7 +70,7 @@ def run_agent():
     poller.register(agentOrderCon,  zmq.POLLIN)
 
     if signalMode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
-        import robbie.echo.reflectstrat_spring1 as reflectstrat
+        import robbie.echo.onesession as reflectstrat
         echoStrat = reflectstrat.Strategy(agent=agent, policy=policy)
     elif signalMode == stratutil.EXECUTION_MODE.FILL_ONLY:
         import robbie.echo.reflectstrat2 as reflectstrat2
