@@ -9,11 +9,12 @@ import time
 from   threading import Timer
 from   PyQt4 import QtGui
 from   PyQt4.QtCore import QAbstractTableModel, QVariant, Qt, QSize
-from   PyQt4.QtGui import QWidget, QTableView, QVBoxLayout, QApplication, QBrush
+from   PyQt4.QtGui import QWidget, QTableView, QVBoxLayout, QApplication, QBrush, QColor
 from   PyQt4.QtGui import QDesktopWidget, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QTextEdit
 
 import zmq
 import json
+import numpy
 import argparse
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
@@ -25,11 +26,10 @@ import robbie.echo.basestrat as basestrat
 import robbie.echo.orderstate as orderstate
 from   robbie.echo.stratutil import STRATSTATE, EXECUTION_MODE
 
-
 app = QApplication(sys.argv)
 dw  = QDesktopWidget()
 dwX = dw.width()*0.7
-dwY = dw.height()*0.7;
+dwY = dw.height()*0.7
 
 '''
 white, black,
@@ -40,7 +40,22 @@ cyan, darkCyan,
 magenta, darkMagenta,
 yellow, darkYellow,
 gray, darkGray, lightGray
+
+
+Dark green	        Medium green	Light green	        Dark blue	            Blue	            Violet	            Purple
+HEX #006325	        HEX #328930	    HEX #80c342	        HEX #14148c	            HEX #14aaff	        HEX #6400aa	        HEX #ae32a0
+RGB 0, 99, 37	    RGB 50, 137, 48	RGB 128, 195, 66	RGB 20, 20, 140	        RGB 20, 170, 255	RGB 100, 0, 170	    RGB 174, 50, 160
+
+Double dark gray	Dark gray	    Medium gray	        Regular gray	        Light gray	        Pale gray	        White
+HEX #1e1b18	        HEX #35322f	    HEX #5d5b59	        HEX #868482	            HEX #aeadac	        HEX #d7d6d5	        HEX #ffffff
+RGB 30, 27, 24	    RGB 53, 50, 47	RGB 93, 91, 89	    RGB 134, 132, 130	    RGB 174, 173, 172	RGB 215, 214, 213	RGB 255, 255, 255
+
 '''
+
+_signalCategory = ['PEND', 'RLZED', 'ECHO-PEND', 'ECHO-RLZD']
+_targets        = ('SRC', 'SNK')
+_sliceTypes     = ['pending', 'realized', ]
+
 
 def doubleClicked(index):
     print 'doubleClicked --->', index.row(), index.column()
@@ -68,8 +83,6 @@ class ExposureTable(QWidget):
 
     def tableLayout(self):
         return self._layout
-
-_signalCategory = ['PEND', 'RLZED', 'ECHO-PEND', 'ECHO-RLZD']
 
 class MyTableModel(QAbstractTableModel):
 
@@ -99,7 +112,8 @@ class MyTableModel(QAbstractTableModel):
         can be either data, symbols, or signal (sub elements)
         '''
         if colIx > 0:
-            return QBrush(Qt.black), QBrush(Qt.green)
+            #return QBrush(Qt.black), QBrush(Qt.green)
+            return QBrush(Qt.black), QBrush(QColor(128, 195, 66))
 
         if colIx == 0:
             return QBrush(Qt.white), QBrush(Qt.darkGreen)
@@ -159,16 +173,11 @@ def cycle( turf, tweaks, orderStates, agents, table, text, delay=5):
     with twkcx.Tweaks( **tweaks ):
         if not _continue:
             return
-        agt_list    = turfutil.get(turf=turf, component='agents')
         symbols     = symboldb.currentSymbols()
         msg = 'cycle( table=%s, delay=%s) _cycle_ix=%s' % ( table, delay, _cycle_ix )
         text.append(msg)
 
-        # data = []
-        # for i in xrange(100):
-        #     r = [ str(j*_cycle_ix) for j in xrange(100) ]
-        #     data.append(r)
-        data = getData(orderStates=orderStates, agents=agents, symbols=symbols, debug=True)
+        data    = getData(orderStates=orderStates, agents=agents, symbols=symbols, debug=True)
 
         table.tableModel().setData(data)
         model   = table.tableModel()
@@ -230,19 +239,15 @@ def createGUI(data, signalNames, symbols):
     text    = top.getTextWidget()
     return top, table, text
 
-# data = []
-# for i in xrange(100):
-#     r = [ str(j) for j in xrange(100) ]
-#     data.append(r)
-# signalNames = ['A' + str(x) for x in xrange(100)]
-# symbols     = ['B' + str(x) for x in xrange(100)]
 
 def prepareOrderStates(agents, mode):
+    global _targets
+
     symbols    = symboldb.currentSymbols()
     maxNum     = symboldb._maxNum
     orderStates = {}
     for agent in agents:
-        for target in ('SRC', 'SNK'):
+        for target in _targets:
             domain = basestrat.getOrderStateDomain(target=target, agent=agent)
             with twkcx.Tweaks(run_domain=domain):
                 if mode == EXECUTION_MODE.NEW_FILL_CX:
@@ -261,15 +266,14 @@ def prepareOrderStates(agents, mode):
                 orderStates[ domain ] = orderState
     return orderStates
 
-import numpy
 def getData(orderStates, agents, symbols, debug=True):
+    global _targets, _sliceTypes
     mat = []
     for agent in agents:
-        for target in ('SRC', 'SNK'):
+        for target in _targets:
             domain = basestrat.getOrderStateDomain(target=target, agent=agent)
-            #    for domain, ordState in orderStates.iteritems():
             ordState = orderStates[domain]
-            for sliceType in ['pending', 'realized', ]:
+            for sliceType in _sliceTypes:
                 symbolSlice = ordState.getSymbolSlice(which=sliceType)
                 if debug:
                     logger.debug('getData: domain=%s data=%s', domain, symbolSlice)
