@@ -162,11 +162,19 @@ class BaseStrat(object):
         self._src2snk[ signalOrderId ] = echoOrderId
         logger.debug('basestrat: new %s --> %s', signalOrderId, echoOrderId)
 
+    def getEchoOrdersForSignal(self, signalOrderId):
+        ''' '''
+        return self._src2snk[ signalOrderId ]
+
     def linkOrigOrderCx(self, orderId, origOrderId):
         ''' '''
         self._src2cx[ origOrderId ] = orderId
         self._cx2src[ orderId     ] = origOrderId
         logger.debug('basestrat:  cx %s --> %s', orderId, origOrderId)
+
+    def getOrigForOrderCx(self, orderId, origOrderId):
+        ''' '''
+        return self._cx2src[ orderId     ]
 
     def getCurrentPending( self, target, tag ):
         ''' '''

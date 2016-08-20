@@ -25,3 +25,20 @@ class EchoOrder(object):
 
     __str__ = _repr
     __repr__ = _repr
+
+class EchoTradeSession(object):
+    '''  '''
+    def __init__(self, openOrder):
+        self._legs = [ openOrder ]
+
+    def addLeg(self, leg):
+        self._legs.append( leg )
+
+    def getLegs(self):
+        return self._legs
+
+    def _repr(self):
+        return 'order.EchoTradeSession(legs#=%d, legs=%s)' % ( len(self._legs), [ l['orderId'] for l in self._legs] )
+
+    __str__ = _repr
+    __repr__ = _repr

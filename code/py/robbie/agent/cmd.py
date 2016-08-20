@@ -64,10 +64,10 @@ def run_cmd(cmd, agent, data):
         msg     = json.dumps( d )
         for x in ('action', 'qty', 'symbol', 'price', 'orderId', 'qty'):
             assert x in d
-        logger.debug("REDI: Sending %s [%s]" % (srcPort, msg))
+        logger.debug("REDI: Sending %s [%s]" % (rediPort, msg))
         rediCmd.send(msg)
         msg = rediCmd.recv()
-        logger.debug("REDI: Received reply %s [%s]" % (srcPort, msg))
+        logger.debug("REDI: Received reply %s [%s]" % (rediPort, msg))
 
     elif cmd == 'KILL':
         if data is None:
