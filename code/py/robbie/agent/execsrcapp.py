@@ -79,7 +79,6 @@ def run_execsrc():
         sigs.append( c )
 
     bbg = pricestriputil.createPriceStrip(turf=turf, readOnly=True)
-    #bbg = None
 
     signalStrat = sourcecore.SourceStrat(conns,mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')

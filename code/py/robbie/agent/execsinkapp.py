@@ -1,7 +1,7 @@
 '''
 AUTHOR      : ilya presman, 2016
 TYPE:       : lib
-DESCRIPTION : agent.execsrc module
+DESCRIPTION : agent.execsnkapp module
 '''
 
 import zmq
@@ -109,7 +109,7 @@ def run_execSink():
             msgs    = cmdConn.recv()
             msg     = json.loads(msgs)
             msg     = executil.toStr(msg)
-            action     = msg['cmd']
+            action  = msg['cmd']
             logger.debug('EXECSINKAPP: CMD=%s', msg)
             cmdConn.send('RECEIVED')
 
