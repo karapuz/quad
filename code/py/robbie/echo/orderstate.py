@@ -61,6 +61,7 @@ class OrderState( object ):
         self._canceled      = mmapFunc( activity='orderstate-canceled',     **vars )
         self._symids        = mmapFunc( activity='orderstate-symids',       **vars )
         # self._rejected    = mmapFunc( activity='orderstate-rejected',     **vars )
+        self._symIx2OrdIx   = {}
 
         if symIds != None and not readOnly:
             self._symids[ :len( symIds ) ] = symIds
@@ -369,17 +370,30 @@ class OrderState( object ):
     def addPendingByIx(self, ix, vals, checked=True, verbose=False ):
         '''main entry point - adding new pending positions '''
         logger.debug('addPendingByIx: ix=%s vals=%s', ix, vals)
+
+        symbolIx = ix[0]
+        if symbolIx not in self._symIx2OrdIx:
+            self._symIx2OrdIx[ symbolIx ] = set()
+        self._symIx2OrdIx[ symbolIx ].add( ix[1] )
+
         return self._addByNameByIx(
             name='pending', ix=ix, vals=vals, checked=checked, verbose=verbose )
 
-    def getLivePendingIx(self):
+    def getLivePendingIxBySymbol(self, symbol ):
+        symbolIx    = self.getIxByTag(symbol)
         maxNum      = self._nextNum
         maxSym      = len(self._symbols)
-        fullState   = ( self._pending_long + self._pending_short ) -  self._canceled - self._realized
+
+        fullState   = self._pending_long + self._pending_short
 
         state       = fullState[maxSym:maxNum]
 
         live        = ( state != 0 )
         ixs         = numpy.arange( maxSym, maxNum )[ live ]
 
-        return dict((self._ix2tag[ ix ], fullState[ix]) for ix in ixs)
+        relatedIx   = self._symIx2OrdIx[ symbolIx ]
+
+        return dict((self._ix2tag[ ix ], fullState[ix])
+                        for ix in ixs
+                            if ix in relatedIx
+                    )
