@@ -293,12 +293,21 @@ def storedSignals(signalName, signal=_NoData):
         return signal
 
 def buttonClicked(*args):
+    global _sinks
     signal  = storedSignals(signalName='CmdLink')
 
+    signal = [str(e) for e in signal]
     (signalName, secName, symbol) = signal
-    bbIn    = storedSignals(signalName='BBIn')
-    msg     = json.dumps( signal )
 
+    _sinks[ 'CmdLink' ].setText( '' )
+
+    # expSrc, expType = secName.split('-')
+    if secName not in ( 'ECHO-PEND', 'ECHO-RLZD'):
+        logger.error('Cannot execute %s', str(signal))
+        return
+
+    bbIn    = storedSignals(signalName='BBIn')
+    msg     = json.dumps(signal)
     bbIn[ signalName ].send(msg)
     logger.debug( 'buttonClicked: %s', str(signal))
 

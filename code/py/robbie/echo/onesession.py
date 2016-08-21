@@ -125,3 +125,60 @@ class Strategy(basestrat.BaseStrat):
         openOrderId = order.getOpenOrder()[ 'orderId' ]
         openRlzd    = self.getRealizedByOrderId(target='SNK', tag=openOrderId, shouldExist=False)
         return openRlzd
+
+    def bbOrderUpdate(self, orders):
+        # dict(delay=delay, order=order, orderType='CANCEL')
+        # dict(delay=delay, order=order, orderType='LIQUIDATE')
+        data = []
+        for order in orders:
+            orderType       = order['orderType']
+            symbol          = order['symbol']
+            # openOrderId     = openOrder[ 'orderId' ]
+
+            # for either liquidate or cancel, we need to cancel pendings
+            if orderType in ('LIQUIDATE', 'CANCEL'):
+                # cancel all pending orders
+
+                pend    = self.getPendingByOrderId(target='SNK', tag=symbol)
+                venue   = 'NYSE'
+                if pend:
+                    d = {
+                        'orderType'     : 'CANCEL',
+                        'orderId'       : stratutil.newOrderId('EO-CX'),
+                        'origOrderId'   : openOrderId,
+                        'venue'         : venue,
+                        'symbol'        : symbol,
+                        'qty'           : pend,
+                        'execTime'      : 'NOW',
+                    }
+                    data.append(d)
+                    self._logger.debug(label='OPENPEND-%s' % orderType, args=d)
+
+            if orderType == 'LIQUIDATE':
+                # liquidate all realized exposure
+
+                rlzd        = self.getRealizedByOrderId(target='SNK', tag=symbol)
+                if rlzd:
+                    closeOrderId    = closeOrder[ 'orderId' ]
+                    closeRlzd       = self.getRealizedByOrderId(target='SNK', tag=closeOrderId)
+                else:
+                    closeRlzd       = 0
+
+                venue           = 'NYSE'
+                if openRlzd + closeRlzd:
+                    orderData = {
+                        'orderType'     : 'MARKET',
+                        'orderId'       : stratutil.newOrderId('EOC-LQ'),
+                        'origOrderId'   : openOrderId,
+                        'venue'         : venue,
+                        'symbol'        : symbol,
+                        'qty'           : -(closeRlzd + openPend),
+                        'execTime'      : 'NOW',
+                    }
+                    data.append( orderData )
+                    self._logger.debug(label='REALIZED-%s' % orderType, args=orderData)
+
+            if orderType not in ('LIQUIDATE', 'CANCEL'):
+                raise ValueError('Unknown orderType=%s' % orderType)
+
+        self.addActionData(data=data)

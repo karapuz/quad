@@ -84,6 +84,14 @@ class OrderState( object ):
         # logVars.update( dict(name='ORDERSTATE', attrs=attrs))
         # self._logger  = filelogging.getFileLogger(**logVars)
 
+    def __del__(self):
+        del self._support
+        del self._realized
+        del self._pending_long
+        del self._pending_short
+        del self._canceled
+        del self._symids
+
     def getFullByType(self, posType, maxLen ):
         ''' get a slice of all data for the type '''
         if posType == 'pending':
@@ -363,3 +371,15 @@ class OrderState( object ):
         logger.debug('addPendingByIx: ix=%s vals=%s', ix, vals)
         return self._addByNameByIx(
             name='pending', ix=ix, vals=vals, checked=checked, verbose=verbose )
+
+    def getLivePendingIx(self):
+        maxNum      = self._nextNum
+        maxSym      = len(self._symbols)
+        fullState   = ( self._pending_long + self._pending_short ) -  self._canceled - self._realized
+
+        state       = fullState[maxSym:maxNum]
+
+        live        = ( state != 0 )
+        ixs         = numpy.arange( maxSym, maxNum )[ live ]
+
+        return dict((self._ix2tag[ ix ], fullState[ix]) for ix in ixs)
