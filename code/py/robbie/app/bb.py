@@ -63,20 +63,50 @@ def doubleClicked(index):
 def clicked(index):
     print 'clicked --->', index.row(), index.column()
 
+def clickColToSignalName(colIx):
+    nx = int((colIx-1) / 4)
+    return nx
+
+def clickColToSectionName(colIx):
+    cx = (colIx-1) % 4
+    return cx
+
 class ExposureTable(QWidget):
-    def __init__(self, signalNames, symbols, data, *args):
+    def __init__(self, bbIn, signalNames, symbols, data, *args):
         QWidget.__init__(self, *args)
 
         self._tableModel = MyTableModel(signalNames, symbols, data, self)
         self._tableView  = QTableView()
         self._tableView.setModel(self._tableModel)
-        self._tableView.doubleClicked.connect(doubleClicked)
-        self._tableView.clicked.connect(clicked)
+        #self._tableView.doubleClicked.connect(doubleClicked)
+        #self._tableView.clicked.connect(clicked)
+        self._tableView.clicked.connect(self.click)
+
+        self._bbIn       = bbIn
+        self._symbols    = symbols
+        self._signalNames=signalNames
+
         # self._tableView.setStyleSheet("QHeaderView::section { background-color:red }")
 
         self._layout = QVBoxLayout(self)
         self._layout.addWidget(self._tableView)
         self.setLayout(self._layout)
+
+    def click(self, index):
+        logger.debug( 'clicked ---> %d %d', index.row(), index.column())
+        rowIx       = index.row()
+        colIx       = index.column()
+        nx          = clickColToSignalName(colIx)
+        signalName  = self._signalNames[ nx ]
+        cx          = clickColToSectionName(colIx)
+        secName     = _signalCategory[cx]
+        symbol      = self._symbols[ rowIx ]
+
+        data        = (signalName, secName, symbol)
+        msg         = json.dumps( data )
+        self._bbIn[ signalName ].send( msg )
+
+        logger.debug( 'name=%s secName=%s symbol=%s', signalName, secName, symbol )
 
     def tableModel(self):
         return self._tableModel
@@ -155,8 +185,8 @@ class MyTableModel(QAbstractTableModel):
             if section == 0:
                 return ''
 
-            nx = int((section-1) / 4)
-            cx = (section-1) % 4
+            nx = clickColToSignalName(section)
+            cx = clickColToSectionName(section)
 
             if nx * 4 == (section-1):
                 return '%s\n%s' % ( self._signalNames[ nx ], self._signalCategory[ cx ] )
@@ -233,8 +263,8 @@ class TopWindow(QtGui.QMainWindow):
     def getTextWidget(self):
         return self._text
 
-def createGUI(data, signalNames, symbols):
-    table   = ExposureTable(signalNames=signalNames, symbols=symbols, data=data)
+def createGUI(bbIn, data, signalNames, symbols):
+    table   = ExposureTable(bbIn=bbIn, signalNames=signalNames, symbols=symbols, data=data)
     top     = TopWindow(table=table)
     text    = top.getTextWidget()
     return top, table, text
@@ -282,6 +312,24 @@ def getData(orderStates, agents, symbols, debug=True):
         logger.debug('getData: -------------')
     return numpy.array( mat ).T.tolist()
 
+def createBBComm():
+    context     = zmq.Context()
+    turf        = twkval.getenv('run_turf')
+    agt_comms   = turfutil.get(turf=turf, component='communication')
+    agt_list    = turfutil.get(turf=turf, component='agents')
+    bbIn        = {}
+
+    for agent, agt_comm in agt_comms.iteritems():
+        if agent not in agt_list:
+            logger.debug('BB: not an agent: %s', agent)
+            continue
+        logger.debug( 'BB: agent=%s', agent)
+        agent_BBIn      = agt_comm['agent_BBIn']
+        agent_BBInCon   = context.socket(zmq.PUB)
+        agent_BBInCon.bind('tcp://*:%s' % agent_BBIn)
+        bbIn[agent] = agent_BBInCon
+    return bbIn
+
 if __name__ == '__main__':
     '''
     -T turf
@@ -299,11 +347,13 @@ if __name__ == '__main__':
         mode        = EXECUTION_MODE.NEW_FILL_CX
         orderStates = prepareOrderStates(agents=agents, mode=mode)
         data        = getData(orderStates=orderStates, agents=agents, symbols=symbols)
-        top, table, text = createGUI(signalNames=agents, data=data, symbols=symbols)
+        bbIn        = createBBComm()
+        top, table, text = createGUI(bbIn=bbIn, signalNames=agents, data=data, symbols=symbols)
         cycle( turf=turf, tweaks=tweaks, orderStates=orderStates, agents=agents, table=table, text=text, delay=1)
         top.show()
         table.show()
         sys.exit(app.exec_())
+
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py

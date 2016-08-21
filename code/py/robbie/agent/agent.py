@@ -35,6 +35,7 @@ def run_agent():
     port_sigCon      = agt_comm['agent_sigCon']
     agent_execSnkIn  = agt_comm['agent_execSnkIn']
     agent_execSnkOut = agt_comm['agent_execSnkOut']
+    agent_BBIn       = agt_comm['agent_BBIn']
     agent_orderCmd   = "ORDER_CMD"
 
     context           = zmq.Context.instance()
@@ -53,6 +54,10 @@ def run_agent():
     sigCon.setsockopt(zmq.SUBSCRIBE, b'')
     sigCon.connect('tcp://localhost:%s' % port_sigCon)
 
+    bbCon = context.socket(zmq.SUB)
+    bbCon.setsockopt(zmq.SUBSCRIBE, b'')
+    bbCon.connect('tcp://localhost:%s' % agent_BBIn)
+
     agentOrderCon        = context.socket(zmq.PAIR)
     agentOrderCon.bind("inproc://%s" % agent_orderCmd)
 
@@ -68,6 +73,7 @@ def run_agent():
     poller.register(agentSrcInCon,  zmq.POLLIN)
     poller.register(agentSinkInCon, zmq.POLLIN)
     poller.register(agentOrderCon,  zmq.POLLIN)
+    poller.register(bbCon,          zmq.POLLIN)
 
     if signalMode == stratutil.EXECUTION_MODE.NEW_FILL_CX:
         import robbie.echo.onesession as reflectstrat
@@ -119,6 +125,15 @@ def run_agent():
             cmds    = echoStrat.orderUpdate(cmd)
             echoStrat.addActionData( cmds )
             logger.debug('AGENT: COMMANDS = %s', cmds)
+
+        if bbCon in socks:
+            msg     = bbCon.recv() # process order
+            cmd     = json.loads(msg)
+            logger.debug('AGENT: BB = %s', cmd)
+
+            #cmds    = echoStrat.orderUpdate(cmd)
+            #echoStrat.addActionData( cmds )
+            logger.debug('AGENT: BB COMMANDS = %s', cmd)
 
         for cmd in echoStrat.getActionData():
             logger.debug('AGENT: SNKOUT = %s', cmd)

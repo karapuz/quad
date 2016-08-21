@@ -21,20 +21,13 @@ def run_cmd(cmd, agent, data):
     srcCmd      = context.socket(zmq.REQ)
     srcCmd.connect ("tcp://localhost:%s" % srcPort)
 
-    rediPort    = turfutil.get(turf=turf, component='communication', sub='REDI')['port_cmd']
-    rediCmd     = context.socket(zmq.PAIR)
-    rediCmd.connect ("tcp://localhost:%s" % rediPort)
-
     snkPort    = turfutil.get(turf=turf, component='communication', sub='SNK_CMD')['port_cmd']
     snkCmd      = context.socket(zmq.REQ)
     snkCmd.connect ("tcp://localhost:%s" % snkPort)
 
-    # if cmd == 'SEND_':
-    #     msg     = json.dumps( {'cmd': cmd, 'agent': agent} )
-    #     logger.debug("CMD: Sending %s [%s]" % (srcPort, msg))
-    #     srcCmd.send(msg)
-    #     msg = srcCmd.recv()
-    #     logger.debug("CMD: Received reply %s [%s]" % (srcPort, msg))
+    rediPort    = turfutil.get(turf=turf, component='communication', sub='REDI')['port_cmd']
+    rediCmd     = context.socket(zmq.PAIR)
+    rediCmd.connect ("tcp://localhost:%s" % rediPort)
 
     if cmd == 'SEND':
         d     = {'cmd': cmd}

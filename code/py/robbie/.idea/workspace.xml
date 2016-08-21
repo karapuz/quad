@@ -24,48 +24,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="basestrat.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/echo/basestrat.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="181" max-vertical-offset="6545">
-              <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-              <folding>
-                <element signature="e#138#148#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="echoorderstate.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/echo/echoorderstate.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="425" max-vertical-offset="1275">
-              <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-              <folding>
-                <element signature="e#91#102#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="cmd.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/agent/cmd.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1802" max-vertical-offset="2635">
-              <caret line="120" column="0" selection-start-line="119" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="357" max-vertical-offset="2516">
+              <caret line="46" column="0" selection-start-line="45" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
               <folding>
                 <element signature="e#93#103#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="execsrcapp.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/agent/execsrcapp.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="909" max-vertical-offset="3927">
-              <caret line="89" column="0" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="0" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -83,21 +49,11 @@
       <file leaf-file-name="bb.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/bb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="2666" max-vertical-offset="5389">
-              <caret line="180" column="0" selection-start-line="180" selection-start-column="0" selection-end-line="180" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1428" max-vertical-offset="6239">
+              <caret line="107" column="0" selection-start-line="107" selection-start-column="0" selection-end-line="107" selection-end-column="0" />
               <folding>
                 <element signature="e#93#103#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="execsinkapp.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/agent/execsinkapp.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.39719626" vertical-offset="1428" max-vertical-offset="2312">
-              <caret line="108" column="23" selection-start-line="108" selection-start-column="23" selection-end-line="108" selection-end-column="23" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -112,21 +68,41 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="agent.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="agent.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/agent/agent.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-11.5172415" vertical-offset="2182" max-vertical-offset="2635">
-              <caret line="156" column="0" selection-start-line="154" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.8113731" vertical-offset="1574" max-vertical-offset="2890">
+              <caret line="135" column="0" selection-start-line="135" selection-start-column="0" selection-end-line="135" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="onesession.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/echo/onesession.py">
+      <file leaf-file-name="repo.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/turf/repo.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2159">
-              <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1683">
+              <caret line="22" column="19" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="19" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="execsrcapp.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/agent/execsrcapp.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="676" max-vertical-offset="3927">
+              <caret line="75" column="0" selection-start-line="72" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="execsinkapp.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/agent/execsinkapp.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="554" max-vertical-offset="2312">
+              <caret line="77" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="77" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -150,7 +126,6 @@
         <option value="$PROJECT_DIR$/echo/reflectstrat.py" />
         <option value="$PROJECT_DIR$/echo/reflectstrat2.py" />
         <option value="$PROJECT_DIR$/execution/util.py" />
-        <option value="$PROJECT_DIR$/turf/repo.py" />
         <option value="$PROJECT_DIR$/util/calendar.py" />
         <option value="$PROJECT_DIR$/util/margot.py" />
         <option value="$PROJECT_DIR$/util/filelogger.py" />
@@ -172,7 +147,6 @@
         <option value="$PROJECT_DIR$/fix/util.py" />
         <option value="$PROJECT_DIR$/echo/reflectstrat_spring1.py" />
         <option value="$PROJECT_DIR$/emulate/reflectstrat_spring11.py" />
-        <option value="$PROJECT_DIR$/agent/cmd.py" />
         <option value="$PROJECT_DIR$/example/redi/sendredi.py" />
         <option value="$PROJECT_DIR$/echo/order.py" />
         <option value="$PROJECT_DIR$/echo/onesession.py" />
@@ -181,13 +155,15 @@
         <option value="$PROJECT_DIR$/example/pyqt4/temperature.py" />
         <option value="$PROJECT_DIR$/example/pyqt4/pets.py" />
         <option value="$PROJECT_DIR$/example/pyqt4/refresh.py" />
-        <option value="$PROJECT_DIR$/agent/agent.py" />
         <option value="$PROJECT_DIR$/tweak/util.py" />
         <option value="$PROJECT_DIR$/echo/orderstate.py" />
         <option value="$PROJECT_DIR$/echo/basestrat.py" />
-        <option value="$PROJECT_DIR$/app/bb.py" />
         <option value="$PROJECT_DIR$/agent/execsinkapp.py" />
         <option value="$PROJECT_DIR$/agent/execsrcapp.py" />
+        <option value="$PROJECT_DIR$/agent/cmd.py" />
+        <option value="$PROJECT_DIR$/turf/repo.py" />
+        <option value="$PROJECT_DIR$/app/bb.py" />
+        <option value="$PROJECT_DIR$/agent/agent.py" />
       </list>
     </option>
   </component>
@@ -587,7 +563,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31909212" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16380449" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.39118826" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39118826" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32972974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971507" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -648,11 +624,6 @@
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/app/bb.py</url>
           <line>296</line>
-          <option name="timeStamp" value="39" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/app/bb.py</url>
-          <line>266</line>
           <option name="timeStamp" value="40" />
         </line-breakpoint>
       </breakpoints>
@@ -1011,22 +982,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/turf/repo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.9294606" vertical-offset="623" max-vertical-offset="1683">
-          <caret line="64" column="19" selection-start-line="64" selection-start-column="19" selection-end-line="64" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/agent/agent.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.5172415" vertical-offset="2182" max-vertical-offset="2635">
-          <caret line="156" column="0" selection-start-line="154" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/echo/orderstate.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="4193" max-vertical-offset="6205">
@@ -1035,38 +990,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/agent/cmd.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1802" max-vertical-offset="2635">
-          <caret line="120" column="0" selection-start-line="119" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
-          <folding>
-            <element signature="e#93#103#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/bb.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2666" max-vertical-offset="5389">
-          <caret line="180" column="0" selection-start-line="180" selection-start-column="0" selection-end-line="180" selection-end-column="0" />
-          <folding>
-            <element signature="e#93#103#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/echo/sinkproc.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="51" max-vertical-offset="1394">
           <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/agent/execsrcapp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="909" max-vertical-offset="3927">
-          <caret line="89" column="0" selection-start-line="89" selection-start-column="0" selection-end-line="89" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1081,8 +1008,52 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/agent/execsinkapp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.39719626" vertical-offset="1428" max-vertical-offset="2312">
-          <caret line="108" column="23" selection-start-line="108" selection-start-column="23" selection-end-line="108" selection-end-column="23" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="554" max-vertical-offset="2312">
+          <caret line="77" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="77" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/turf/repo.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1683">
+          <caret line="22" column="19" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agent/execsrcapp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="676" max-vertical-offset="3927">
+          <caret line="75" column="0" selection-start-line="72" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agent/cmd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="357" max-vertical-offset="2516">
+          <caret line="46" column="0" selection-start-line="45" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
+          <folding>
+            <element signature="e#93#103#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/bb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="1428" max-vertical-offset="6239">
+          <caret line="107" column="0" selection-start-line="107" selection-start-column="0" selection-end-line="107" selection-end-column="0" />
+          <folding>
+            <element signature="e#93#103#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/agent/agent.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8113731" vertical-offset="1574" max-vertical-offset="2890">
+          <caret line="135" column="0" selection-start-line="135" selection-start-column="0" selection-end-line="135" selection-end-column="0" />
           <folding />
         </state>
       </provider>
