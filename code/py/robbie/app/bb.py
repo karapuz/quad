@@ -57,11 +57,11 @@ _targets        = ('SRC', 'SNK')
 _sliceTypes     = ['pending', 'realized', ]
 
 
-def doubleClicked(index):
-    print 'doubleClicked --->', index.row(), index.column()
-
-def clicked(index):
-    print 'clicked --->', index.row(), index.column()
+# def doubleClicked(index):
+#     print 'doubleClicked --->', index.row(), index.column()
+#
+# def clicked(index):
+#     print 'clicked --->', index.row(), index.column()
 
 def clickColToSignalName(colIx):
     nx = int((colIx-1) / 4)
@@ -72,7 +72,7 @@ def clickColToSectionName(colIx):
     return cx
 
 class ExposureTable(QWidget):
-    def __init__(self, bbIn, signalNames, symbols, data, *args):
+    def __init__(self, signalNames, symbols, data, *args):
         QWidget.__init__(self, *args)
 
         self._tableModel = MyTableModel(signalNames, symbols, data, self)
@@ -82,30 +82,33 @@ class ExposureTable(QWidget):
         #self._tableView.clicked.connect(clicked)
         self._tableView.clicked.connect(self.click)
 
-        self._bbIn       = bbIn
         self._symbols    = symbols
         self._signalNames=signalNames
 
         # self._tableView.setStyleSheet("QHeaderView::section { background-color:red }")
+        # self._tableView.setStyleSheet("QHeaderView::section:horizontal {margin: 0px;  border: 0; padding 0px}")
+        # self._tableView.setStyleSheet("horizontal {margin: 0px;  border: 0; padding 0px}")
+        # self._tableView.setStyleSheet("QTableView::item {padding: 0px; margin: 0px; border: 0; background-color: orange; }")
 
         self._layout = QVBoxLayout(self)
         self._layout.addWidget(self._tableView)
         self.setLayout(self._layout)
 
+    def registerEventHandler(self, eventHandler):
+        self._eventHandler = eventHandler
+
     def click(self, index):
-        logger.debug( 'clicked ---> %d %d', index.row(), index.column())
         rowIx       = index.row()
         colIx       = index.column()
+        logger.debug( 'clicked ---> %d %d', rowIx, colIx)
+
         nx          = clickColToSignalName(colIx)
         signalName  = self._signalNames[ nx ]
         cx          = clickColToSectionName(colIx)
         secName     = _signalCategory[cx]
         symbol      = self._symbols[ rowIx ]
 
-        data        = (signalName, secName, symbol)
-        msg         = json.dumps( data )
-        self._bbIn[ signalName ].send( msg )
-
+        self._eventHandler( source='table', data=(signalName, secName, symbol) )
         logger.debug( 'name=%s secName=%s symbol=%s', signalName, secName, symbol )
 
     def tableModel(self):
@@ -247,28 +250,74 @@ class TopWindow(QtGui.QMainWindow):
 
         self.setMinimumSize(dwX,dwY)
         self.setWindowTitle('Menubar')
-        top     = QWidget()
-        self._text = QTextEdit()
+        top             = QWidget()
+        self._text      = QTextEdit()
+        self._cmdLine   = QLineEdit()
+        self._execButton= QPushButton('go!')
         self._text.ensureCursorVisible()
+        self._execButton.clicked.connect( buttonClicked )
+        sinkRegister(sinkName='CmdLink', sink=self._cmdLine)
 
         grid = QtGui.QGridLayout()
         grid.setSpacing(5)
 
-        grid.addWidget(self._table, 0, 0)
-        grid.addWidget(self._text, 1, 0, 10, 1 )
+        grid.addWidget(self._table, 0, 0, 1, 10)
+        grid.addWidget(self._cmdLine, 1, 0, 1, 9)
+        grid.addWidget(self._execButton, 1, 9)
+        grid.addWidget(self._text, 2, 0, 10, 10 )
 
         top.setLayout(grid)
         self.setCentralWidget(top)
 
+    # def keyPressEvent(self, e):
+    #     buttonClicked(e)
+        #print 'keyPressEvent->>', e
+
     def getTextWidget(self):
         return self._text
 
-def createGUI(bbIn, data, signalNames, symbols):
-    table   = ExposureTable(bbIn=bbIn, signalNames=signalNames, symbols=symbols, data=data)
+_NoData = ('NoData',)
+
+_sinks = {}
+def sinkRegister(sinkName, sink):
+    global _sinks
+    _sinks[sinkName]=sink
+
+_storedSignals = {}
+def storedSignals(signalName, signal=_NoData):
+    global _storedSignals
+    if signal == _NoData:
+        return _storedSignals[signalName]
+    else:
+        _storedSignals[signalName] = signal
+        return signal
+
+def buttonClicked(*args):
+    signal  = storedSignals(signalName='CmdLink')
+
+    (signalName, secName, symbol) = signal
+    bbIn    = storedSignals(signalName='BBIn')
+    msg     = json.dumps( signal )
+
+    bbIn[ signalName ].send(msg)
+    logger.debug( 'buttonClicked: %s', str(signal))
+
+def eventHandler(source, data):
+    # source='table', data=(signalName, secName, symbol)
+    global _sinks, _storedSignals
+    logger.debug('eventHandler: source=%s data=%s', source, data)
+
+    if source == 'table':
+        storedSignals(signalName='CmdLink', signal=data)
+        text = _storedSignals[ 'CmdLink' ]
+        _sinks[ 'CmdLink' ].setText( str(text) )
+
+def createGUI(data, signalNames, symbols):
+    table   = ExposureTable(signalNames=signalNames, symbols=symbols, data=data)
+    table.registerEventHandler(eventHandler)
     top     = TopWindow(table=table)
     text    = top.getTextWidget()
     return top, table, text
-
 
 def prepareOrderStates(agents, mode):
     global _targets
@@ -348,7 +397,8 @@ if __name__ == '__main__':
         orderStates = prepareOrderStates(agents=agents, mode=mode)
         data        = getData(orderStates=orderStates, agents=agents, symbols=symbols)
         bbIn        = createBBComm()
-        top, table, text = createGUI(bbIn=bbIn, signalNames=agents, data=data, symbols=symbols)
+        storedSignals(signalName='BBIn', signal=bbIn)
+        top, table, text = createGUI(signalNames=agents, data=data, symbols=symbols)
         cycle( turf=turf, tweaks=tweaks, orderStates=orderStates, agents=agents, table=table, text=text, delay=1)
         top.show()
         table.show()
