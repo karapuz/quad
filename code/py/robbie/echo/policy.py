@@ -68,14 +68,9 @@ class ScaleVenueSpring1Policy(StratPolicy):
         qty     = data[ 'qty'   ]
         _venue  = data.get( 'venue' )
         d = copy.deepcopy(data)
-
-        # orderType = d[ 'orderType' ]
-        #
-        # if orderType in ('')
-
         d[ 'orderId' ] = orderId
         d[ 'qty'     ] = int(self._scale * qty )
-        d[ 'venue'   ] = self._venue
+        #d[ 'venue'   ] = self._venue
         return d
 
     def newCxOrder( self, orderId, origOrderId, origData ):
@@ -85,5 +80,5 @@ class ScaleVenueSpring1Policy(StratPolicy):
         d[ 'orderId'     ] = orderId
         d[ 'origOrderId' ] = origOrderId
         d[ 'qty'         ] = qty
-        d[ 'venue'       ] = self._venue
+        #d[ 'venue'       ] = self._venue
         return d

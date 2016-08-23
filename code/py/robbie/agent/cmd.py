@@ -110,14 +110,15 @@ c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=dev_full --agent
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=CX --turf=dev --agent=ECHO1 --data="{'origOrderId':'SRC_20160714_205230_1','qty':'100'}"
 
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=KILL --turf=ivp_redi_fix --data="('SRC','SNK')"
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=REDI --turf=dev --data="{'action':'ORDER_TYPE_NEW','orderType':'ORDER_TYPE_NEW','signalName':'ECHO1','execTime':'NOW','orderId':'ORDER_CMD_1','symbol':'IBM','qty':'100','price':100}"
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=ivp_redi_fix --data="{'action':'ORDER_TYPE_NEW','orderType':'ORDER_TYPE_NEW','qty':'-100','agent':'ECHO1','execTime':'NOW','symbol':'IBM','price':100}"
-c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=ivp_redi_fix --data="{'action':'ORDER_TYPE_NEW','orderType':'ORDER_TYPE_NEW','qty':'100','agent':'ECHO1','execTime':'NOW','symbol':'IBM','price':100}"
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=ivp_redi_fix --data="{'action':'ORDER_TYPE_NEW','orderType':'2','qty':'-100','agent':'ECHO1','timeInForce':'0','symbol':'IBM','price':100}"
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=ivp_redi_fix --data="{'action':'ORDER_TYPE_NEW','orderType':'2','qty':'100','agent':'ECHO1','timeInForce':'0','symbol':'IBM','price':100}"
 
     'OrderType' : {
         '1': 'Market',

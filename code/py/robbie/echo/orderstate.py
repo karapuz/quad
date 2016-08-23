@@ -379,21 +379,36 @@ class OrderState( object ):
         return self._addByNameByIx(
             name='pending', ix=ix, vals=vals, checked=checked, verbose=verbose )
 
-    def getLivePendingIxBySymbol(self, symbol ):
+    def getLivePendingOrderBySymbol(self, symbol ):
+        return self.getOrderBySymbol(expType='pending', symbol=symbol )
+
+    def getRealizedOrderBySymbol(self, symbol ):
+        return self.getOrderBySymbol(expType='realized', symbol=symbol )
+
+    def getOrderBySymbol(self, expType, symbol ):
         symbolIx    = self.getIxByTag(symbol)
         maxNum      = self._nextNum
         maxSym      = len(self._symbols)
 
-        fullState   = self._pending_long + self._pending_short
+        if expType == 'pending':
+            fullState   = self._pending_long + self._pending_short
+        elif expType == 'realized':
+            fullState   = self._realized
+        elif expType == 'canceled':
+            fullState   = self._canceled
+        else:
+            raise ValueError('Unknown expType=%s' % expType )
 
         state       = fullState[maxSym:maxNum]
-
         live        = ( state != 0 )
         ixs         = numpy.arange( maxSym, maxNum )[ live ]
 
-        relatedIx   = self._symIx2OrdIx[ symbolIx ]
-
-        return dict((self._ix2tag[ ix ], fullState[ix])
+        if symbolIx not in self._symIx2OrdIx:
+            logger.debug( 'No orders for symbol=%s symbolIx=%s', symbol, symbolIx)
+            return {}
+        else:
+            relatedIx   = self._symIx2OrdIx[ symbolIx ]
+            return dict((self._ix2tag[ ix ], int(fullState[ix]))
                         for ix in ixs
                             if ix in relatedIx
                     )

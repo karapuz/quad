@@ -36,25 +36,25 @@ def initFixConfig( fixTweakName ):
         )
         return fixccfg.createConfigFile( root=fixLogRoot, content=content )
 
-def resetSeqNum( sessionID, message ):
+def resetSeqNum( sessionID, message, gateNum=0 ):
     try:
-        return _resetSeqNum( sessionID, message )
+        return _resetSeqNum( sessionID, message, gateNum=gateNum )
     except fix.FieldNotFound as _e:
-        # logger.debug( 'Caught FieldNotFound=%s' % str(e) )
         logger.debug( 'Caught FieldNotFound')
 
-def _resetSeqNum( sessionID, message ):
+def _resetSeqNum( sessionID, message, gateNum=0 ):
     text = message.getField( fut.Tag_Text )
 
     p = text.split(' ') # 'Logon seqnum 60 is lower than expected seqnum 255'
     if p[:2] == [ 'Logon', 'seqnum' ] and p[3:8] == 'is lower than expected seqnum'.split(' '):
-        clientNum, gateNum = int( p[-1] ), 0
+        # clientNum, gateNum = int( p[-1] ), 0
+        clientNum = int( p[-1] )
         seqnumutil.setSeqNums( clientNum, gateNum )
         seqnumutil.resetSeqNums( sessionID )
 
     #MsgSeqNum too low, expecting 543 but received 235
     elif p[:3] == [ 'MsgSeqNum', 'too', 'low,' ] and p[3] == 'expecting':
-        clientNum, gateNum = int( p[4] ), 0
+        clientNum = int( p[4] )
         seqnumutil.setSeqNums( clientNum, gateNum )
         seqnumutil.resetSeqNums( sessionID )
 

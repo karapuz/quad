@@ -104,6 +104,12 @@ class Application( quickfix.Application ):
         hdr     = message.getHeader()
         msgType = hdr.getField( fut.Tag_MsgType )
         logger.debug('onToAdmin msgType=%s', fut.msgVal2Name(msgType))
+        try:
+            if msgType == fut.Msg_Logout or msgType == fut.Msg_Logon:
+                logger.debug('onToAdmin msgType=%s message=%s', msgType, message)
+                execut.resetSeqNum( sessionID, message, 1 )
+        except:
+            print 'onFromAdmin ERROR e=%s' % str(traceback.format_exc() )
 
     def onFromAdmin( self, sessionID, message ):
         hdr     = message.getHeader()
@@ -300,7 +306,6 @@ class Application( quickfix.Application ):
 
         mktPrice    = self.getMarketPrices(symbol=symbol)
 
-        ### TODO - here's where I need to extract message type, and propagate all relevant fields
         self._signalStrat.onNew(
             timeInForce = timeInForce,
             signalName  = account,
@@ -350,6 +355,7 @@ class Application( quickfix.Application ):
         account     = message.getField( fut.Tag_Account )
         symbol      = message.getField( fut.Tag_Symbol  )
         mktPrice    = self.getMarketPrices(symbol=symbol)
+        logger.error( 'ERROR!!!!!!!! onOrderPendingCancel: toApp oid=%s s=%-4s' % ( orderId, symbol ))
 
     def getMarketPrices(self, symbol):
         ''' get Market Prices  '''
@@ -362,7 +368,7 @@ class Application( quickfix.Application ):
         return {'TRADE': trade, 'BID': bid, 'ASK': ask}
 
     ''' order issuing block '''
-    def sendOrder( self, senderCompID, targetCompID, account, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, tagVal=None ):
+    def sendOrder( self, senderCompID, targetCompID, account, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, orderType=None ):
         logger.debug( 'fix.lnk.send  enter')
         msg = fut.form_NewOrder(
             senderCompID = senderCompID,
@@ -373,7 +379,7 @@ class Application( quickfix.Application ):
             symbol       = symbol,
             qty          = qty,
             price        = price,
-            tagVal       = tagVal )
+            orderType    = orderType )
         session = self.getSession()
         session.sendToTarget( msg )
         logger.debug( 'fix.lnk.send  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price ))

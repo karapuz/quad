@@ -72,7 +72,7 @@ class Test(unittest.TestCase):
         combined    = orderState.getPendingByIx(ixs)
         self.assertTrue( all( combined == [0,-100] ) )
 
-        symQty = orderState.getLivePendingIxBySymbol(symbol='A')
+        symQty = orderState.getLivePendingOrderBySymbol(symbol='A')
         self.assertEqual( {'ORDER2': -100.0, 'ORDER1': 100.0}, symQty )
 
         orderId     = 'ORDER3'
@@ -87,10 +87,10 @@ class Test(unittest.TestCase):
         ixs         = orderState.addTags((symbol, orderId))
         orderState.addPendingByIx(ix=ixs, vals=vals, checked=True, verbose=False )
 
-        symQty = orderState.getLivePendingIxBySymbol(symbol='B')
+        symQty = orderState.getLivePendingOrderBySymbol(symbol='B')
         self.assertEqual( {'ORDER4': -100.0, 'ORDER3': 100.0}, symQty )
 
-        symQty = orderState.getLivePendingIxBySymbol(symbol='A')
+        symQty = orderState.getLivePendingOrderBySymbol(symbol='A')
         self.assertEqual( {'ORDER2': -100.0, 'ORDER1': 100.0}, symQty )
 
         orderId     = 'ORDER4'
@@ -99,7 +99,7 @@ class Test(unittest.TestCase):
         ixs         = orderState.addTags((symbol, orderId))
         orderState.addRealizedByIx(ix=ixs, vals=vals, checked=True, verbose=False )
 
-        symQty = orderState.getLivePendingIxBySymbol(symbol='B')
+        symQty = orderState.getLivePendingOrderBySymbol(symbol='B')
         self.assertEqual( {'ORDER3': 100.0}, symQty )
 
     def test_31(self):

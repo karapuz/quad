@@ -102,6 +102,7 @@ def run_execsrc():
             data    = json.loads(msgs)
             logger.debug('EXECSRCAPP: REDI = %s', data)
 
+            timeInForce = str(data['timeInForce']) # fut.Val_TimeInForce_OPG:
             action      = str(data['action'])
             orderType   = str(data['orderType'])
             signalName  = str(data['signalName'])
@@ -121,6 +122,7 @@ def run_execsrc():
                     qty         = qty,
                     price       = price,
                     orderType   = orderType,
+                    timeInForce = timeInForce,
                     mktPrice    = mktPrice)
 
             elif action == STRATSTATE.ORDERTYPE_FILL:
@@ -172,10 +174,13 @@ def run_execsrc():
                 break
 
             elif cmd == 'SEND':
-                agent   = msg['agent']
-                symbol  = msg.get('symbol', 'IBM')
-                price   = float(msg.get('price','200'))
-                qty     = int(msg.get('qty','1000'))
+                agent       = msg['agent']
+                symbol      = msg.get('symbol', 'IBM')
+                price       = float(msg.get('price','200'))
+                qty         = int(msg.get('qty','1000'))
+                timeInForce = msg.get('timeInForce', fut.Val_TimeInForce_DAY)
+                orderType   = msg.get('orderType', fut.Val_OrdType_Limit)
+
                 app.sendOrder(
                     senderCompID = 'BANZAI',
                     targetCompID = 'FIXIMULATOR',
@@ -184,8 +189,8 @@ def run_execsrc():
                     symbol       = symbol,
                     qty          = qty,
                     price        = price,
-                    timeInForce  = fut.Val_TimeInForce_DAY,
-                    tagVal       = None )
+                    timeInForce  = timeInForce,
+                    orderType    = orderType )
 
             elif cmd == 'CX':
                 agent         = msg['agent']

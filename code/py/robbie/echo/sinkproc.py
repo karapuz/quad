@@ -14,15 +14,22 @@ def newOrderId():
     now = datetime.datetime.now()
     return now.strftime('SNK_%Y%m%d_%H%M%S')
 
+def getPrice(data):
+    if 'price' not in data:
+        return None
+    if data['price'] is None:
+        return None
+    return float( data['price'])
+
 def signal2order(app, action, data, senderCompID, targetCompID ):
 
     if action  == STRATSTATE.ORDERTYPE_NEW:
         account         = data['signalName']
         symbol          = data['symbol']
         qty             = int(data['qty'])
-        price           = float(data['price'])
+        price           = getPrice(data)
         timeInForce     = data['timeInForce']
-        # timeInForce  = fut.Val_TimeInForce_DAY
+        orderType       = data['orderType']
 
         app.sendOrder(
             senderCompID = senderCompID,
@@ -33,21 +40,23 @@ def signal2order(app, action, data, senderCompID, targetCompID ):
             qty          = qty,
             price        = price,
             timeInForce  = timeInForce,
-            tagVal       = None )
+            orderType    = orderType )
 
     elif action  == STRATSTATE.ORDERTYPE_CXRX:
         account = data['signalName']
         symbol  = data['symbol']
         qty     = int(data['qty'])
+        origOrderId = data['origOrderId']
 
-        app.sendOrder(
+        app.cancelOrder(
             senderCompID = senderCompID,
             targetCompID = targetCompID,
             account      = account,
             orderId      = newOrderId(),
+            origOrderId  = origOrderId,
             symbol       = symbol,
-            qty          = qty,
-            tagVal       = None )
+            qty          = qty)
+
     else:
         logger.error('SINKPROC: Unknown action=%s data=%s', action, str(data))
 '''

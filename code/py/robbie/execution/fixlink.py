@@ -36,6 +36,7 @@ def _resetSeqNum( sessionID, message ):
     #MsgSeqNum too low, expecting 543 but received 235
     elif p[:3] == [ 'MsgSeqNum', 'too', 'low,' ] and p[3] == 'expecting':
         clientNum, gateNum = int( p[4] ), 0
+        logger.debug('Resetting -> clientNum=%s, gateNum=%s', clientNum, gateNum)
         seqnumutil.setSeqNums( clientNum, gateNum )
         seqnumutil.resetSeqNums( sessionID )                
 
@@ -102,7 +103,10 @@ class Application( quickfix.Application ):
         hdr     = message.getHeader()
         msgType = hdr.getField( fut.name2tag('MsgType') )
     
-        if msgType == fut.Msg_ExecReport:
+        if msgType == fut.Msg_Logout or msgType == fut.Msg_Logon:
+            # resetSeqNum( sessionID, message )
+            logger.debug('----> Msg_Logout or Msg_Logon: msgType=%s message=%s', msgType, message)
+        elif msgType == fut.Msg_ExecReport:
             execType    = message.getField( fut.Tag_ExecType    )
             orderStatus = message.getField( fut.Tag_OrderStatus )
             

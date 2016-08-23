@@ -206,7 +206,7 @@ def create_staticCancelMsg(account, ccy='USD'):
 
     return bodyConfig
 
-def create_NewOrderMsg( orderId, symbol, qty, price=None ):
+def create_NewOrderMsg( orderId, symbol, qty, price=None, orderType=None ):
     '''populate dynamic info of the message'''
     global Tag_ClientOrderId, Tag_Symbol, Tag_Side, Tag_OrderQty, Tag_TransactTime, Tag_OrderType
     
@@ -217,12 +217,17 @@ def create_NewOrderMsg( orderId, symbol, qty, price=None ):
         Tag_OrderQty        : str( abs( qty ) ),
         Tag_TransactTime    : transactionTime(),
     }
-    
+
+    if orderType:
+        bodyConfig[ Tag_OrderType ] = orderType
+
     if price:
         bodyConfig[ Tag_Price     ] = str( round( price, 2 ) )
-        bodyConfig[ Tag_OrderType ] = fix.OrdType_LIMIT
+        if not orderType:
+            bodyConfig[ Tag_OrderType ] = fix.OrdType_LIMIT
     else:
-        bodyConfig[ Tag_OrderType ] = fix.OrdType_MARKET
+        if not orderType:
+            bodyConfig[ Tag_OrderType ] = fix.OrdType_MARKET
 
     return bodyConfig
 
@@ -243,7 +248,7 @@ def create_CancelMsg( orderId, origOrderId, symbol, qty ):
 
     return bodyConfig
 
-def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, symbol, qty, price=None, tagVal=None ):
+def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, symbol, qty, price=None, orderType=None ):
     '''create a new order message a-new'''
     
     msg = fix.Message()
@@ -255,13 +260,9 @@ def form_NewOrder( senderCompID, targetCompID, account, timeInForce, orderId, sy
     for tag, val in create_staticNewOrderMsg( timeInForce, account ).iteritems():
         msg.setField( tag, val )
     
-    for tag, val in create_NewOrderMsg( orderId=orderId, symbol=symbol, qty=qty, price=price ).iteritems():    
+    for tag, val in create_NewOrderMsg( orderId=orderId, symbol=symbol, qty=qty, price=price, orderType=orderType ).iteritems():
         msg.setField( tag, val )
 
-    if tagVal != None:
-        for tag, val in tagVal:
-            msg.setField( tag, val )
-        
     return msg
 
 def form_Cancel( senderCompID, targetCompID, account, orderId, origOrderId, symbol, qty, ccy, tagVal=None ):

@@ -33,11 +33,9 @@ class SourceStrat(object):
         else:
             raise ValueError('Unknown mode=%s' % mode)
 
-        #turf        = twkval.getenv('run_turf')
         domain      = twkval.getenv('run_domain')
         user        = twkval.getenv('env_userName')
         session     = twkval.getenv('run_session')
-        #activity    = 'echo'
         attrs       = ( 'signalName', 'orderType', 'timeInForce', 'orderId', 'symbol', 'price', 'execTime', 'qty')
         vars        = dict( domain=domain, user=user, session=session, name='SOURCESTRAT', attrs=attrs )
         self._logger  = filelogging.getFileLogger(**vars)

@@ -56,13 +56,6 @@ _signalCategory = ['PEND', 'RLZED', 'ECHO-PEND', 'ECHO-RLZD']
 _targets        = ('SRC', 'SNK')
 _sliceTypes     = ['pending', 'realized', ]
 
-
-# def doubleClicked(index):
-#     print 'doubleClicked --->', index.row(), index.column()
-#
-# def clicked(index):
-#     print 'clicked --->', index.row(), index.column()
-
 def clickColToSignalName(colIx):
     nx = int((colIx-1) / 4)
     return nx
@@ -207,15 +200,18 @@ def cycle( turf, tweaks, orderStates, agents, table, text, delay=5):
         if not _continue:
             return
         symbols     = symboldb.currentSymbols()
-        msg = 'cycle( table=%s, delay=%s) _cycle_ix=%s' % ( table, delay, _cycle_ix )
-        text.append(msg)
+        # msg = 'cycle( table=%s, delay=%s) _cycle_ix=%s' % ( table, delay, _cycle_ix )
+        # text.append(msg)
 
         data    = getData(orderStates=orderStates, agents=agents, symbols=symbols, debug=True)
 
-        table.tableModel().setData(data)
         model   = table.tableModel()
+        model.setData(data)
+        # model   = table.tableModel()
         beg     = 0, 0
-        end     = model.rowCount(0), model.columnCount(0)
+        # end     = model.rowCount(0), model.columnCount(0)
+        end     = len(data) + 1, len(data[0]) + 1
+        logger.debug('end=%s', end)
         model.dataChanged.emit( model.createIndex( *beg ), model.createIndex( *end ))
 
         _cycle_ix += 1
@@ -269,10 +265,6 @@ class TopWindow(QtGui.QMainWindow):
         top.setLayout(grid)
         self.setCentralWidget(top)
 
-    # def keyPressEvent(self, e):
-    #     buttonClicked(e)
-        #print 'keyPressEvent->>', e
-
     def getTextWidget(self):
         return self._text
 
@@ -303,13 +295,17 @@ def buttonClicked(*args):
 
     # expSrc, expType = secName.split('-')
     if secName not in ( 'ECHO-PEND', 'ECHO-RLZD'):
-        logger.error('Cannot execute %s', str(signal))
+        errorMsg = 'Cannot execute %s' % str(signal)
+        logger.error(errorMsg)
+        _sinks['TextWindow'].append('ERROR:' + errorMsg)
         return
 
     bbIn    = storedSignals(signalName='BBIn')
-    msg     = json.dumps(signal)
+    cmd     = {'signalName': signalName, 'secName': secName, 'symbol': symbol }
+    msg     = json.dumps(cmd)
     bbIn[ signalName ].send(msg)
-    logger.debug( 'buttonClicked: %s', str(signal))
+    logger.debug( 'buttonClicked: %s', str(cmd))
+    _sinks['TextWindow'].append('SENDING:' + str(cmd))
 
 def eventHandler(source, data):
     # source='table', data=(signalName, secName, symbol)
@@ -359,8 +355,8 @@ def getData(orderStates, agents, symbols, debug=True):
     mat = []
     for agent in agents:
         for target in _targets:
-            domain = basestrat.getOrderStateDomain(target=target, agent=agent)
-            ordState = orderStates[domain]
+            domain      = basestrat.getOrderStateDomain(target=target, agent=agent)
+            ordState    = orderStates[domain]
             for sliceType in _sliceTypes:
                 symbolSlice = ordState.getSymbolSlice(which=sliceType)
                 if debug:
@@ -408,6 +404,7 @@ if __name__ == '__main__':
         bbIn        = createBBComm()
         storedSignals(signalName='BBIn', signal=bbIn)
         top, table, text = createGUI(signalNames=agents, data=data, symbols=symbols)
+        sinkRegister('TextWindow', text)
         cycle( turf=turf, tweaks=tweaks, orderStates=orderStates, agents=agents, table=table, text=text, delay=1)
         top.show()
         table.show()

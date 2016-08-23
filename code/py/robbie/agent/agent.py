@@ -10,9 +10,10 @@ import argparse
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
+from   robbie.util.logging import logger
 import robbie.echo.policy as stratpolicy
 import robbie.echo.stratutil as stratutil
-from   robbie.util.logging import logger
+from   robbie.echo.stratutil import STRATSTATE
 
 def register(context, regPort, agent, logName):
     regConn          = context.socket(zmq.REQ)
@@ -131,9 +132,24 @@ def run_agent():
             cmd     = json.loads(msg)
             logger.debug('AGENT: BB = %s', cmd)
 
-            #cmds    = echoStrat.orderUpdate(cmd)
-            #echoStrat.addActionData( cmds )
-            logger.debug('AGENT: BB COMMANDS = %s', cmd)
+            # {'signalName': signalName, 'secName': secName, 'symbol': symbol }
+
+            signalName  = cmd['signalName']
+            secName     = cmd['secName']
+            symbol      = cmd['symbol']
+
+            if secName == 'ECHO-PEND':
+                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, symbol=symbol, signalName=signalName)
+            elif secName == 'ECHO-RLZD':
+                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_LIQUIDATE, symbol=symbol, signalName=signalName)
+            else:
+                errorMsg = 'Unknown secName=%s' % secName
+                logger.error(errorMsg)
+                raise ValueError(errorMsg)
+
+            cmds    = echoStrat.bbOrderUpdate(cmds=[cmd])
+            echoStrat.addActionData( cmds )
+            logger.debug('AGENT: BB COMMANDS = %s', cmds)
 
         for cmd in echoStrat.getActionData():
             logger.debug('AGENT: SNKOUT = %s', cmd)
