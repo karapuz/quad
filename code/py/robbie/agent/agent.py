@@ -132,8 +132,6 @@ def run_agent():
             cmd     = json.loads(msg)
             logger.debug('AGENT: BB = %s', cmd)
 
-            # {'signalName': signalName, 'secName': secName, 'symbol': symbol }
-
             signalName  = cmd['signalName']
             secName     = cmd['secName']
             symbol      = cmd['symbol']

@@ -334,8 +334,8 @@ class OrderState( object ):
         if not self._validLenIx( ix=ix, vals=vals, verbose=verbose ):
             return False
 
-        if self._seePending and (not checked) and not self._validKillAddByIx( name=name, vals=vals, ix=ix, verbose=verbose ):
-            return False
+        # if self._seePending and (not checked) and not self._validKillAddByIx( name=name, vals=vals, ix=ix, verbose=verbose ):
+        #     return False
 
         if name == 'realized':
             self._realized[ ix ] += vals

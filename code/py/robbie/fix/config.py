@@ -5,6 +5,7 @@ DESCCRIPTION : [quick]FIX related configuration
 '''
 
 import os
+import shutil
 
 import robbie.util.misc as libmisc
 import robbie.tweak.value as twkval
@@ -12,19 +13,26 @@ from   robbie.util.logging import logger
 
 fixVersion_4_2='FIX.4.2'
 
-def getFIXConfig( root, name ):
+def getFIXConfig( root, name, cleanSlate=False ):
     #global fixVersion_4_2
     
     if name in [ 'store', 'log', 'config' ]:
         path = os.path.join( root, name )
         if not os.path.exists( path ):
-            logger.debug( 'getFIXConfig: creating: %s' % path )
+            logger.debug( 'getFIXConfig: making: %s' % path )
             libmisc.makeMissingDirs( dirName=path )
-        if name  == 'config':
-            return os.path.join( path, 'fixconnect.cfg')
-        else:
-            return path
 
+        if name  == 'config':
+            fullPath = os.path.join( path, 'fixconnect.cfg')
+        else:
+            fullPath = path
+
+        if os.path.exists( fullPath ):
+            if cleanSlate:
+                logger.debug( 'getFIXConfig: removing: %s' % path )
+                shutil.rmtree( fullPath )
+
+        return fullPath
     raise ValueError( 'Unknown env=%s tag=%s' % ( str(tag) ) )
 
 def configContent( fixDictPath, logPath, storePath, host, port, sender, target, fixVersion=fixVersion_4_2 ):

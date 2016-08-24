@@ -69,6 +69,7 @@ def run_execSink():
                             signalStrat = signalStrat,
                             mode        = signalMode,
                             pricestrip  = None,
+                            cleanSlate  = False,
                             msgAdapter  = msgAdapter)
 
     app          = appThread.getApplication()

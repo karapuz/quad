@@ -155,39 +155,36 @@ class Strategy(basestrat.BaseStrat):
                 ordQty = self.getLivePendingOrderBySymbol( target='SNK', symbol=symbol)
 
                 for origOrderId, qty in ordQty.iteritems():
-                    d = {
-                        'action'        : STRATSTATE.ORDERTYPE_CXRX,
-                        'data'          : {
-                                'action'        : STRATSTATE.ORDERTYPE_CXRX,
-                                'orderId'       : stratutil.newOrderId('EO-CX'),
-                                'origOrderId'   : origOrderId,
-                                'symbol'        : symbol,
-                                'qty'           : qty,
-                                'signalName'    : signalName,
-                                'timeInForce'   : timeInForce,
-                            },
-                        }
-                    data.append(d)
-                    self._logger.debug(label='PEND-%s' % shortAction, args=d)
+                    _d = { 'action'        : STRATSTATE.ORDERTYPE_CXRX,
+                            'orderId'       : stratutil.newOrderId('EO-CX'),
+                            'origOrderId'   : origOrderId,
+                            'symbol'        : symbol,
+                            'qty'           : qty,
+                            'signalName'    : signalName,
+                            'timeInForce'   : timeInForce }
+
+                    d = {   'action'        : STRATSTATE.ORDERTYPE_CXRX,
+                            'data'          : _d }
+                    data.append( d )
+                    self._logger.debug(label='PEND-%s' % shortAction, args=_d)
 
             if action == STRATSTATE.ORDERTYPE_SYMBOL_LIQUIDATE:
                 # liquidate all realized exposure
-                rlzdOrdQty = self.getRealizedOrderBySymbol( target='SNK', symbol=symbol)
-                for origOrderId, qty in rlzdOrdQty.iteritems():
-                    d = {
-                        'action'    : STRATSTATE.ORDERTYPE_NEW,
-                        'data'      : {
-                                'action'        : STRATSTATE.ORDERTYPE_NEW,
-                                'orderType'     : fut.Val_OrdType_Market,
-                                'orderId'       : stratutil.newOrderId('EOC-LQ'),
-                                'origOrderId'   : origOrderId,
-                                'symbol'        : symbol,
-                                'qty'           : -qty,
-                                'timeInForce'   : timeInForce,
-                            },
-                        }
-                    data.append( d )
-                    self._logger.debug(label='REALIZED-%s' % shortAction, args=d)
+                # rlzdOrdQty = self.getRealizedOrderBySymbol( target='SNK', symbol=symbol)
+                qty  = int(self.getRealizedBySymbol(target='SNK', tag=symbol))
+
+                _d = {  'action'        : STRATSTATE.ORDERTYPE_NEW,
+                        'orderType'     : fut.Val_OrdType_Market,
+                        'orderId'       : stratutil.newOrderId('EOC-LQ'),
+                        'symbol'        : symbol,
+                        'qty'           : -qty,
+                        'timeInForce'   : timeInForce,
+                        'signalName'    : signalName }
+
+                d = {   'action'    : STRATSTATE.ORDERTYPE_NEW,
+                        'data'      : _d }
+                data = [ d ]
+                self._logger.debug(label='REALIZED-%s' % shortAction, args=_d)
 
             if action not in ( STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, STRATSTATE.ORDERTYPE_SYMBOL_LIQUIDATE):
                 raise ValueError('Unknown orderType=%s' % action)

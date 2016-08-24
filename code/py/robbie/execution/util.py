@@ -15,7 +15,7 @@ import robbie.tweak.context as twkcx
 import robbie.fix.seqnum as seqnumutil
 from   robbie.util.logging import logger
 
-def initFixConfig( fixTweakName ):
+def initFixConfig( fixTweakName, cleanSlate=False ):
     '''
     needs tweak: fix_connConfig
     fixTweakName = fix_SrcConnConfig
@@ -28,8 +28,8 @@ def initFixConfig( fixTweakName ):
 
     with twkcx.Tweaks( fix_source=sender ):
         fixLogRoot  = margot.getRoot(compName='fix')
-        logPath     = fixccfg.getFIXConfig( root=fixLogRoot, name='log')
-        storePath   = fixccfg.getFIXConfig( root=fixLogRoot, name='store')
+        logPath     = fixccfg.getFIXConfig( root=fixLogRoot, name='log', cleanSlate=cleanSlate)
+        storePath   = fixccfg.getFIXConfig( root=fixLogRoot, name='store', cleanSlate=cleanSlate )
 
         content = fixccfg.configContent(
             fixDictPath=fixDictPath, logPath=logPath, storePath=storePath, host=host, port=port, sender=sender, target=target

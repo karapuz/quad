@@ -47,5 +47,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\app\fakebbg.py --turf=dev_full
+c:\Python27\python2.7.exe robbie\app\fakebbg.py --turf=ivp_redi_fix
 '''

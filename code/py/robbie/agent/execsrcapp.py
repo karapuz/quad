@@ -87,7 +87,9 @@ def run_execsrc():
                     signalStrat = signalStrat,
                     mode        = signalMode,
                     pricestrip  = bbg,
+                    cleanSlate  = True,
                     msgAdapter  = msgAdapter)
+
     app         = appShell.getApplication()
 
     while True:

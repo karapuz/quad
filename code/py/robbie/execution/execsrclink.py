@@ -13,11 +13,13 @@ from   robbie.util.logging import logger
 from   robbie.echo.stratutil import EXECUTION_MODE
 
 class Application( quickfix.Application ):
+    _cx2orig = {}
 
     def onCreate(self, sessionID):
         logger.debug('onCreate sessionID=%s', sessionID)
         self._sessionID = sessionID
         self._session   = quickfix.Session.lookupSession( sessionID )
+        self._cx2orig[ self._sessionID ] = {}
 
     def setMode(self, mode):
         self._mode = mode
@@ -243,7 +245,11 @@ class Application( quickfix.Application ):
         else:
             cxqty   = fut.convertQty( side, lastShares )
 
-        origOrderId = message.getField( fut.Tag_OrigClOrdID )
+        try:
+            origOrderId = message.getField( fut.Tag_OrigClOrdID )
+        except quickfix.FieldNotFound as _e:
+            origOrderId = self._cx2orig[ self._sessionID ][ orderId ]
+
         mktPrice    = self.getMarketPrices(symbol=symbol)
 
         logger.debug( 'fix.cxed oid=%s s=%-4s q=%4d' % ( orderId, symbol, cxqty ))
@@ -360,6 +366,7 @@ class Application( quickfix.Application ):
     def getMarketPrices(self, symbol):
         ''' get Market Prices  '''
         if self._priceStrip is None:
+            logger.error( 'ERROR!!!!!!!! getMarketPrices: nor price for %s' % symbol)
             return {}
 
         trade   = self._priceStrip.getInstantPriceByName(priceType='TRADE', symbol=symbol)
@@ -382,7 +389,7 @@ class Application( quickfix.Application ):
             orderType    = orderType )
         session = self.getSession()
         session.sendToTarget( msg )
-        logger.debug( 'fix.lnk.send  id=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price ))
+        logger.debug( 'fix.lnk.send  id=%s s=%-4s q=%4d p=%s' % ( orderId, symbol, qty, price ))
 
     def cancelOrder( self, senderCompID, targetCompID, account, orderId, origOrderId, symbol, qty ):
         logger.debug( 'fix.lnk.cx  enter' )
@@ -395,14 +402,18 @@ class Application( quickfix.Application ):
             symbol          = symbol,
             ccy             = None,
             qty             = qty )
+
+        #self._cx2orig[ orderId ] = origOrderId
+        self._cx2orig[ self._sessionID ][ orderId ] = origOrderId
+
         session = self.getSession()
         session.sendToTarget( msg )
         logger.debug( 'fix.lnk.cx  msg=%s' % ( msg ))
         logger.debug( 'fix.lnk.cx  id=%s s=%-4s q=%4d' % ( orderId, symbol, qty ))
 
-def init(tweakName, signalStrat, mode, pricestrip, msgAdapter=None):
+def init(tweakName, signalStrat, mode, pricestrip, cleanSlate=False, msgAdapter=None):
     ''' '''
-    cfgpath     = execut.initFixConfig( tweakName )
+    cfgpath     = execut.initFixConfig( tweakName, cleanSlate=cleanSlate )
 
     app         = Application( )
     app.setMode(mode=mode)
