@@ -8,14 +8,12 @@ import os
 import shutil
 
 import robbie.util.misc as libmisc
-import robbie.tweak.value as twkval
 from   robbie.util.logging import logger
 
 fixVersion_4_2='FIX.4.2'
 
 def getFIXConfig( root, name, cleanSlate=False ):
-    #global fixVersion_4_2
-    
+
     if name in [ 'store', 'log', 'config' ]:
         path = os.path.join( root, name )
         if not os.path.exists( path ):
@@ -33,7 +31,8 @@ def getFIXConfig( root, name, cleanSlate=False ):
                 shutil.rmtree( fullPath )
 
         return fullPath
-    raise ValueError( 'Unknown env=%s tag=%s' % ( str(tag) ) )
+    else:
+        raise ValueError( 'Unknown env=%s tag=%s' % ( str(name) ) )
 
 def configContent( fixDictPath, logPath, storePath, host, port, sender, target, fixVersion=fixVersion_4_2 ):
     '''supply content for the FIX config'''
@@ -68,4 +67,3 @@ def createConfigFile( root, content, override=False ):
         fd.write( content )
         
     return fnfixconfig
-

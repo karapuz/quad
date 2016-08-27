@@ -59,10 +59,11 @@ def _resetSeqNum( sessionID, message, gateNum=0 ):
         seqnumutil.resetSeqNums( sessionID )
 
 class AppThread( object ):
-    def __init__(self, cfgpath, app, loop=False ):
-        self._app   = app
-        self._loop  = loop
-        self._file  = cfgpath
+    def __init__(self, cfgpath, app, useLogger=True, loop=False ):
+        self._app       = app
+        self._loop      = loop
+        self._file      = cfgpath
+        self._useLogger = useLogger
         logger.debug('cfgpath = %s', cfgpath)
 
     def getApplication(self):
@@ -72,8 +73,10 @@ class AppThread( object ):
         try:
             self._settings    = fix.SessionSettings( self._file )
             self._storeFactory= fix.FileStoreFactory( self._settings )
-            #self._logFactory  = fix.FileLogFactory( self._settings )
-            self._logFactory  = fix.ScreenLogFactory( self._settings )
+            if self._useLogger:
+                self._logFactory  = fix.FileLogFactory( self._settings )
+            else:
+                self._logFactory  = fix.ScreenLogFactory( self._settings )
             self._initiator   = fix.SocketInitiator( self._app, self._storeFactory, self._settings, self._logFactory )
             self._initiator.start()
         except (fix.ConfigError, fix.RuntimeError), _e:

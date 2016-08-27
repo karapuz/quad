@@ -137,9 +137,13 @@ def run_agent():
             symbol      = cmd['symbol']
 
             if secName == 'ECHO-PEND':
-                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, symbol=symbol, signalName=signalName)
+                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, symbol=symbol, signalName=signalName, secName=secName)
+            elif secName == 'ECHO-LONG':
+                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, symbol=symbol, signalName=signalName, secName=secName)
+            elif secName == 'ECHO-SHORT':
+                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, symbol=symbol, signalName=signalName, secName=secName)
             elif secName == 'ECHO-RLZD':
-                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_LIQUIDATE, symbol=symbol, signalName=signalName)
+                cmd = dict( action=STRATSTATE.ORDERTYPE_SYMBOL_LIQUIDATE, symbol=symbol, signalName=signalName, secName=secName)
             else:
                 errorMsg = 'Unknown secName=%s' % secName
                 logger.error(errorMsg)

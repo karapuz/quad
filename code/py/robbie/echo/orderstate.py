@@ -261,6 +261,10 @@ class OrderState( object ):
 
         if which == 'pending':
             qty     = self._pending_long[ bx:ex ] + self._pending_short[ bx:ex ]
+        elif which == 'pending-long':
+            qty     = self._pending_long[ bx:ex ]
+        elif which == 'pending-short':
+            qty     = self._pending_short[ bx:ex ]
         elif which == 'canceled':
             qty     = self._canceled[ bx:ex ]
         elif which == 'realized':
@@ -392,6 +396,10 @@ class OrderState( object ):
 
         if expType == 'pending':
             fullState   = self._pending_long + self._pending_short
+        elif expType == 'pending-long':
+            fullState   = self._pending_long
+        elif expType == 'pending-short':
+            fullState   = self._pending_short
         elif expType == 'realized':
             fullState   = self._realized
         elif expType == 'canceled':

@@ -9,10 +9,7 @@ import datetime
 import robbie.fix.util as fut
 from   robbie.echo.stratutil import STRATSTATE
 from   robbie.util.logging import logger
-
-def newOrderId():
-    now = datetime.datetime.now()
-    return now.strftime('SNK_%Y%m%d_%H%M%S')
+import robbie.echo.stratutil as stratutil
 
 def getPrice(data):
     if 'price' not in data:
@@ -35,7 +32,7 @@ def signal2order(app, action, data, senderCompID, targetCompID ):
             senderCompID = senderCompID,
             targetCompID = targetCompID,
             account      = account,
-            orderId      = newOrderId(),
+            orderId      = stratutil.newOrderId('SNK'),
             symbol       = symbol,
             qty          = qty,
             price        = price,
@@ -52,7 +49,7 @@ def signal2order(app, action, data, senderCompID, targetCompID ):
             senderCompID = senderCompID,
             targetCompID = targetCompID,
             account      = account,
-            orderId      = newOrderId(),
+            orderId      = stratutil.newOrderId('SNK'),
             origOrderId  = origOrderId,
             symbol       = symbol,
             qty          = qty)

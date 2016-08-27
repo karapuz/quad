@@ -8,9 +8,9 @@ import zmq
 import json
 import time
 import argparse
-import robbie.echo.sourcecore as sourcecore
 import robbie.echo.sinkproc as sinkproc
-from   robbie.echo.stratutil import EXECUTION_MODE
+import robbie.echo.sourcecore as sourcecore
+import robbie.util.pricestriputil as pricestriputil
 
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
@@ -63,12 +63,13 @@ def run_execSink():
 
     signalStrat = sourcecore.SourceStrat(agentIn, mode=signalMode)
     msgAdapter  = messageadapt.Message(['ECHO1','ECHO1'], 'TIME')
+    bbg         = pricestriputil.createPriceStrip(turf=turf, readOnly=True)
     tweakName   = 'fix_SinkConnConfig'
     appThread, thread = execsrclink.init(
                             tweakName   = tweakName,
                             signalStrat = signalStrat,
                             mode        = signalMode,
-                            pricestrip  = None,
+                            pricestrip  = bbg,
                             cleanSlate  = False,
                             msgAdapter  = msgAdapter)
 

@@ -126,8 +126,8 @@ class Strategy(basestrat.BaseStrat):
         openRlzd    = self.getRealizedByOrderId(target='SNK', tag=openOrderId, shouldExist=False)
         return openRlzd
 
-    def getLivePendingOrderBySymbol( self, target, symbol):
-        return self.getOrderBySymbol( expType='pending', target='SNK', symbol=symbol)
+    def getLivePendingOrderBySymbol( self, target, symbol, expType='pending'):
+        return self.getOrderBySymbol( expType=expType, target='SNK', symbol=symbol)
 
     def getRealizedOrderBySymbol( self, target, symbol):
         return self.getOrderBySymbol( expType='realized', target='SNK', symbol=symbol)
@@ -136,6 +136,12 @@ class Strategy(basestrat.BaseStrat):
         '''  {'ORDER3': 100.0} '''
         orderState = self._getTargetOrderState(target=target)
         symQty = orderState.getOrderBySymbol(expType=expType, symbol=symbol)
+        return symQty
+
+    def getRemainderOrderBySymbol( self, target, symbol):
+        '''  {'ORDER3': 100.0} '''
+        orderState = self._getTargetOrderState(target=target)
+        symQty = orderState.getOrderBySymbol(expType='remainder', symbol=symbol)
         return symQty
 
     def bbOrderUpdate(self, cmds):
@@ -147,12 +153,21 @@ class Strategy(basestrat.BaseStrat):
             action      = cmd['action']
             symbol      = cmd['symbol']
             signalName  = cmd['signalName']
+            secName     = cmd['secName']
 
             shortAction = 'CANCEL' if action == STRATSTATE.ORDERTYPE_SYMBOL_CANCEL else 'LIQUIDATE'
 
             if action in ( STRATSTATE.ORDERTYPE_SYMBOL_CANCEL, STRATSTATE.ORDERTYPE_SYMBOL_LIQUIDATE):
                 # cancel all pending orders
-                ordQty = self.getLivePendingOrderBySymbol( target='SNK', symbol=symbol)
+
+                if secName == 'ECHO-LONG':
+                    ordQty = self.getLivePendingOrderBySymbol( target='SNK', symbol=symbol, expType='pending-long')
+                elif secName == 'ECHO-SHORT':
+                    ordQty = self.getLivePendingOrderBySymbol( target='SNK', symbol=symbol, expType='pending-short')
+                elif secName in ( 'ECHO-RLZD', 'ECHO-PEND' ):
+                    ordQty = self.getLivePendingOrderBySymbol( target='SNK', symbol=symbol, expType='pending')
+                else:
+                    raise ValueError('Uknown secName=%s' % secName)
 
                 for origOrderId, qty in ordQty.iteritems():
                     _d = { 'action'        : STRATSTATE.ORDERTYPE_CXRX,

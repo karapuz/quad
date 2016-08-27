@@ -38,7 +38,7 @@ def newOrderId(base):
     global _newOrderIx
     _newOrderIx += 1
     now         = datetime.datetime.now()
-    return '%s_%s_%s' % ( base, now.strftime('%Y%m%d_%H%M%S' ), _newOrderIx)
+    return '%s_%s_%s' % ( base, now.strftime('%Y%m%d' ), _newOrderIx)
 
 def _sign(x):
     if x == 0:

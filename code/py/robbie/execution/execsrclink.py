@@ -43,12 +43,10 @@ class Application( quickfix.Application ):
         self._msgAdapter = msgAdapter
 
     def onLogon(self, sessionID ):
-        # logger.debug('onLogon')
-        pass
+        logger.debug( 'onLogon: sessionID=%s', sessionID )
 
     def onLogout(self, sessionID ):
-        # logger.debug('onLogout')
-        pass
+        logger.debug( 'onLogout: sessionID=%s', sessionID )
     
     def toAdmin(self, message, sessionID ): 
         try:
@@ -72,8 +70,6 @@ class Application( quickfix.Application ):
         
     def toApp(self, message, sessionID ): 
         try:
-            ### TODO need access to the price slice here.
-            ### TODO Should update self._price
 
             if self._mode == EXECUTION_MODE.NEW_FILL_CX:
                 onToApp = self.onToApp
@@ -105,6 +101,11 @@ class Application( quickfix.Application ):
     def onToAdmin( self, sessionID, message ):
         hdr     = message.getHeader()
         msgType = hdr.getField( fut.Tag_MsgType )
+
+        if msgType == fut.Msg_Heartbeat:
+            # logger.debug( msgType )
+            return
+
         logger.debug('onToAdmin msgType=%s', fut.msgVal2Name(msgType))
         try:
             if msgType == fut.Msg_Logout or msgType == fut.Msg_Logon:
@@ -116,11 +117,12 @@ class Application( quickfix.Application ):
     def onFromAdmin( self, sessionID, message ):
         hdr     = message.getHeader()
         msgType = hdr.getField( fut.Tag_MsgType )
-        logger.debug('onFromAdmin msgType=%s', fut.msgVal2Name(msgType))
 
         if msgType == fut.Msg_Heartbeat:
-            logger.debug( msgType )
+            # logger.debug( msgType )
             return
+
+        logger.debug('onFromAdmin msgType=%s', fut.msgVal2Name(msgType))
 
         try:
             if msgType == fut.Msg_Logout or msgType == fut.Msg_Logon:
@@ -185,9 +187,6 @@ class Application( quickfix.Application ):
         if msgType == fut.Msg_NewOrderSingle:
              return self.onSubmitToApp( orderId=orderId, message=message )
 
-        # elif msgType == fut.Msg_OrderCancelRequest:
-        #      return  self.onOrderCancelToApp( orderId=orderId, message=message)
-
         else:
             logger.error( 'onToApp [1] unhandled %s' % ( msgType  ) )
 
@@ -245,9 +244,15 @@ class Application( quickfix.Application ):
         else:
             cxqty   = fut.convertQty( side, lastShares )
 
+        if cxqty == 0:
+            cxqty  = fut.convertQty( side, int( message.getField( fut.Tag_LeavesQty ) ) )
+
         try:
             origOrderId = message.getField( fut.Tag_OrigClOrdID )
         except quickfix.FieldNotFound as _e:
+            if orderId not in self._cx2orig[ self._sessionID ]:
+                logger.error( 'fix.cxed Absent originalId - cx not issued by echo. oid=%s s=%-4s q=%4d' % ( orderId, symbol, cxqty ))
+                return
             origOrderId = self._cx2orig[ self._sessionID ][ orderId ]
 
         mktPrice    = self.getMarketPrices(symbol=symbol)
@@ -322,7 +327,7 @@ class Application( quickfix.Application ):
             qty         = qty,
             price       = lastPx,
             mktPrice    = mktPrice)
-        logger.debug( 'fix.new formApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
+        logger.debug( 'fix.new formApp onSubmit oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
 
     def onSubmitToApp( self, orderId, message ):
         logger.debug( 'onSubmitToApp' )
@@ -334,13 +339,23 @@ class Application( quickfix.Application ):
         orderType   = message.getField( fut.Tag_OrderType )
         timeInForce = message.getField( fut.Tag_TimeInForce )
 
+        price       = 0
+
+        try:
+            price      = float ( message.getField( fut.Tag_LastPx      ) )
+        except quickfix.FieldNotFound as _e:
+            pass
+
+        try:
+            price      = float ( message.getField( fut.Tag_Price      ) )
+        except quickfix.FieldNotFound as _e:
+            pass
+
         # cumQty      = int   ( message.getField( fut.Tag_CumQty      ) )
         # leavesQty   = int   ( message.getField( fut.Tag_LeavesQty   ) )
 
-        #lastPx      = float ( message.getField( fut.Tag_LastPx      ) )
         lastShares  = int   ( message.getField( fut.Tag_OrderQty  ) )
         qty         = fut.convertQty( side, lastShares )
-        lastPx      = 0
         mktPrice    = self.getMarketPrices(symbol=symbol)
 
         self._signalStrat.onNew(
@@ -349,12 +364,12 @@ class Application( quickfix.Application ):
             orderId     = orderId,
             symbol      = symbol,
             qty         = qty,
-            price       = lastPx,
+            price       = price,
             orderType   = orderType,
             timeInForce = timeInForce,
             mktPrice    = mktPrice)
 
-        logger.debug( 'fix.new toApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, lastPx ))
+        logger.debug( 'fix.new onSubmitToApp oid=%s s=%-4s q=%4d p=%f' % ( orderId, symbol, qty, price ))
 
     def onOrderPendingCancel( self, orderId, message, execType, orderStatus ):
         logger.debug( 'onOrderPendingCancel %s %s' % ( execType, orderStatus ) )
@@ -376,7 +391,8 @@ class Application( quickfix.Application ):
 
     ''' order issuing block '''
     def sendOrder( self, senderCompID, targetCompID, account, orderId, symbol, qty, price, timeInForce=fut.Val_TimeInForce_DAY, orderType=None ):
-        logger.debug( 'fix.lnk.send  enter')
+        logger.debug( 'fix.lnk.send account=%s, orderId=%s, symbol=%s, qty=%s, price=%s, timeInForce=%s, orderType=%s',
+                      account, orderId, symbol, qty, price, timeInForce, orderType)
         msg = fut.form_NewOrder(
             senderCompID = senderCompID,
             targetCompID = targetCompID,
@@ -413,15 +429,15 @@ class Application( quickfix.Application ):
 
 def init(tweakName, signalStrat, mode, pricestrip, cleanSlate=False, msgAdapter=None):
     ''' '''
-    cfgpath     = execut.initFixConfig( tweakName, cleanSlate=cleanSlate )
+    cfgpath = execut.initFixConfig( tweakName, cleanSlate=cleanSlate )
 
-    app         = Application( )
+    app = Application( )
     app.setMode(mode=mode)
     app.registerStratManager( signalStrat )
     app.addMessageAdapter( msgAdapter )
     app._seenOrderId = set()
     app.registerPriceStrip(pricestrip)
 
-    appThread   = execut.AppThread( app=app, cfgpath=cfgpath )
+    appThread = execut.AppThread( app=app, cfgpath=cfgpath, useLogger=True )
     appThread.run()
     return appThread, app

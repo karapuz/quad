@@ -58,16 +58,17 @@ _colors = {
     'DarkGreen'     : QColor(0, 99, 37),
 }
 
-_signalCategory = ['PEND', 'RLZED', 'ECHO-PEND', 'ECHO-RLZD']
+_signalCategory = ['LONG', 'SHORT', 'RLZED', 'ECHO-LONG', 'ECHO-SHORT', 'ECHO-RLZD']
+_echoSignals    = ['ECHO-LONG', 'ECHO-SHORT', 'ECHO-RLZD']
 _targets        = ('SRC', 'SNK')
-_sliceTypes     = ['pending', 'realized', ]
+_sliceTypes     = ['pending-long', 'pending-short', 'realized', ]
 
 def clickColToSignalName(colIx):
-    nx = int((colIx-1) / 4)
+    nx = int((colIx-1) / len(_signalCategory))
     return nx
 
 def clickColToSectionName(colIx):
-    cx = (colIx-1) % 4
+    cx = (colIx-1) % len(_signalCategory)
     return cx
 
 class ExposureTable(QWidget):
@@ -113,6 +114,13 @@ class ExposureTable(QWidget):
     def tableModel(self):
         return self._tableModel
 
+    def getData(self):
+        return self._tableModel._data
+
+    def setChanged(self, changed):
+        # self._changed = changed
+        self._tableModel.changed( changed )
+
     def tableLayout(self):
         return self._layout
 
@@ -121,6 +129,7 @@ class MyTableModel(QAbstractTableModel):
     def __init__(self, signalNames, symbols, data, parent=None, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self._data = data
+        self._changed = {}
         self.initLabels( signalCategory=_signalCategory, signalNames=signalNames, symbols=symbols)
 
     def initLabels( self, signalCategory, signalNames, symbols):
@@ -139,13 +148,27 @@ class MyTableModel(QAbstractTableModel):
         elif colIx == 0:
             return self._symbols[ rowIx ]
 
+    def changed( self, changed ):
+        self._changed = changed
+        # logger.debug('MyTableModel->changed = %s' % str(changed) )
+
     def toColor(self, rowIx, colIx):
         '''
         can be either data, symbols, or signal (sub elements)
         '''
+        if self._changed:
+            indx = rowIx, colIx - 1
+            # print '---------> indx ', indx
+
+            if indx in self._changed:
+                # print '--------->>>>>>>>>>>>>> indx ', indx
+                del self._changed[ indx ]
+                return QBrush(Qt.white), QBrush(Qt.magenta)
+
         if colIx > 0:
             #return QBrush(Qt.black), QBrush(Qt.green)
-            even = ( int( (colIx - 1) / 4) % 2) == 0
+            signalCount = len(_signalCategory)
+            even = ( int( (colIx - 1) / signalCount) % 2) == 0
 
             if even:
                 return QBrush(Qt.black), QBrush(_colors['LightGreen'])
@@ -154,6 +177,7 @@ class MyTableModel(QAbstractTableModel):
 
         if colIx == 0:
             return QBrush(Qt.white), QBrush(_colors['DarkGreen'])
+
 
     def setData(self, data):
         self._data = data
@@ -195,7 +219,9 @@ class MyTableModel(QAbstractTableModel):
             nx = clickColToSignalName(section)
             cx = clickColToSectionName(section)
 
-            if nx * 4 == (section-1):
+            signalCount = len(_signalCategory)
+
+            if nx * signalCount == (section-1):
                 return '%s\n%s' % ( self._signalNames[ nx ], self._signalCategory[ cx ] )
             else:
                 return '%s\n%s' % ( '', self._signalCategory[ cx ] )
@@ -214,15 +240,21 @@ def cycle( turf, tweaks, orderStates, agents, table, text, delay=5):
         # msg = 'cycle( table=%s, delay=%s) _cycle_ix=%s' % ( table, delay, _cycle_ix )
         # text.append(msg)
 
-        data    = getData(orderStates=orderStates, agents=agents, symbols=symbols, debug=True)
+        data    = getData(orderStates=orderStates, agents=agents, symbols=symbols, debug=False)
 
         model   = table.tableModel()
+        d0      = table.getData()
+
+        changed = {}
+        for ix in xrange( len( d0 )):
+            for jx in xrange( len(d0[0])):
+                if d0[ ix ][ jx ] != data[ ix ][ jx ]:
+                    changed[ ix, jx ] = 1
+
         model.setData(data)
-        # model   = table.tableModel()
+        table.setChanged(changed)
         beg     = 0, 0
-        # end     = model.rowCount(0), model.columnCount(0)
         end     = len(data) + 1, len(data[0]) + 1
-        logger.debug('end=%s', end)
         model.dataChanged.emit( model.createIndex( *beg ), model.createIndex( *end ))
 
         _cycle_ix += 1
@@ -305,7 +337,7 @@ def buttonClicked(*args):
     _sinks[ 'CmdLink' ].setText( '' )
 
     # expSrc, expType = secName.split('-')
-    if secName not in ( 'ECHO-PEND', 'ECHO-RLZD'):
+    if secName not in _echoSignals:
         errorMsg = 'Cannot execute %s' % str(signal)
         logger.error(errorMsg)
         _sinks['TextWindow'].append('ERROR:' + errorMsg)
@@ -361,7 +393,7 @@ def prepareOrderStates(agents, mode):
                 orderStates[ domain ] = orderState
     return orderStates
 
-def getData(orderStates, agents, symbols, debug=True):
+def getData(orderStates, agents, symbols, debug=False):
     global _targets, _sliceTypes
     mat = []
     for agent in agents:
@@ -424,5 +456,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\python27\python.exe robbie\app\bb.py --turf=ivp_redi_fix
+c:\python27\python.exe robbie\app\bb2.py --turf=ivp_redi_fix
 '''
