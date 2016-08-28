@@ -55,7 +55,7 @@ def _getSharedRoot( domain, user, session, create=True ):
         libmisc.makeMissingDirs( dirName=varDir )
     return varDir
 
-def _getLogRoot( domain, user, session, create=True ):
+def getLogRoot( domain, user, session, create=True ):
     ''' '''
     varDir = os.path.join( getMargotRoot(), 'log', domain, user, session )
 

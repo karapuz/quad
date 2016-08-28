@@ -4,6 +4,7 @@ TYPE:       : lib
 DESCRIPTION : app.fakebbg module
 '''
 
+import os
 import sys
 import time
 from   threading import Timer
@@ -203,7 +204,7 @@ class MyTableModel(QAbstractTableModel):
             return self.toColor(rowIx=rowIx, colIx=colIx)[0]
 
         elif role == Qt.BackgroundRole:
-            #return QBrush(Qt.yellow)
+            # return QBrush(Qt.yellow)
             return self.toColor(rowIx=rowIx, colIx=colIx)[1]
 
         elif role == Qt.SizeHintRole:
@@ -268,6 +269,18 @@ def _exit(*args):
     _continue = False
     sys.exit()
 
+def _panic(turf):
+    global _continue
+    import subprocess
+    args    = ['--turf=%s' % turf, "--data=\"('SRC','SNK')\"", '--cmd=KILL']
+    argusConf   = turfutil.get(turf=turf, component='argus')
+    python      = argusConf['python']
+    prog        = argusConf['cmd']['prog']
+    subprocess.call(python + prog + args, stdin=None, stdout=None, stderr=None, shell=False)
+    # print python, prog, args, turf
+    _continue = False
+    sys.exit()
+
 class TopWindow(QtGui.QMainWindow):
 
     def __init__(self, table):
@@ -276,16 +289,24 @@ class TopWindow(QtGui.QMainWindow):
         self._init()
 
     def _init(self):
-        exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)
+        import functools
+        turf        = twkval.getenv('run_turf')
+        exitAction  = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(_exit)
+
+        panigAction     = QtGui.QAction(QtGui.QIcon('exit.png'), '&Panic', self)
+        panigAction.setShortcut('Ctrl+X')
+        panigAction.setStatusTip('Panic')
+        panigAction.triggered.connect(functools.partial(_panic, turf))
 
         self.statusBar()
 
         menuBar     = self.menuBar()
         fileMenu    = menuBar.addMenu('&File')
         fileMenu.addAction(exitAction)
+        fileMenu.addAction(panigAction)
 
         self.setMinimumSize(dwX,dwY)
         self.setWindowTitle('Menubar')
@@ -452,7 +473,6 @@ if __name__ == '__main__':
         top.show()
         table.show()
         sys.exit(app.exec_())
-
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py

@@ -36,6 +36,40 @@ def newSinkReg():
 _conf = {
     'ivp_redi_fix': {
         'signal': EXECUTION_MODE.NEW_FILL_CX,
+        'argus': {
+            'python': [r'c:\Python27\python2.7.exe'],
+
+            'components': ['bbg', 'srcexec', 'snkexec'],
+
+            'srcexec' : {
+                'prog'      : [r'robbie\agent\execsrcapp.py'],
+                'logName'   : 'srcexec',
+            },
+
+            'snkexec' : {
+                'prog'      : [r'robbie\agent\execsinkapp.py'],
+                'logName'   : 'execsnkapp',
+            },
+
+            'bbg' : {
+                'prog'      : [r'robbie\app\fakebbg.py'],
+                'logName'   : 'bbg',
+            },
+
+            'cmd' : {
+                'prog'      : [r'robbie\agent\cmd.py'],
+                'logName'   : 'cmd',
+            },
+
+            'bb2' : {
+                'prog'      : [r'robbie\app\bb2.py'],
+                'logName'   : 'bb2',
+            },
+
+            'agent' : {
+                'prog'      : [r'robbie\agent\agent.py'],
+            },
+        },
         'cmd': [
             'CMD'
         ],
