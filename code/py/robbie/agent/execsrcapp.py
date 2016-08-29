@@ -33,7 +33,7 @@ def getMarketPrices(priceStrip, symbol):
     ask     = priceStrip.getInstantPriceByName(priceType='ASK', symbol=symbol)
     return {symbol: {'TRADE': trade, 'BID': bid, 'ASK': ask}}
 
-def run_execsrc():
+def run_execsrc(cleanSlate):
     # prepare fix
     # Prepare our context and sockets
     context     = zmq.Context()
@@ -87,7 +87,7 @@ def run_execsrc():
                     signalStrat = signalStrat,
                     mode        = signalMode,
                     pricestrip  = bbg,
-                    cleanSlate  = True,
+                    cleanSlate  = cleanSlate,
                     msgAdapter  = msgAdapter)
 
     app         = appShell.getApplication()
@@ -237,7 +237,7 @@ if __name__ == '__main__':
     }
 
     with twkcx.Tweaks( **tweaks ):
-        run_execsrc()
+        run_execsrc(cleanSlate=False)
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
