@@ -51,6 +51,12 @@ def run_cmd(cmd, agent, data):
         msg = srcCmd.recv()
         logger.debug("CMD: Received reply %s [%s]" % (srcPort, msg))
 
+    elif cmd == 'EXP':
+        import robbie.util.exposure as utex
+        path    = data
+        logger.debug("EXP: path", path)
+        exposure = utex.loadFromCsv(path)
+
     elif cmd == 'REDI':
         d     = {'cmd': cmd}
         d.update(eval(data))

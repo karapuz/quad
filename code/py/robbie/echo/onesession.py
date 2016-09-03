@@ -134,13 +134,13 @@ class Strategy(basestrat.BaseStrat):
 
     def getOrderBySymbol( self, expType, target, symbol):
         '''  {'ORDER3': 100.0} '''
-        orderState = self._getTargetOrderState(target=target)
+        orderState = self.getTargetOrderState(target=target)
         symQty = orderState.getOrderBySymbol(expType=expType, symbol=symbol)
         return symQty
 
     def getRemainderOrderBySymbol( self, target, symbol):
         '''  {'ORDER3': 100.0} '''
-        orderState = self._getTargetOrderState(target=target)
+        orderState = self.getTargetOrderState(target=target)
         symQty = orderState.getOrderBySymbol(expType='remainder', symbol=symbol)
         return symQty
 

@@ -26,6 +26,7 @@ _funcvalues = {
     'run_tradeDate'     : calendar.getdate,
     'run_session'       : calendar.getsession,
     'run_domain'        : twfunc.const( 'echo' ),
+    'run_sodpath'       : twfunc.const( None ),
     'env_userName'      : compat.getenv,
     'env_origUserName'  : compat.getenv,
     'env_tmpRoot'       : getRobbieTempRoot,
@@ -39,20 +40,6 @@ _funcvalues = {
     'fix_SinkConnConfig' : twfunc.const( None ),
 }
 
-'''
-    'fix_SrcConnConfig' : twfunc.const( {
-        'host'  : 'localhost',
-        'port'  : 9878,
-        'sender': 'BANZAI',
-        'target': 'FIXIMULATOR',
-    }),
-    'fix_SinkConnConfig' : twfunc.const( {
-        'host'  : 'localhost',
-        'port'  : 9888,
-        'sender': 'BANZAISINK',
-        'target': 'FIXIMULATORSINK',
-    }),
-'''
 def getval( name ):
     global _setvalues
     return _setvalues.get( name, None )

@@ -173,9 +173,10 @@ if __name__ == '__main__':
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
     args    = parser.parse_args()
     tweaks  = {
-        'run_turf'  : args.turf,
-        'agt_strat' : args.strat,
-        'run_domain': 'echo_%s' % args.strat,
+        'run_turf'      : args.turf,
+        'agt_strat'     : args.strat,
+        'run_sodpath'   : args.sod,
+        'run_domain'    : 'echo_%s' % args.strat,
     }
     logger.debug( 'agent: turf=%s strat=%s', args.turf, args.strat)
     with twkcx.Tweaks( **tweaks ):
@@ -183,8 +184,8 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=ivp_redi_fix
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=ivp_redi_fix --sod=c:\temp\sod.txt
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=ivp_redi_fix
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=ivp_redi_fix --sod=c:\temp\sod.txt
 '''

@@ -9,6 +9,7 @@ import zmq
 import json
 from   threading import Timer
 import robbie.tweak.value as twkval
+import robbie.util.exposure as utexp
 from   robbie.util.logging import logger
 import robbie.echo.stratutil as stratutil
 import robbie.util.filelogging as filelogging
@@ -22,6 +23,17 @@ def getOrderStateDomain(target, agent):
         return '%s-snk' % agent
     else:
         raise ValueError('Uknown target=%s' % target)
+
+def setSOD(agent, strat ):
+    path = twkval.getenv('run_sodpath')
+    if path is None:
+        logger.debug('basestrat.setSOD: No SOD')
+        return
+    exposure = utexp.loadFromCsv(path=path)
+    return utexp.uploadIntoStrip(
+            agent    = agent,
+            exposure = exposure,
+            strat    = strat )
 
 class BaseStrat(object):
 
@@ -159,7 +171,7 @@ class BaseStrat(object):
     def srcPostUpdate(self, action, data, mktPrice):
         pass
 
-    def _getTargetOrderState(self, target):
+    def getTargetOrderState(self, target):
         if target == 'SNK':
             orderstat = self._snkOrders.getOrderState()
         elif target == 'SRC':
@@ -190,7 +202,7 @@ class BaseStrat(object):
 
     def getCurrentPending( self, target, tag ):
         ''' '''
-        orderState = self._getTargetOrderState(target=target)
+        orderState = self.getTargetOrderState(target=target)
         ix  = orderState.getIxByTag( tag )
         return orderState.getPendingByIx( ix=ix )
 
@@ -198,19 +210,19 @@ class BaseStrat(object):
 
     def getCurrentState( self, target, where='all', which='pending', how='pandas'):
         ''' '''
-        orderState = self._getTargetOrderState(target=target)
+        orderState = self.getTargetOrderState(target=target)
         return orderState.getCurrentState(where=where, which=which, how=how)
 
     def getRealizedBySymbol(self, target, tag, shouldExist=True ):
         ''' '''
-        orderState = self._getTargetOrderState(target=target)
+        orderState = self.getTargetOrderState(target=target)
         return orderState.getRealizedByTag(tag=tag, shouldExist=shouldExist )
 
     getRealizedByOrderId = getRealizedBySymbol
 
     def getPendingBySymbol(self, target, symbol, side=None ):
         ''' '''
-        orderState = self._getTargetOrderState(target=target)
+        orderState = self.getTargetOrderState(target=target)
         l = orderState.getLongPendingByIx(tag=symbol )
         s = orderState.getShortPendingByIx(tag=symbol )
 
