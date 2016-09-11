@@ -5,13 +5,16 @@ DESCRIPTION : util.logging module
 '''
 
 import os
+import datetime
 import robbie.tweak.value as twkval
 import robbie.util.margot as margot
 from   robbie.util.logging import Logger, STD_TIMESTAMP_FORMAT, logger
 
-class FileLogger(Logger):
-    def __init__(self, root, name, attrs, flush=False, l=STD_TIMESTAMP_FORMAT, debug=True):
-        super(FileLogger,self).__init__(l=l)
+class FileLogger(object):
+    def __init__(self, root, name, attrs, flush=False, debug=True, l=STD_TIMESTAMP_FORMAT):
+        #super(FileLogger,self).__init__(l=l)
+        self._l     = l
+        self._d         = datetime.datetime
         self._fd    = None
         self._root  = root
 
@@ -28,6 +31,9 @@ class FileLogger(Logger):
         self._attrs = attrs
         args = dict( (n,n) for n in self._attrs)
         self._fd.write( self._format( self._timesign(), 'DEBUG', label='Name', args=args) )
+
+    def _timesign(self):
+        return self._d.now().strftime(self._l)
 
     def debug(self, label, args):
         self._fd.write( self._format( self._timesign(), 'DEBUG', label, args) )

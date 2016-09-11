@@ -10,10 +10,11 @@ import argparse
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
-from   robbie.util.logging import logger
 import robbie.echo.policy as stratpolicy
+import robbie.echo.basestrat as basestrat
 import robbie.echo.stratutil as stratutil
 from   robbie.echo.stratutil import STRATSTATE
+from   robbie.util.logging import logger, LoggingModes
 
 def register(context, regPort, agent, logName):
     regConn          = context.socket(zmq.REQ)
@@ -84,6 +85,10 @@ def run_agent():
         echoStrat = reflectstrat2.Strategy(agent=agent, policy=policy)
     else:
         raise ValueError('Unknown signalMode=%s' % signalMode)
+
+    sodPath = twkval.getenv('run_sodpath')
+    if sodPath:
+        basestrat.setSOD(agent=agent, strat=echoStrat )
 
     while True:
         try:
@@ -167,10 +172,13 @@ if __name__ == '__main__':
     '''
     -T turf
     -S strat
+    -L path
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument("-S", "--strat", help="strategy name", action="store")
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
+    parser.add_argument("-B", "--sod",  help="sod path", action="store")
+    parser.add_argument("-L", "--logpath",  help="log path", action="store")
     args    = parser.parse_args()
     tweaks  = {
         'run_turf'      : args.turf,
@@ -179,13 +187,19 @@ if __name__ == '__main__':
         'run_domain'    : 'echo_%s' % args.strat,
     }
     logger.debug( 'agent: turf=%s strat=%s', args.turf, args.strat)
+
+    if args.logpath:
+        logger.debug('switching to file logger path=%s', args.logpath)
+        logger.setMode(mode=LoggingModes.FILE, data=args.logpath)
+        logger.debug( 'agent: turf=%s strat=%s', args.turf, args.strat)
+
     with twkcx.Tweaks( **tweaks ):
         run_agent()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=ivp_redi_fix --sod=c:\temp\sod.txt
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO1 --turf=ivp_redi_fix --sod=c:\temp\sod.csv
 
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=ivp_redi_fix --sod=c:\temp\sod.txt
+c:\Python27\python2.7.exe robbie\agent\agent.py --strat=ECHO2 --turf=ivp_redi_fix --sod=c:\temp\sod.csv
 '''

@@ -21,7 +21,7 @@ import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
 import robbie.util.symboldb as symboldb
-from   robbie.util.logging import logger
+from   robbie.util.logging import logger, LoggingModes
 
 import robbie.echo.basestrat as basestrat
 import robbie.echo.orderstate as orderstate
@@ -454,7 +454,11 @@ if __name__ == '__main__':
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
+    parser.add_argument("-L", "--logpath",  help="log path", action="store")
     args    = parser.parse_args()
+    if args.logpath:
+        logger.setMode(mode=LoggingModes.FILE, data=args.logpath)
+
     turf    = args.turf
     tweaks  = {
         'run_turf'  : turf,

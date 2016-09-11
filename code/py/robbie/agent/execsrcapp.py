@@ -16,10 +16,10 @@ from   robbie.echo.stratutil import STRATSTATE
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
-from   robbie.util.logging import logger
 import robbie.execution.util as executil
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
+from   robbie.util.logging import logger, LoggingModes
 
 import robbie.util.pricestriputil as pricestriputil
 
@@ -222,12 +222,18 @@ if __name__ == '__main__':
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
+    parser.add_argument("-L", "--logpath",  help="log path", action="store")
     args    = parser.parse_args()
     turf    = args.turf
     logger.debug( 'agent: turf=%s', turf)
 
     fix_SrcConnConfig   = turfutil.get(turf=turf, component='fix_SrcConnConfig')
     fix_SinkConnConfig  = turfutil.get(turf=turf, component='fix_SinkConnConfig')
+
+    if args.logpath:
+        logger.debug('switching to file logger path=%s', args.logpath)
+        logger.setMode(mode=LoggingModes.FILE, data=args.logpath)
+        logger.debug( 'agent: turf=%s', turf)
 
     tweaks  = {
         'run_turf'          : turf,
@@ -241,9 +247,8 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=ivp_redi_fix
-
-cd C:\Users\ilya\GenericDocs\dev\quad\code\py
 c:\Python27\python2.7.exe robbie\app\fakebbg.py --turf=ivp_redi_fix
 
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+c:\Python27\python2.7.exe robbie\agent\execsrcapp.py --turf=ivp_redi_fix
 '''

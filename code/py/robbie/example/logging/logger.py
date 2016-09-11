@@ -2,19 +2,12 @@ import robbie.tweak.context as twkcx
 from   robbie.util.logging import logger
 import robbie.util.filelogging as filelogging
 
-def run():
-    tweaks = {'env_loggerDir':r'c:\temp\20160813'}
-    with twkcx.Tweaks(**tweaks):
-        logger.debug('start')
-        flogger = filelogging.FileLogger(name='test1', attrs=('a','b','c'), flush=True)
-
-        for x in xrange(100000):
-            flogger.debug(label='A',args={'a':1+x, 'b': 2+x, 'c': 3+float(x)/1000})
-
-        logger.debug('finish')
+def run2():
+    logger = filelogging.getFileLogger(domain='this_domain', user='this_user', session='this_session', name='this_name', attrs=('a','b','c','d'))
+    logger.debug('THIS', {'a':1, 'b':2, 'c':3, 'd':4 })
 
 if __name__ == '__main__':
-    run()
+    run2()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py

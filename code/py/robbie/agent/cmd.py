@@ -17,11 +17,11 @@ def run_cmd(cmd, agent, data):
     turf        = twkval.getenv('run_turf')
     context     = zmq.Context()
 
-    srcPort    = turfutil.get(turf=turf, component='communication', sub='SRC_CMD')['port_cmd']
+    srcPort     = turfutil.get(turf=turf, component='communication', sub='SRC_CMD')['port_cmd']
     srcCmd      = context.socket(zmq.REQ)
     srcCmd.connect ("tcp://localhost:%s" % srcPort)
 
-    snkPort    = turfutil.get(turf=turf, component='communication', sub='SNK_CMD')['port_cmd']
+    snkPort     = turfutil.get(turf=turf, component='communication', sub='SNK_CMD')['port_cmd']
     snkCmd      = context.socket(zmq.REQ)
     snkCmd.connect ("tcp://localhost:%s" % snkPort)
 
@@ -51,11 +51,16 @@ def run_cmd(cmd, agent, data):
         msg = srcCmd.recv()
         logger.debug("CMD: Received reply %s [%s]" % (srcPort, msg))
 
-    elif cmd == 'EXP':
-        import robbie.util.exposure as utex
+    elif cmd == 'SOD':
         path    = data
-        logger.debug("EXP: path", path)
-        exposure = utex.loadFromCsv(path)
+        agents  = turfutil.get(turf=turf, component='agents')
+        for agent in agents:
+            msg     = {'cmd': cmd, 'agent': agent, 'path': path }
+            msgOut  = json.dumps( msg )
+            logger.debug("SOD: path=%s", str(msg))
+            srcCmd.send(msgOut)
+            msgIn = srcCmd.recv()
+            logger.debug("SOD: Received reply %s [%s]" % (srcPort, msgIn))
 
     elif cmd == 'REDI':
         d     = {'cmd': cmd}

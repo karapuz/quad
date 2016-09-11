@@ -15,10 +15,10 @@ import robbie.util.pricestriputil as pricestriputil
 import robbie.turf.util as turfutil
 import robbie.tweak.value as twkval
 import robbie.tweak.context as twkcx
-from   robbie.util.logging import logger
 import robbie.execution.util as executil
 import robbie.execution.execsrclink as execsrclink
 import robbie.execution.messageadapt as messageadapt
+from   robbie.util.logging import logger, LoggingModes
 
 def run_execSink():
     context     = zmq.Context()
@@ -127,16 +127,23 @@ if __name__ == '__main__':
     '''
     parser      = argparse.ArgumentParser()
     parser.add_argument("-T", "--turf",  help="turf name", action="store")
+    parser.add_argument("-L", "--logpath",  help="log path", action="store")
     args        = parser.parse_args()
 
     turf        = args.turf
     fix_SinkConnConfig   = turfutil.get(turf=turf, component='fix_SinkConnConfig')
+
+    logger.debug( 'EXECSINKAPP: turf=%s', args.turf)
+    if args.logpath:
+        logger.debug('switching to file logger path=%s', args.logpath)
+        logger.setMode(mode=LoggingModes.FILE, data=args.logpath)
+        logger.debug( 'EXECSINKAPP: turf=%s', args.turf)
+
     tweaks  = {
         'run_turf'  : args.turf,
         'run_domain': 'echo_sink',
         'fix_SinkConnConfig' : fix_SinkConnConfig,
     }
-    logger.debug( 'EXECSINKAPP: turf=%s', args.turf)
     with twkcx.Tweaks( **tweaks ):
         run_execSink()
 

@@ -22,9 +22,17 @@ def component(logRoot, logName, python, prog, args):
         logger.debug( 'executing: %s' % str( python + prog + args ) )
         subprocess.call(python + prog + args, stdin=None, stdout=fdStdout, stderr=None, shell=False)
 
+def component2(textWidget, logRoot, logName, python, prog, args):
+    stdOut = os.path.join( logRoot, logName)
+    with open( stdOut, 'w' ) as fdStdout:
+        p = subprocess.Popen(python + prog + args,
+                             stderr=subprocess.PIPE)
+        for l in iter(p.stdout.readline, b''):
+            textWidget.append(l)
+            fdStdout.write(l)
+
 def run_argus():
     turf        = twkval.getenv('run_turf')
-    agt_comms   = turfutil.get(turf=turf, component='communication')
     agetnList   = turfutil.get(turf=turf, component='agents')
     argusConf   = turfutil.get(turf=turf, component='argus')
 
