@@ -2,41 +2,29 @@ from   robbie.util.logging import logger
 import robbie.example.other.ogma as ogma
 
 def run1():
-    ogmadb = ogma.Ogma(dirName=r'c:\temp\ogma1', coreName='db' )
-    logger.debug('start')
-    for i in xrange(1000000):
-        ogmadb.write({'a':1, 'b':2})
-    ogmadb.flush()
-    logger.debug('end')
-
-    ogmadb = ogma.Ogma(dirName=r'c:\temp\ogma10', coreName='db-noflush', options=[objstream.FLUSH_SESSION] )
-    logger.debug('start')
-    for i in xrange(10):
-        ogmadb.write({'a':1, 'b':2})
-    ogmadb.flush()
-    logger.debug('end')
-
-import numpy
-def run2():
-    ogmadb = ogma.Ogma(dirName=r'c:\temp\ogma1', coreName='db-numpy1', options=[ogma.FLUSH_SESSION] )
-    N = 1000000
-    n = 5
-    z = numpy.zeros(n)
-    logger.debug('session-flush start N=%d n=%d', N, n)
-    for i in xrange(N):
+    ogmadb = ogma.Ogma(dirName=r'c:\temp\ogma1', coreName='db-dict1', options=[ogma.FLUSH_SESSION] )
+    N = 10
+    zs = []
+    for x in xrange(N):
+        z = {'a':x, 'b':x+1}
+        zs.append(z)
+    logger.debug('session-flush start N=%d', N,)
+    for z in zs:
         ogmadb.write(z)
     ogmadb.flush()
     logger.debug('end')
 
-    ogmadb = ogma.Ogma(dirName=r'c:\temp\ogma1', coreName='db-numpy2' )
-    logger.debug('obj-flush start N=%d n=%d', N, n)
-    for i in xrange(N):
-        ogmadb.write(z)
-    ogmadb.flush()
+    ogmadb = ogma.Ogma(dirName=r'c:\temp\ogma1', coreName='db-dict1', mode='read' )
+    zs1 = []
+    for z in ogmadb:
+        zs1.append(z)
     logger.debug('end')
+    print zs1
+    print zs
+    assert zs1 == zs
 
 if __name__ == '__main__':
-    run2()
+    run1()
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
