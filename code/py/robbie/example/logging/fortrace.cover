@@ -1,0 +1,16 @@
+    1: import time
+       
+    1: def run():
+    6:     for ix,e in enumerate( xrange(5)):
+    5:         print ix,e
+    5:         time.sleep(1)
+       
+    1: if __name__ == '__main__':
+    1:     run()
+       
+       '''
+       python -m trace --count -C . somefile.py ...
+       
+       cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+       c:\Python27\python2.7.exe -m trace --count . robbie\example\logging\fortrace.py
+    1: '''
