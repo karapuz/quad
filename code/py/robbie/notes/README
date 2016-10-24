@@ -1,0 +1,8 @@
+Conversion to Qt5:
+
+    1. argus (now argus2)
+    2. agent (need to check)
+
+Startup:
+    app/argus2 - GUI demo (converted to Qt5)
+    app/argus  - current argus (need to check)
