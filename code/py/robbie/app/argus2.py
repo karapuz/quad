@@ -1,16 +1,17 @@
 '''
 AUTHOR      : ilya presman, 2016
-TYPE:       : lib
-DESCRIPTION : app.fakebbg module
+TYPE:       : app
+DESCRIPTION : app.argus2 module
 '''
 
 import os
 import sys
 import threading
 import subprocess
-from   PyQt4 import QtGui
-from   PyQt4.QtGui import QApplication
-from   PyQt4.QtGui import QDesktopWidget, QTextEdit
+
+from PyQt5.Qt import QApplication, QWidget, QVBoxLayout, QTableView, QIcon
+from PyQt5.Qt import QDesktopWidget, QTextEdit, QMainWindow, QAction, QTabWidget
+# from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant
 
 import argparse
 import robbie.turf.util as turfutil
@@ -36,17 +37,27 @@ def _panic(turf):
     subprocess.call(python + prog + args, stdin=None, stdout=None, stderr=None, shell=False)
     sys.exit()
 
-def component2(textWidget, logRoot, logName, python, prog, args):
-    stdOut = os.path.join( logRoot, logName)
-    with open( stdOut, 'w' ) as fdStdout:
-        p = subprocess.Popen(python + prog + args,
-                             stderr=subprocess.PIPE)
-        for l in iter(p.stdout.readline, b''):
-            textWidget.append(l)
-            fdStdout.write(l)
-            fdStdout.flush()
+# def component2(textWidget, logRoot, logName, python, prog, args, logpath):
+#     stdOut = os.path.join( logRoot, logName)
+#     with open( stdOut, 'w' ) as fdStdout:
+#         p = subprocess.Popen(python + prog + args,
+#                              stderr=subprocess.PIPE)
+#         for l in iter(p.stdout.readline, b''):
+#             textWidget.append(l)
+#             fdStdout.write(l)
+#             fdStdout.flush()
 
-class TopWindow(QtGui.QMainWindow):
+import time
+def component2(textWidget, logRoot, logName, python, prog, args, logpath):
+    p = subprocess.Popen(python + prog + args )
+    while not os.path.exists(logpath):
+        time.sleep(1)
+
+    with open( logpath, 'r' ) as fd:
+        for l in iter(fd.readline, b''):
+            textWidget.append(l)
+
+class TopWindow(QMainWindow):
 
     def __init__(self, table=None):
         super(TopWindow, self).__init__()
@@ -56,12 +67,12 @@ class TopWindow(QtGui.QMainWindow):
     def _init(self):
         import functools
         turf        = twkval.getenv('run_turf')
-        exitAction  = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)
+        exitAction  = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(_exit)
 
-        panigAction     = QtGui.QAction(QtGui.QIcon('exit.png'), '&Panic', self)
+        panigAction     = QAction(QIcon('exit.png'), '&Panic', self)
         panigAction.setShortcut('Ctrl+X')
         panigAction.setStatusTip('Panic')
         panigAction.triggered.connect(functools.partial(_panic, turf))
@@ -76,25 +87,27 @@ class TopWindow(QtGui.QMainWindow):
         self.setMinimumSize(dwX,dwY)
         self.setWindowTitle('Menubar')
 
-        top     = QtGui.QTabWidget()
-        prog    = [r'robbie\example\logging\teeapp.py']
+        top     = QTabWidget()
+        self.setCentralWidget(top)
+
+        # prog    = [r'robbie\example\logging\teeapp.py']
+        prog    = [r'robbie\example\logging\demoapp.py']
         python  = [r'c:\Python27\python2.7.exe']
-        args    = ['1>&2']
         self._texts     = []
         self._threads   = []
-        for ix in xrange(10):
-            t = QTextEdit()
+        for ix in xrange(3):
+            t       = QTextEdit()
+            logpath = r'c:\temp\log%d.txt' % ix
+            args   = [ '--logpath', logpath ]
             top.addTab(t,"Tab %s" % ix )
-            kwargs = dict(textWidget=t, logRoot=r'c:\temp', logName='log_%s.txt' % ix, python=python, prog=prog, args=args)
+            kwargs = dict(textWidget=t, logRoot=r'c:\temp', logName='log_%s.txt' % ix, python=python, prog=prog, args=args, logpath=logpath)
             thread = threading.Thread(target=component2, kwargs=kwargs)
             thread.start()
             self._threads.append( thread )
 
         #grid = QtGui.QGridLayout()
         #grid.setSpacing(5)
-
         #top.setLayout(grid)
-        self.setCentralWidget(top)
 
     def getTextWidget(self):
         return self._texts
@@ -119,5 +132,5 @@ if __name__ == '__main__':
 
 '''
 cd C:\Users\ilya\GenericDocs\dev\quad\code\py
-c:\python27\python.exe robbie\app\argus2.py --turf=ivp_redi_fix
+python robbie\app\argus2.py --turf=ivp_redi_fix
 '''

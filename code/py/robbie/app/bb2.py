@@ -8,10 +8,15 @@ import os
 import sys
 import time
 from   threading import Timer
-from   PyQt4 import QtGui
-from   PyQt4.QtCore import QAbstractTableModel, QVariant, Qt, QSize
-from   PyQt4.QtGui import QWidget, QTableView, QVBoxLayout, QApplication, QBrush, QColor
-from   PyQt4.QtGui import QDesktopWidget, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QTextEdit
+#from   PyQt4 import QtGui
+#from   PyQt4.QtCore import QAbstractTableModel, QVariant, Qt, QSize
+#from   PyQt4.QtGui import QWidget, QTableView, QVBoxLayout, QApplication, QBrush, QColor
+#from   PyQt4.QtGui import QDesktopWidget, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QTextEdit
+
+from PyQt5.Qt import QApplication, QWidget, QVBoxLayout, QTableView, QIcon, QColor, QBrush, QColor, QSize
+from PyQt5.Qt import QDesktopWidget, QTextEdit, QMainWindow, QAction, QTabWidget, QLineEdit, QPushButton, QGridLayout
+from PyQt5.QtCore import QAbstractTableModel, Qt, QVariant
+
 
 import zmq
 import json
@@ -281,7 +286,7 @@ def _panic(turf):
     _continue = False
     sys.exit()
 
-class TopWindow(QtGui.QMainWindow):
+class TopWindow(QMainWindow):
 
     def __init__(self, table):
         super(TopWindow, self).__init__()
@@ -291,12 +296,12 @@ class TopWindow(QtGui.QMainWindow):
     def _init(self):
         import functools
         turf        = twkval.getenv('run_turf')
-        exitAction  = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)
+        exitAction  = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(_exit)
 
-        panigAction     = QtGui.QAction(QtGui.QIcon('exit.png'), '&Panic', self)
+        panigAction     = QAction(QIcon('exit.png'), '&Panic', self)
         panigAction.setShortcut('Ctrl+X')
         panigAction.setStatusTip('Panic')
         panigAction.triggered.connect(functools.partial(_panic, turf))
@@ -318,7 +323,7 @@ class TopWindow(QtGui.QMainWindow):
         self._execButton.clicked.connect( buttonClicked )
         sinkRegister(sinkName='CmdLink', sink=self._cmdLine)
 
-        grid = QtGui.QGridLayout()
+        grid = QGridLayout()
         grid.setSpacing(5)
 
         grid.addWidget(self._table, 0, 0, 1, 10)
@@ -457,6 +462,7 @@ if __name__ == '__main__':
     parser.add_argument("-L", "--logpath",  help="log path", action="store")
     args    = parser.parse_args()
     if args.logpath:
+        logger.debug('switching to file logger path=%s', args.logpath)
         logger.setMode(mode=LoggingModes.FILE, data=args.logpath)
 
     turf    = args.turf
