@@ -6,3 +6,29 @@ Conversion to Qt5:
 Startup:
     app/argus2 - GUI demo (converted to Qt5)
     app/argus  - current argus (need to check)
+
+actual start:
+
+# activate conda environment quad
+activate quad
+
+# 1. argus
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+python robbie\app\argus.py --turf=ivp_redi_fix
+
+#    a) agent 1
+#    b) agent 2
+#    c) srcapp
+#    d) sinkapp
+#    e) bb2
+#    f) fakebbg
+
+# margot root
+# c:\users\ilya\GenericDocs\dev\data\margot
+# full root
+# logRoot=c:\users\ilya\GenericDocs\dev\data\margot\log\echo\ilya\20161026
+
+cd C:\Users\ilya\GenericDocs\dev\quad\code\py
+python robbie\agent\cmd.py --cmd=SEND --turf=ivp_redi_fix --data="{'action':'ORDER_TYPE_NEW','orderType':'2','qty':'-100','agent':'ECHO1','timeInForce':'0','symbol':'IBM','price':100}"
+
+c:\Python27\python2.7.exe robbie\agent\cmd.py --cmd=SEND --turf=ivp_redi_fix --data="{'action':'ORDER_TYPE_NEW','orderType':'2','qty':'100','agent':'ECHO1','timeInForce':'0','symbol':'IBM','price':100}"

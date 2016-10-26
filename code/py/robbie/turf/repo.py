@@ -37,7 +37,8 @@ _conf = {
     'ivp_redi_fix': {
         'signal': EXECUTION_MODE.NEW_FILL_CX,
         'argus': {
-            'python': [r'c:\Python27\python2.7.exe'],
+            # 'python': [r'c:\Python27\python2.7.exe'],
+            'python': ['python'],
 
             'components': ['bbg', 'srcexec', 'snkexec'],
 
